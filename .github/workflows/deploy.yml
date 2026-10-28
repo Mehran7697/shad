@@ -33,6 +33,14 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Verify build output
+        run: |
+          echo "=== dist/index.html ==="
+          cat dist/index.html
+          echo "=== dist contents ==="
+          ls -la dist
+          ls -la dist/assets
+
       - name: Upload build output
         uses: actions/upload-pages-artifact@v3
         with:
