@@ -81,7 +81,12 @@
 .verified { width: 15px; height: 15px; display: inline-grid; place-items: center; border-radius: 50%; color: white; background: #2b9fdf; }
 .unread { flex: none; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border-radius: 10px; font-size: 10px; color: white; background: var(--green); }
 .read-mark { color: var(--green); font-size: 11px; direction: ltr; }
-.empty { padding: 70px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); }
+.grade-tabs { background: white; border-bottom: 1px solid var(--line); }
+.grade-tabs-scroll { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding: 0 15px; align-items: center; }
+.grade-tabs-scroll::-webkit-scrollbar { display: none; }
+.grade-tabs-scroll button { flex: none; padding: 11px 14px; background: transparent; border: 0; border-bottom: 2.5px solid transparent; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; white-space: nowrap; transition: .17s; }
+.grade-tabs-scroll button.active { color: var(--green-dark); border-bottom-color: var(--green); }
+.grade-add { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--green-soft); color: var(--green-dark); border: 1px solid var(--line); cursor: pointer; margin-right: 4px; }
 .empty strong { color: var(--ink); }
 .empty span { font-size: 12px; }
 .fab { position: fixed; z-index: 8; bottom: calc(24px + env(safe-area-inset-bottom)); right: max(calc((100vw - 430px)/2 + 17px), 17px); width: 52px; height: 52px; border: 0; border-radius: 50%; padding: 0; background: var(--green); color: white; display: grid; place-items: center; box-shadow: 0 8px 23px rgb(17 156 120 / .3); }

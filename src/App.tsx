@@ -763,25 +763,51 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
 }
 
 function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
-  const [scores, setScores] = useState<Record<number, string>>({})
-  const vals = Object.values(scores).filter(v => v.trim() !== '')
+  const [scores, setScores] = useState<Record<string, Record<number, string>>>({})
+  const [gradeTypes, setGradeTypes] = useState<string[]>(['نمره'])
+  const [activeType, setActiveType] = useState('نمره')
+  const [showTypeSheet, setShowTypeSheet] = useState(false)
+  const availableTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی']
+  const currentScores = scores[activeType] || {}
+  const vals = Object.values(currentScores).filter(v => v.trim() !== '')
   const avg = vals.length ? (vals.reduce((a, b) => a + Number(b), 0) / vals.length).toFixed(1) : '—'
+  const addType = (t: string) => {
+    if (!gradeTypes.includes(t)) setGradeTypes([...gradeTypes, t])
+    setActiveType(t)
+    setShowTypeSheet(false)
+  }
   return <div className="screen inner-screen">
     <SubHeader screen="gradebook" back={() => navigate('classroom')} />
+    <div className="grade-tabs">
+      <div className="grade-tabs-scroll">
+        {gradeTypes.map(t => <button key={t} className={activeType === t ? 'active' : ''} onClick={() => setActiveType(t)}>{t}</button>)}
+        <button className="grade-add" onClick={() => setShowTypeSheet(true)} aria-label="افزودن نوع نمره"><Icon name="plus" size={16} /></button>
+      </div>
+    </div>
     <main className="inner-content">
       <div className="attendance-summary">
         <div><strong>{fa(28)}</strong><span>دانش‌آموز</span></div>
-        <div><strong className="green-text">{fa(avg)}</strong><span>میانگین ثبت‌شده</span></div>
+        <div><strong className="green-text">{fa(avg)}</strong><span>میانگین {activeType}</span></div>
         <div><strong>{fa(vals.length)}</strong><span>نمره ثبت‌شده</span></div>
       </div>
-      <div className="section-heading"><strong>نمرات · نیم‌ترم اول</strong><span>از {fa(20)}</span></div>
+      <div className="section-heading"><strong>{activeType} · نیم‌ترم اول</strong><span>از {fa(20)}</span></div>
       {students.map((name, i) => <div className="student" key={name}>
         <div className="student-avatar">{name[0]}</div>
         <strong>{name}</strong>
-        <input className="score-input" inputMode="numeric" placeholder="۲۰" value={fa(scores[i] ?? '')} onChange={e => setScores({ ...scores, [i]: toEn(e.target.value).replace(/[^\d]/g, '') })} />
+        <input className="score-input" inputMode="numeric" placeholder="۲۰" value={fa(currentScores[i] ?? '')} onChange={e => setScores({ ...scores, [activeType]: { ...(scores[activeType] || {}), [i]: toEn(e.target.value).replace(/[^\d]/g, '') } })} />
       </div>)}
     </main>
-    <div className="sticky-action"><button onClick={() => navigate('classroom')}>ثبت نمرات</button></div>
+    <div className="sticky-action"><button onClick={() => navigate('classroom')}>ثبت {activeType}</button></div>
+    {showTypeSheet && <div className="overlay" onClick={() => setShowTypeSheet(false)}>
+      <section className="bottom-sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <div className="sheet-title"><div><strong>افزودن نوع نمره</strong><span>نوع نمره را انتخاب کنید</span></div><IconButton icon="close" label="بستن" onClick={() => setShowTypeSheet(false)} /></div>
+        <div className="tool-grid">
+          {availableTypes.filter(t => !gradeTypes.includes(t)).map(t => <button key={t} onClick={() => addType(t)}><span><Icon name="plus" /></span><strong>{t}</strong></button>)}
+        </div>
+        {availableTypes.every(t => gradeTypes.includes(t)) && <div className="empty"><strong>همهٔ انواع نمره اضافه شده‌اند</strong></div>}
+      </section>
+    </div>}
   </div>
 }
 
