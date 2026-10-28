@@ -767,6 +767,7 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
   const [gradeTypes, setGradeTypes] = useState<string[]>(['نمره'])
   const [activeType, setActiveType] = useState('نمره')
   const [showTypeSheet, setShowTypeSheet] = useState(false)
+  const [history, setHistory] = useState<{ type: string; date: string; time: string; count: number }[]>([])
   const availableTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی']
   const currentScores = scores[activeType] || {}
   const vals = Object.values(currentScores).filter(v => v.trim() !== '')
@@ -776,8 +777,41 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
     setActiveType(t)
     setShowTypeSheet(false)
   }
+  const nowShamsi = () => {
+    const d = new Date()
+    // simple jalali-ish: use gregorian month mapping approximate; use fa digits
+    const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate()
+    // convert to jalali via standard algorithm
+    const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    let jy = (gm > 2) ? (gy + 1) : gy
+    let days = 355666 + (365 * gy) + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400) + gd + g_d_m[gm - 1]
+    let j_np = Math.floor(days / 12053)
+    days %= 12053
+    jy = 979 + (33 * j_np) + 4 * Math.floor(days / 1461)
+    days %= 1461
+    if (days >= 366) { jy += Math.floor((days - 1) / 365); days = (days - 1) % 365 }
+    const j_d_m = [0, 31, 62, 93, 124, 155, 186, 216, 246, 276, 305, 336]
+    let jm = 1, jd = 1
+    for (let i = 11; i >= 0; i--) { if (days >= j_d_m[i]) { jm = i + 2; jd = days - j_d_m[i] + 1; break } }
+    if (jm > 12) { jm -= 12; jy += 1 }
+    const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    return { date: `${fa(jy)}/${String(jm).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(jd).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`, time }
+  }
+  const handleRegister = () => {
+    if (vals.length === 0) return
+    const { date, time } = nowShamsi()
+    setHistory([{ type: activeType, date, time, count: vals.length }, ...history])
+    setScores({ ...scores, [activeType]: {} })
+  }
   return <div className="screen inner-screen">
     <SubHeader screen="gradebook" back={() => navigate('classroom')} />
+    {history.length > 0 && <div className="grade-history">
+      <div className="section-heading"><strong>تاریخچهٔ ثبت نمرات</strong><span>{fa(history.length)} مورد</span></div>
+      {history.map((h, i) => <div className="history-row" key={i}>
+        <span className="history-icon"><Icon name="chart" size={16} /></span>
+        <div><strong>{h.type}</strong><small>{h.date} · {h.time} · {fa(h.count)} دانش‌آموز</small></div>
+      </div>)}
+    </div>}
     <div className="grade-tabs">
       <div className="grade-tabs-scroll">
         {gradeTypes.map(t => <button key={t} className={activeType === t ? 'active' : ''} onClick={() => setActiveType(t)}>{t}</button>)}
@@ -797,7 +831,7 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
         <input className="score-input" inputMode="numeric" placeholder="۲۰" value={fa(currentScores[i] ?? '')} onChange={e => setScores({ ...scores, [activeType]: { ...(scores[activeType] || {}), [i]: toEn(e.target.value).replace(/[^\d]/g, '') } })} />
       </div>)}
     </main>
-    <div className="sticky-action"><button onClick={() => navigate('classroom')}>ثبت {activeType}</button></div>
+    <div className="sticky-action"><button onClick={handleRegister}>ثبت {activeType}</button></div>
     {showTypeSheet && <div className="overlay" onClick={() => setShowTypeSheet(false)}>
       <section className="bottom-sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />

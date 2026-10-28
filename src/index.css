@@ -81,7 +81,13 @@
 .verified { width: 15px; height: 15px; display: inline-grid; place-items: center; border-radius: 50%; color: white; background: #2b9fdf; }
 .unread { flex: none; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border-radius: 10px; font-size: 10px; color: white; background: var(--green); }
 .read-mark { color: var(--green); font-size: 11px; direction: ltr; }
-.grade-tabs { background: white; border-bottom: 1px solid var(--line); }
+.grade-history { padding: 12px 15px 0; }
+.history-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.history-row:last-child { border-bottom: 0; }
+.history-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--green-dark); background: var(--green-soft); flex: none; }
+.history-row > div { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.history-row > div > strong { font-size: 12px; }
+.history-row > div > small { font-size: 9px; color: var(--muted); }
 .grade-tabs-scroll { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding: 0 15px; align-items: center; }
 .grade-tabs-scroll::-webkit-scrollbar { display: none; }
 .grade-tabs-scroll button { flex: none; padding: 11px 14px; background: transparent; border: 0; border-bottom: 2.5px solid transparent; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; white-space: nowrap; transition: .17s; }
