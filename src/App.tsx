@@ -773,20 +773,38 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
   const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
   return <div className="screen inner-screen">
     <SubHeader screen="gradebook" back={() => navigate('classroom')} />
-    <div className="grade-filter">
-      <label className="field"><span>فیلتر تاریخ</span>
-        <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
-          <option value="">همه</option>
-          {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-      </label>
-    </div>
     <main className="inner-content">
-      <div className="section-heading"><strong>تاریخچهٔ ثبت نمرات</strong><span>{fa(filteredHistory.length)} مورد</span></div>
-      {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-row" key={i}>
-        <span className="history-icon"><Icon name="chart" size={16} /></span>
-        <div><strong>{h.type}</strong><small>{h.date} · {h.time}</small></div>
-      </div>) : <div className="empty"><Icon name="chart" size={34} /><strong>تاریخچه‌ای وجود ندارد</strong><span>با زدن روی دکمهٔ + نمرهٔ جدید ثبت کنید.</span></div>}
+      <div className="grade-summary-card">
+        <div className="grade-summary-item">
+          <strong>{fa(history.length)}</strong>
+          <span>ثبت کل</span>
+        </div>
+        <div className="grade-summary-item">
+          <strong>{fa(uniqueDates.length)}</strong>
+          <span>روزهای فعال</span>
+        </div>
+        <div className="grade-summary-item">
+          <strong>{fa(28)}</strong>
+          <span>دانش‌آموز</span>
+        </div>
+      </div>
+      <div className="grade-filter-row">
+        <label className="field grade-filter-field"><span>فیلتر تاریخ</span>
+          <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
+            <option value="">همهٔ تاریخ‌ها</option>
+            {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </label>
+      </div>
+      <div className="section-heading" style={{marginTop:8}}><strong>تاریخچهٔ ثبت نمرات</strong><span>{fa(filteredHistory.length)} مورد</span></div>
+      {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-card" key={i}>
+        <span className="history-icon"><Icon name="chart" size={18} /></span>
+        <div className="history-info">
+          <strong>{h.type}</strong>
+          <small>{h.date} · ساعت {h.time}</small>
+        </div>
+        <Icon name="chevron" size={14} />
+      </div>) : <div className="empty"><Icon name="chart" size={40} /><strong>تاریخچه‌ای وجود ندارد</strong><span>با زدن روی دکمهٔ + نمرهٔ جدید ثبت کنید.</span></div>}
     </main>
     <button className="fab" aria-label="ثبت نمرهٔ جدید" onClick={() => navigate('grade-register')}><Icon name="plus" /></button>
   </div>
@@ -870,10 +888,14 @@ function GradeRegister({ navigate }: { navigate: (s: Screen) => void }) {
             </select>
           </label>
         </div>
-        {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-row" key={i}>
-          <span className="history-icon"><Icon name="chart" size={16} /></span>
-          <div><strong>{h.type}</strong><small>{h.date} · {h.time}</small></div>
-        </div>) : <div className="empty"><strong>تاریخچه‌ای وجود ندارد</strong></div>}
+        {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-card" key={i}>
+          <span className="history-icon"><Icon name="chart" size={18} /></span>
+          <div className="history-info">
+            <strong>{h.type}</strong>
+            <small>{h.date} · ساعت {h.time}</small>
+          </div>
+          <Icon name="chevron" size={14} />
+        </div>) : <div className="empty"><Icon name="chart" size={40} /><strong>تاریخچه‌ای وجود ندارد</strong><span>با زدن روی دکمهٔ + نمرهٔ جدید ثبت کنید.</span></div>}
       </div>
     </main>
     <div className="sticky-action"><button onClick={handleRegister}>ثبت {activeType}</button></div>
