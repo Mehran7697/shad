@@ -209,7 +209,7 @@ function Messenger({ navigate }: { navigate: (screen: Screen) => void }) {
         </div>
         <Icon name="chevron" />
       </button>}
-      {filtered.map(c => <button className="conversation" key={c.name} onClick={() => navigate(c.type === 'دروس من' ? 'classroom' : 'chat')}>
+      {filtered.map(c => <button className="conversation" key={c.name} onClick={() => navigate('chat')}>
         <div className={`avatar ${c.color} ${c.icon ? 'iconed' : ''}`}>{c.icon ? <Icon name={c.icon} /> : c.initials}</div>
         <div className="conversation-copy"><div><strong>{c.name}{c.verified && <span className="verified"><Icon name="check" size={11} /></span>}</strong>{c.time && <time>{c.time}</time>}</div><div><p>{c.preview}</p>{c.badge ? <b className="unread">{c.badge}</b> : <span className="read-mark">✓✓</span>}</div></div>
       </button>)}
@@ -250,7 +250,7 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
         <button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button>
         <div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div>
         <div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>
-        {todayTab === 'امروز' ? <>{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('chat')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {28-i*3} دانش‌آموز</small></div><Icon name="chevron" /></button>)}</> : <>{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('classroom')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {28-i*3} دانش‌آموز</small></div><Icon name="chevron" /></button>)}</>}
+        {todayTab === 'امروز' ? <>{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('classroom')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {28-i*3} دانش‌آموز</small></div><Icon name="chevron" /></button>)}</> : <>{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('classroom')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {28-i*3} دانش‌آموز</small></div><Icon name="chevron" /></button>)}</>}
       </div>}
       {active === 'آموزشی' && <div className="school-home">
         <div className="display-banner">
