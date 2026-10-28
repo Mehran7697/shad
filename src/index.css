@@ -81,7 +81,11 @@
 .verified { width: 15px; height: 15px; display: inline-grid; place-items: center; border-radius: 50%; color: white; background: #2b9fdf; }
 .unread { flex: none; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border-radius: 10px; font-size: 10px; color: white; background: var(--green); }
 .read-mark { color: var(--green); font-size: 11px; direction: ltr; }
-.grade-history { padding: 12px 15px 0; }
+.grade-fixed-date { display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: var(--green-soft); color: var(--green-dark); border-bottom: 1px solid var(--line); }
+.grade-fixed-date strong { font-size: 14px; }
+.grade-fixed-date span { font-size: 12px; color: var(--muted); margin-right: auto; }
+.grade-filter { padding: 8px 15px 0; }
+.grade-filter .field { margin: 0; }
 .history-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .history-row:last-child { border-bottom: 0; }
 .history-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--green-dark); background: var(--green-soft); flex: none; }

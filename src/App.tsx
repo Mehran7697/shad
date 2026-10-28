@@ -18,6 +18,7 @@ type Screen =
   | 'call'
   | 'classroom'
   | 'gradebook'
+  | 'grade-register'
   | 'reports'
   | 'auth'
 
@@ -516,6 +517,7 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
   assignments: { title: 'تکالیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   gradebook: { title: 'دفتر نمره', subtitle: 'علوم تجربی · نیم‌ترم اول' },
+  'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
 function SubHeader({ screen, back }: { screen: Screen; back: () => void }) {
@@ -762,12 +764,41 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
   </div>
 }
 
+let gradeHistoryStore: { type: string; date: string; time: string }[] = []
+
 function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
+  const [history] = useState(gradeHistoryStore)
+  const [filterDate, setFilterDate] = useState('')
+  const uniqueDates = Array.from(new Set(history.map(h => h.date)))
+  const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
+  return <div className="screen inner-screen">
+    <SubHeader screen="gradebook" back={() => navigate('classroom')} />
+    <div className="grade-filter">
+      <label className="field"><span>فیلتر تاریخ</span>
+        <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
+          <option value="">همه</option>
+          {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      </label>
+    </div>
+    <main className="inner-content">
+      <div className="section-heading"><strong>تاریخچهٔ ثبت نمرات</strong><span>{fa(filteredHistory.length)} مورد</span></div>
+      {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-row" key={i}>
+        <span className="history-icon"><Icon name="chart" size={16} /></span>
+        <div><strong>{h.type}</strong><small>{h.date} · {h.time}</small></div>
+      </div>) : <div className="empty"><Icon name="chart" size={34} /><strong>تاریخچه‌ای وجود ندارد</strong><span>با زدن روی دکمهٔ + نمرهٔ جدید ثبت کنید.</span></div>}
+    </main>
+    <button className="fab" aria-label="ثبت نمرهٔ جدید" onClick={() => navigate('grade-register')}><Icon name="plus" /></button>
+  </div>
+}
+
+function GradeRegister({ navigate }: { navigate: (s: Screen) => void }) {
   const [scores, setScores] = useState<Record<string, Record<number, string>>>({})
   const [gradeTypes, setGradeTypes] = useState<string[]>(['نمره'])
   const [activeType, setActiveType] = useState('نمره')
   const [showTypeSheet, setShowTypeSheet] = useState(false)
-  const [history, setHistory] = useState<{ type: string; date: string; time: string; count: number }[]>([])
+  const [history, setHistory] = useState(gradeHistoryStore)
+  const [filterDate, setFilterDate] = useState('')
   const availableTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی']
   const currentScores = scores[activeType] || {}
   const vals = Object.values(currentScores).filter(v => v.trim() !== '')
@@ -779,9 +810,7 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
   }
   const nowShamsi = () => {
     const d = new Date()
-    // simple jalali-ish: use gregorian month mapping approximate; use fa digits
     const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate()
-    // convert to jalali via standard algorithm
     const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
     let jy = (gm > 2) ? (gy + 1) : gy
     let days = 355666 + (365 * gy) + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400) + gd + g_d_m[gm - 1]
@@ -797,21 +826,23 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
     const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     return { date: `${fa(jy)}/${String(jm).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(jd).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`, time }
   }
+  const { date: nowDate, time: nowTime } = nowShamsi()
   const handleRegister = () => {
     if (vals.length === 0) return
-    const { date, time } = nowShamsi()
-    setHistory([{ type: activeType, date, time, count: vals.length }, ...history])
+    const entry = { type: activeType, date: nowDate, time: nowTime }
+    gradeHistoryStore = [entry, ...gradeHistoryStore]
+    setHistory(gradeHistoryStore)
     setScores({ ...scores, [activeType]: {} })
   }
+  const uniqueDates = Array.from(new Set(history.map(h => h.date)))
+  const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={() => navigate('classroom')} />
-    {history.length > 0 && <div className="grade-history">
-      <div className="section-heading"><strong>تاریخچهٔ ثبت نمرات</strong><span>{fa(history.length)} مورد</span></div>
-      {history.map((h, i) => <div className="history-row" key={i}>
-        <span className="history-icon"><Icon name="chart" size={16} /></span>
-        <div><strong>{h.type}</strong><small>{h.date} · {h.time} · {fa(h.count)} دانش‌آموز</small></div>
-      </div>)}
-    </div>}
+    <SubHeader screen="grade-register" back={() => navigate('gradebook')} />
+    <div className="grade-fixed-date">
+      <Icon name="calendar" size={16} />
+      <strong>{nowDate}</strong>
+      <span>{nowTime}</span>
+    </div>
     <div className="grade-tabs">
       <div className="grade-tabs-scroll">
         {gradeTypes.map(t => <button key={t} className={activeType === t ? 'active' : ''} onClick={() => setActiveType(t)}>{t}</button>)}
@@ -822,7 +853,6 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
       <div className="attendance-summary">
         <div><strong>{fa(28)}</strong><span>دانش‌آموز</span></div>
         <div><strong className="green-text">{fa(avg)}</strong><span>میانگین {activeType}</span></div>
-        <div><strong>{fa(vals.length)}</strong><span>نمره ثبت‌شده</span></div>
       </div>
       <div className="section-heading"><strong>{activeType} · نیم‌ترم اول</strong><span>از {fa(20)}</span></div>
       {students.map((name, i) => <div className="student" key={name}>
@@ -830,6 +860,21 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
         <strong>{name}</strong>
         <input className="score-input" inputMode="numeric" placeholder="۲۰" value={fa(currentScores[i] ?? '')} onChange={e => setScores({ ...scores, [activeType]: { ...(scores[activeType] || {}), [i]: toEn(e.target.value).replace(/[^\d]/g, '') } })} />
       </div>)}
+      <div className="grade-history" style={{marginTop:16}}>
+        <div className="section-heading"><strong>تاریخچه</strong><span>{fa(filteredHistory.length)} مورد</span></div>
+        <div className="grade-filter">
+          <label className="field"><span>فیلتر تاریخ</span>
+            <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
+              <option value="">همه</option>
+              {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </label>
+        </div>
+        {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-row" key={i}>
+          <span className="history-icon"><Icon name="chart" size={16} /></span>
+          <div><strong>{h.type}</strong><small>{h.date} · {h.time}</small></div>
+        </div>) : <div className="empty"><strong>تاریخچه‌ای وجود ندارد</strong></div>}
+      </div>
     </main>
     <div className="sticky-action"><button onClick={handleRegister}>ثبت {activeType}</button></div>
     {showTypeSheet && <div className="overlay" onClick={() => setShowTypeSheet(false)}>
@@ -970,6 +1015,7 @@ export default function App() {
     {screen === 'attendance' && <Attendance navigate={navigate}/>}
     {screen === 'classroom' && <Classroom navigate={navigate}/>}
     {screen === 'gradebook' && <Gradebook navigate={navigate}/>}
+    {screen === 'grade-register' && <GradeRegister navigate={navigate}/>}
     {screen === 'reports' && <Reports navigate={navigate}/>}
     {screen === 'auth' && <Auth navigate={navigate}/>}
     {['classes','schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate}/>}
