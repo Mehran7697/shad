@@ -231,7 +231,32 @@ function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Scree
 
 function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
   const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'آموزشی' | 'سکوی آموزش'>('مدرسه من')
+const [heroIndex, setHeroIndex] = useState(0)
 
+const heroSlides = [
+  {
+    title: 'علوم تجربی · پایه نهم',
+    students: '۲۸ دانش‌آموز',
+    image: `${import.meta.env.BASE_URL}book-cover.png`,
+  },
+  {
+    title: 'ریاضی · پایه نهم',
+    students: '۲۸ دانش‌آموز',
+    image: `${import.meta.env.BASE_URL}math-book-cover.png`,
+  },
+  {
+    title: 'فارسی · پایه نهم',
+    students: '۲۸ دانش‌آموز',
+    image: `${import.meta.env.BASE_URL}persian-book-cover.png`,
+  },
+]
+
+const subjects = [
+  { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
+  { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
+  { name: 'فارسی', image: `${import.meta.env.BASE_URL}persian-book-cover.png` },
+  { name: 'عربی', image: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
+]
   return <div className="screen" dir="rtl">
     <div className="msg-header">
       <QuickLinks navigate={navigate} active="آموزش" />
@@ -247,22 +272,65 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
         </div>
       </div>}
       {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
-        <button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button>
-        <div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div>
-        <div className="section-heading" style={{marginTop:10}}><strong>برنامه کلاسی</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('schedule')}>مشاهده همه</button></div>
-        {[
-          { t: 'علوم تجربی · پایه نهم', time: '۰۹:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
-          { t: 'ریاضی · پایه نهم', time: '۱۱:۰۰', img: `${import.meta.env.BASE_URL}math-book-cover.png` },
-          { t: 'عربی · پایه نهم', time: '۱۳:۰۰', img: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
-          { t: 'فارسی · پایه نهم', time: '۱۵:۰۰', img: `${import.meta.env.BASE_URL}persian-book-cover.png` },
-          { t: 'آمادگی دفاعی · پایه نهم', time: '۱۶:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
-        ].map((x)=><button className="lesson-banner" key={x.t} onClick={() => navigate('classroom')}>
-          <div className="lesson-banner-content">
-            <strong>{x.t}</strong>
-            <span>ساعت برگزاری: {x.time}</span>
-          </div>
-          <img className="lesson-banner-img" src={x.img} alt={x.t} />
-        </button>)}
+        <button className="calendar-banner"
+<button
+  className="calendar-banner"
+  onClick={() => navigate('schedule')}
+>
+  <div>
+    <strong>برنامه کلاسی و تقویم</strong>
+    <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
+  </div>
+  <span className="banner-cta">مشاهده</span>
+</button>
+
+<div className="hero-carousel">
+  <div className="hero-card">
+    <div>
+      <small>کلاس بعدی · ۲۵ دقیقه دیگر</small>
+      <strong>{heroSlides[heroIndex].title}</strong>
+      <span>{heroSlides[heroIndex].students}</span>
+      <button onClick={() => navigate('classroom')}>
+        ورود به کلاس
+      </button>
+    </div>
+
+    <img
+      className="hero-book"
+      src={heroSlides[heroIndex].image}
+      alt={heroSlides[heroIndex].title}
+    />
+  </div>
+
+  <div className="hero-dots">
+    {heroSlides.map((slide, index) => (
+      <button
+        key={slide.title}
+        className={heroIndex === index ? 'active' : ''}
+        onClick={() => setHeroIndex(index)}
+        aria-label={`نمایش ${slide.title}`}
+      />
+    ))}
+  </div>
+</div>
+
+<div className="section-heading subjects-heading">
+  <strong>دروس من</strong>
+</div>
+
+<div className="subjects-scroll">
+  {subjects.map((subject) => (
+    <button
+      className="subject-card"
+      key={subject.name}
+      onClick={() => navigate('classroom')}
+    >
+      <img src={subject.image} alt={subject.name} />
+      <strong>{subject.name}</strong>
+    </button>
+  ))}
+</div>
+
         <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
