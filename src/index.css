@@ -532,18 +532,18 @@
 
 /* Horizontal subjects list */
 .subjects-heading {
-  margin-top: 14px !important;
-  margin-bottom: 10px;
+  margin-top: 3.5px !important;
+  margin-bottom: 2.5px;
   color: var(--green);
 }
 
 .subjects-scroll {
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: 3px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 3px 0 12px;
+  padding: 0.75px 0 3px;
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
@@ -558,12 +558,12 @@
   flex: 0 0 105px;
   min-width: 105px;
   height: 130px;
-  padding: 10px 8px;
+  padding: 2.5px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 2.25px;
   border: 1px solid var(--line);
   border-radius: 15px;
   background: white;
@@ -590,12 +590,12 @@
 .subjects-section {
   background: var(--green);
   border-radius: 18px;
-  padding: 16px 12px;
-  margin-top: 14px;
+  padding: 4px 3px;
+  margin-top: 3.5px;
 }
 
 .subjects-heading {
-  margin: 0 0 12px !important;
+  margin: 0 0 3px !important;
   color: white;
 }
 
@@ -607,10 +607,10 @@
 .subjects-scroll {
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: 3px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 3px 0 8px;
+  padding: 0.75px 0 2px;
   scrollbar-width: none;
   direction: rtl;
 }
@@ -623,12 +623,12 @@
   flex: 0 0 105px;
   min-width: 105px;
   height: 130px;
-  padding: 10px 8px;
+  padding: 2.5px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 2.25px;
   border: none;
   border-radius: 13px;
   background: transparent;
