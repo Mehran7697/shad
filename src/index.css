@@ -646,3 +646,10 @@
   font-size: 11px;
   white-space: nowrap;
 }
+
+/* Full-width hero banner: extend to both edges of the content area */
+.section-content > .hero-card {
+  width: calc(100% + 30px);
+  margin-inline: -15px;
+  border-radius: 0;
+}
