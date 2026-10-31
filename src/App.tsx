@@ -538,7 +538,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
 
 const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> = {
   materials: { title: 'جزوه‌ها و منابع', subtitle: 'کلاس علوم تجربی' },
-  assignment: { title: 'ایجاد تکلیف', subtitle: 'فعالیت جدید برای کلاس' },
+  assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   exam: { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
   assignments: { title: 'تکالیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
@@ -794,15 +794,178 @@ function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBa
 }
 
 function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const [published, setPublished] = useState(false)
-  return <div className="screen inner-screen"><SubHeader screen="assignment" back={goBack} /><main className="inner-content form-page">
-    <FormField label="عنوان تکلیف" placeholder="مثلاً تمرین فصل سوم" />
-    <label className="field"><span>توضیحات</span><textarea rows={4} placeholder="توضیحات و راهنمای انجام تکلیف..." /></label>
-    <button className="upload"><Icon name="paperclip" /><div><strong>افزودن فایل</strong><span>PDF، تصویر یا فایل متنی</span></div><Icon name="plus" /></button>
-    <label className="field"><span>مهلت تحویل</span><div className="two-fields"><select><option value="">تاریخ</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select><input type="time" /></div></label>
-    <div className="switch-row"><div><strong>نمایش وضعیت تحویل</strong><span>پیشرفت دانش‌آموزان را دنبال کنید</span></div><button className="switch active" aria-label="نمایش وضعیت تحویل"><i /></button></div>
-    <div className="progress-preview"><div><span>وضعیت کلاس</span><strong>۰ از ۲۸</strong></div><div className="progress"><i /></div><small>پس از انتشار، وضعیت تحویل اینجا نمایش داده می‌شود.</small></div>
-  </main><div className="sticky-action"><button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>{published ? <><Icon name="check" /> تکلیف منتشر شد</> : 'انتشار تکلیف'}</button></div></div>
+  const assignmentMeta = {
+    title: 'تمرین فصل سوم',
+    description: 'لطفاً سوالات صفحهٔ ۴۲ تا ۴۵ کتاب علوم را حل کنید و فایل پاسخ را ارسال نمایید. در صورت نیاز می‌توانید توضیح صوتی هم ضمیمه کنید.',
+    deadline: 'دوشنبه، ساعت ۲۰:۰۰',
+    file: { name: 'تمرین فصل سوم علوم.pdf', size: '۲٫۴ مگابایت' },
+    voice: '۰:۳۷',
+  }
+
+  const initialRows = students.map((name, i) => ({
+    name,
+    status: i % 3 === 0 ? 'انتظار' : 'تحویل',
+    file: i % 3 === 0 ? '' : `پاسخ_${name.split(' ')[0]}.pdf`,
+    score: '',
+    feedback: '',
+    hasVoiceFeedback: false,
+  }))
+
+  const [rows, setRows] = useState(initialRows)
+  const [activeVoice, setActiveVoice] = useState<number | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const submitted = rows.filter(r => r.status === 'تحویل').length
+  const graded = rows.filter(r => r.score.trim() !== '').length
+
+  const updateRow = (index: number, patch: Partial<(typeof rows)[0]>) => {
+    setRows(prev => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)))
+  }
+
+  const exportZip = () => {
+    setToast('در حال آماده‌سازی فایل ZIP...')
+    setTimeout(() => setToast('خروجی ZIP آماده شد (شبیه‌سازی)'), 900)
+    setTimeout(() => setToast(null), 2200)
+  }
+
+  const saveAll = () => {
+    setSaving(true)
+    setToast('بازخورد و نمرات ذخیره شد')
+    setTimeout(() => {
+      setSaving(false)
+      setToast(null)
+    }, 1400)
+  }
+
+  return <div className="screen inner-screen">
+    <SubHeader screen="assignment" back={goBack} />
+    <main className="inner-content">
+      <section className="assignment-detail-card">
+        <div className="assignment-detail-head">
+          <span className="resource-icon green"><Icon name="book" /></span>
+          <div>
+            <strong>{assignmentMeta.title}</strong>
+            <small>علوم تجربی · کلاس ۹۰۱</small>
+          </div>
+        </div>
+        <p className="assignment-desc">{assignmentMeta.description}</p>
+        <div className="assignment-meta-row">
+          <span><Icon name="clock" size={14} /> مهلت: {assignmentMeta.deadline}</span>
+          <span>{fa(submitted)} از {fa(students.length)} تحویل</span>
+        </div>
+        <div className="assignment-assets">
+          <button type="button" className="asset-chip">
+            <Icon name="file" size={16} />
+            <span>
+              <strong>{assignmentMeta.file.name}</strong>
+              <small>{assignmentMeta.file.size}</small>
+            </span>
+          </button>
+          <button type="button" className="asset-chip voice-chip">
+            <Icon name="mic" size={16} />
+            <span>
+              <strong>توضیح صوتی معلم</strong>
+              <small>{assignmentMeta.voice}</small>
+            </span>
+          </button>
+        </div>
+        <button type="button" className="export-zip-btn" onClick={exportZip}>
+          <Icon name="file" size={16} />
+          خروجی همه فایل‌ها (ZIP)
+        </button>
+      </section>
+
+      <div className="section-heading" style={{ marginTop: 16 }}>
+        <strong>لیست دانش‌آموزان</strong>
+        <span>{fa(graded)} نمره‌داده‌شده</span>
+      </div>
+
+      <div className="assignment-table-wrap">
+        <table className="assignment-table">
+          <thead>
+            <tr>
+              <th>دانش‌آموز</th>
+              <th>وضعیت</th>
+              <th>فایل</th>
+              <th>نمره</th>
+              <th>بازخورد</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={row.name}>
+                <td>
+                  <div className="assignment-student-cell">
+                    <div className="student-avatar">{row.name[0]}</div>
+                    <strong>{row.name}</strong>
+                  </div>
+                </td>
+                <td>
+                  <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
+                </td>
+                <td>
+                  {row.file ? (
+                    <button type="button" className="file-link" title={row.file}>
+                      <Icon name="file" size={14} />
+                      <span>فایل</span>
+                    </button>
+                  ) : (
+                    <span className="muted-dash">—</span>
+                  )}
+                </td>
+                <td>
+                  <input
+                    className="score-input compact"
+                    inputMode="numeric"
+                    placeholder="—"
+                    disabled={row.status !== 'تحویل'}
+                    value={row.score ? fa(row.score) : ''}
+                    onChange={e => updateRow(i, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
+                  />
+                </td>
+                <td>
+                  <div className="feedback-cell">
+                    <input
+                      className="feedback-input"
+                      placeholder="متن بازخورد..."
+                      disabled={row.status !== 'تحویل'}
+                      value={row.feedback}
+                      onChange={e => updateRow(i, { feedback: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      className={`voice-feedback-btn ${row.hasVoiceFeedback || activeVoice === i ? 'active' : ''}`}
+                      disabled={row.status !== 'تحویل'}
+                      aria-label="بازخورد صوتی"
+                      onClick={() => {
+                        if (activeVoice === i) {
+                          setActiveVoice(null)
+                          updateRow(i, { hasVoiceFeedback: true })
+                          setToast('بازخورد صوتی ذخیره شد')
+                          setTimeout(() => setToast(null), 1200)
+                        } else {
+                          setActiveVoice(i)
+                        }
+                      }}
+                    >
+                      <Icon name="mic" size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </main>
+    <div className="sticky-action">
+      <button onClick={saveAll} disabled={saving}>
+        {saving ? <><Icon name="check" /> ذخیره شد</> : 'ذخیره نمرات و بازخوردها'}
+      </button>
+    </div>
+    {toast && <div className="toast">{toast}</div>}
+  </div>
 }
 
 function Exam({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
