@@ -187,7 +187,7 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => navigate(item.screen)}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
-function Messenger({ navigate }: { navigate: (screen: Screen) => void }) {
+function Messenger({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
   const [started] = useState(classStarted)
   const [filter, setFilter] = useState('همه')
   const filtered = filter === 'همه' ? messengerChats : filter === 'دروس من' ? messengerChats.filter(c => c.type === 'دروس من') : messengerChats.filter(c => c.type === filter)
@@ -227,7 +227,7 @@ function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Scree
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'مدرسه من' || item.label === 'خانه' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
-function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
+function MySchool({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
   const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'سکوی آموزش'>('مدرسه من')
 const subjects = [
   { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
@@ -304,7 +304,7 @@ const subjects = [
 
 let classStarted = false
 
-function Chat({ navigate }: { navigate: (screen: Screen) => void }) {
+function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
   const [sheet, setSheet] = useState<'tools' | 'attach' | null>(null)
   const [started, setStarted] = useState(classStarted)
   const [message, setMessage] = useState('')
@@ -357,7 +357,7 @@ function Chat({ navigate }: { navigate: (screen: Screen) => void }) {
   }
   return <div className="screen chat-screen">
     <header className="chat-header">
-      <IconButton icon="chevron" label="بازگشت" onClick={() => navigate('home')} />
+      <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <Avatar item={conversations[0]} />
       <button className="chat-person" onClick={() => navigate('classroom')}>
         <strong>کلاس تجربی<span className="verified"><Icon name="check" size={11} /></span></strong>
@@ -500,14 +500,14 @@ function Chat({ navigate }: { navigate: (screen: Screen) => void }) {
   </div>
 }
 
-function Conversation({ navigate }: { navigate: (screen: Screen) => void }) {
+function Conversation({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState<string[]>([])
   const send = () => { if (message.trim()) { setSent([...sent, message]); setMessage('') } }
   const chat = messengerChats[0]
   return <div className="screen chat-screen conversation-light" dir="rtl">
     <header className="chat-header">
-      <IconButton icon="chevron" label="بازگشت" onClick={() => navigate('messenger')} />
+      <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <div className={`avatar ${chat.color} ${chat.icon ? 'iconed' : ''}`}>{chat.icon ? <Icon name={chat.icon} /> : chat.initials}</div>
       <button className="chat-person">
         <strong>{chat.name}{chat.verified && <span className="verified"><Icon name="check" size={11} /></span>}</strong>
@@ -555,7 +555,7 @@ function FormField({ label, placeholder, type = 'text' }: { label: string; place
   return <label className="field"><span>{label}</span><input type={type} placeholder={placeholder} /></label>
 }
 
-function Materials({ navigate }: { navigate: (s: Screen) => void }) {
+function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
   const items = [
     {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf'},
@@ -566,7 +566,7 @@ function Materials({ navigate }: { navigate: (s: Screen) => void }) {
   ]
   const filtered = filter === 'all' ? items : items.filter(x => x.type === filter)
   const labels = {all:'همه', pdf:'PDF', video:'ویدیو', image:'تصویر', audio:'صدا', text:'متن'} as const
-  return <div className="screen inner-screen"><SubHeader screen="materials" back={() => navigate('classroom')} /><main className="inner-content">
+  return <div className="screen inner-screen"><SubHeader screen="materials" back={goBack} /><main className="inner-content">
     <div className="search-box"><Icon name="search" /><input placeholder="جست‌وجو در جزوه‌ها و منابع" /></div>
     <div className="chips compact scrollable">{(['all','pdf','video','image','audio','text'] as const).map((k) => <button key={k} className={filter===k?'active':''} onClick={()=>setFilter(k)}>{labels[k]}</button>)}</div>
     <div className="section-heading"><strong>این هفته</strong><span>{String(filtered.length).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d])} مورد</span></div>
@@ -576,7 +576,7 @@ function Materials({ navigate }: { navigate: (s: Screen) => void }) {
 }
 
 
-function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
+function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const weekDays = [
     'شنبه',
     'یکشنبه',
@@ -668,7 +668,7 @@ function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
    <div className="screen inner-screen">
       <SubHeader
         screen="assignments"
-        back={() => navigate('classroom')}
+        back={goBack}
       />
 
       <main className="inner-content">
@@ -793,20 +793,20 @@ function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
   )
 }
 
-function Assignment({ navigate }: { navigate: (s: Screen) => void }) {
+function Assignment({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [published, setPublished] = useState(false)
-  return <div className="screen inner-screen"><SubHeader screen="assignment" back={() => navigate('chat')} /><main className="inner-content form-page">
+  return <div className="screen inner-screen"><SubHeader screen="assignment" back={goBack} /><main className="inner-content form-page">
     <FormField label="عنوان تکلیف" placeholder="مثلاً تمرین فصل سوم" />
     <label className="field"><span>توضیحات</span><textarea rows={4} placeholder="توضیحات و راهنمای انجام تکلیف..." /></label>
     <button className="upload"><Icon name="paperclip" /><div><strong>افزودن فایل</strong><span>PDF، تصویر یا فایل متنی</span></div><Icon name="plus" /></button>
     <label className="field"><span>مهلت تحویل</span><div className="two-fields"><select><option value="">تاریخ</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select><input type="time" /></div></label>
     <div className="switch-row"><div><strong>نمایش وضعیت تحویل</strong><span>پیشرفت دانش‌آموزان را دنبال کنید</span></div><button className="switch active" aria-label="نمایش وضعیت تحویل"><i /></button></div>
     <div className="progress-preview"><div><span>وضعیت کلاس</span><strong>۰ از ۲۸</strong></div><div className="progress"><i /></div><small>پس از انتشار، وضعیت تحویل اینجا نمایش داده می‌شود.</small></div>
-  </main><div className="sticky-action"><button onClick={() => { setPublished(true); setTimeout(() => navigate('chat'), 900) }}>{published ? <><Icon name="check" /> تکلیف منتشر شد</> : 'انتشار تکلیف'}</button></div></div>
+  </main><div className="sticky-action"><button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>{published ? <><Icon name="check" /> تکلیف منتشر شد</> : 'انتشار تکلیف'}</button></div></div>
 }
 
-function Exam({ navigate }: { navigate: (s: Screen) => void }) {
-  return <div className="screen inner-screen"><SubHeader screen="exam" back={() => navigate('chat')} /><main className="inner-content form-page">
+function Exam({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  return <div className="screen inner-screen"><SubHeader screen="exam" back={goBack} /><main className="inner-content form-page">
     <FormField label="عنوان آزمون" placeholder="مثلاً آزمون میان‌ترم علوم" />
     <div className="section-heading"><strong>پرسش‌ها</strong><span>۱ پرسش</span></div>
     <section className="question-card"><div><b>۱</b><span>چهارگزینه‌ای</span><IconButton icon="more" label="بیشتر" /></div><input placeholder="متن پرسش را بنویسید..." />{['گزینه اول', 'گزینه دوم'].map((x,i) => <label className="option" key={x}><input type="radio" name="answer" defaultChecked={i === 0} /><input placeholder={x} /></label>)}<button className="add-option"><Icon name="plus" /> افزودن گزینه</button></section>
@@ -816,13 +816,13 @@ function Exam({ navigate }: { navigate: (s: Screen) => void }) {
 }
 
 const students = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
-function Attendance({ navigate }: { navigate: (s: Screen) => void }) {
+function Attendance({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [status, setStatus] = useState<Record<number, string>>({})
-  return <div className="screen inner-screen"><SubHeader screen="attendance" back={() => navigate('chat')} /><main className="inner-content">
+  return <div className="screen inner-screen"><SubHeader screen="attendance" back={goBack} /><main className="inner-content">
     <div className="attendance-summary"><div><strong>۲۸</strong><span>دانش‌آموز</span></div><div><strong className="green-text">{Object.values(status).filter(x=>x==='حاضر').length}</strong><span>حاضر</span></div><div><strong className="red-text">{Object.values(status).filter(x=>x==='غایب').length}</strong><span>غایب</span></div></div>
     <div className="section-heading"><strong>فهرست دانش‌آموزان</strong><button onClick={() => setStatus(Object.fromEntries(students.map((_, i) => [i, 'حاضر'])))}>همه حاضر</button></div>
     {students.map((name, i) => <div className="student" key={name}><div className="student-avatar">{name[0]}</div><strong>{name}</strong><div>{['حاضر','غایب','تأخیر'].map(s => <button key={s} className={`${s} ${status[i]===s?'active':''}`} onClick={() => setStatus({...status,[i]:s})}>{s}</button>)}</div></div>)}
-  </main><div className="sticky-action"><button onClick={() => navigate('chat')}>ثبت حضور و غیاب</button></div></div>
+  </main><div className="sticky-action"><button onClick={goBack}>ثبت حضور و غیاب</button></div></div>
 }
 
 const scheduleItems = [
@@ -856,7 +856,7 @@ const dateCells = Array.from({ length: 14 }, (_, i) => {
 const scheduleWeekDays = dateCells.slice(0, 5)
 const scheduleTimes = ['۰۸:۰۰', '۰۹:۰۰', '۱۱:۳۰']
 
-function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Screen) => void }) {
+function MainSection({ screen, navigate, goBack }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void }) {
   const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     weekday: 'long', day: 'numeric', month: 'long'
   }).format(new Date())
@@ -897,16 +897,16 @@ function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Scree
   </main></div>
 }
 
-function CallScreen({ navigate, back }: { navigate: (s: Screen) => void; back: Screen }) {
+function CallScreen({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [connected, setConnected] = useState(true)
   const [video, setVideo] = useState(false)
   return <div className={`screen call-screen ${video?'video-call':''}`}>
-    <div className="call-top"><IconButton icon="chevron" label="بازگشت" onClick={()=>navigate(back)}/><span>تماس رمزگذاری‌شده</span><IconButton icon="users" label="شرکت‌کنندگان"/></div>
+    <div className="call-top"><IconButton icon="chevron" label="بازگشت" onClick={goBack}/><span>تماس رمزگذاری‌شده</span><IconButton icon="users" label="شرکت‌کنندگان"/></div>
     <div className="caller"><Avatar item={conversations[0]} large/><strong>کلاس تجربی</strong><span>{connected?'۰۰:۲۴':'در حال برقراری تماس...'}</span></div>
     {video && <div className="self-video"><div>س</div><span>شما</span></div>}
     <div className="call-controls">
       {connected && <><button><span><Icon name="mic"/></span><small>بی‌صدا</small></button><button><span><Icon name="speaker"/></span><small>بلندگو</small></button><button className={video?'selected':''} onClick={()=>setVideo(!video)}><span><Icon name="camera"/></span><small>دوربین</small></button></>}
-      <button className="end" onClick={()=>{ classStarted = false; navigate(back) }}><span><Icon name="phone"/></span><small>{connected?'پایان':'رد تماس'}</small></button>
+      <button className="end" onClick={()=>{ classStarted = false; goBack() }}><span><Icon name="phone"/></span><small>{connected?'پایان':'رد تماس'}</small></button>
       {!connected && <button className="accept" onClick={()=>setConnected(true)}><span><Icon name="phone"/></span><small>پاسخ</small></button>}
     </div>
   </div>
@@ -920,7 +920,7 @@ const classSections: { title: string; sub: string; icon: IconName; screen: Scree
   { title: 'دفتر نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
 ]
 
-function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
+function Classroom({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [mediaTab, setMediaTab] = useState('نمای کلی')
   const mediaTabs = ['نمای کلی', 'رسانه', 'فایل‌ها', 'لینک‌ها', 'موسیقی', 'صدا', 'گیف‌ها']
   const mediaContent: Record<string, { t: string; m: string; i: IconName }[]> = {
@@ -944,7 +944,7 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
   }
   return <div className="screen inner-screen">
     <header className="sub-header">
-      <IconButton icon="chevron" label="بازگشت" onClick={() => navigate('school')} />
+      <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <div><strong>علوم تجربی · پایه نهم</strong><span>کلاس ۹۰۱ · ۲۸ دانش‌آموز</span></div>
       <IconButton icon="more" label="بیشتر" />
     </header>
@@ -1012,13 +1012,13 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
 
 let gradeHistoryStore: { type: string; date: string; time: string }[] = []
 
-function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
+function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [history] = useState(gradeHistoryStore)
   const [filterDate, setFilterDate] = useState('')
   const uniqueDates = Array.from(new Set(history.map(h => h.date)))
   const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={() => navigate('classroom')} />
+    <SubHeader screen="gradebook" back={goBack} />
     <main className="inner-content">
       <div className="grade-summary-card">
         <div className="grade-summary-item">
@@ -1056,7 +1056,7 @@ function Gradebook({ navigate }: { navigate: (s: Screen) => void }) {
   </div>
 }
 
-function GradeRegister({ navigate }: { navigate: (s: Screen) => void }) {
+function GradeRegister({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [scores, setScores] = useState<Record<string, Record<number, string>>>({})
   const [gradeTypes, setGradeTypes] = useState<string[]>(['نمره'])
   const [activeType, setActiveType] = useState('نمره')
@@ -1101,7 +1101,7 @@ function GradeRegister({ navigate }: { navigate: (s: Screen) => void }) {
   const uniqueDates = Array.from(new Set(history.map(h => h.date)))
   const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
   return <div className="screen inner-screen">
-    <SubHeader screen="grade-register" back={() => navigate('gradebook')} />
+    <SubHeader screen="grade-register" back={goBack} />
     <div className="grade-fixed-date">
       <Icon name="calendar" size={16} />
       <strong>{nowDate}</strong>
@@ -1158,7 +1158,7 @@ function GradeRegister({ navigate }: { navigate: (s: Screen) => void }) {
   </div>
 }
 
-function Reports({ navigate }: { navigate: (s: Screen) => void }) {
+function Reports({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -1183,7 +1183,7 @@ function Reports({ navigate }: { navigate: (s: Screen) => void }) {
     return ''
   }
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={() => selected ? setSelected(null) : navigate('classroom')} />
+    <SubHeader screen="gradebook" back={() => selected ? setSelected(null) : goBack()} />
     <main className="inner-content">
       <div className="two-fields" style={{marginBottom:10}}>
         <label className="field"><span>از تاریخ</span><select value={fromDate} onChange={e => setFromDate(e.target.value)}><option value="">همه</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select></label>
@@ -1221,15 +1221,15 @@ function Reports({ navigate }: { navigate: (s: Screen) => void }) {
         </div>
       )}
     </main>
-    <div className="sticky-action"><button onClick={() => selected ? setSelected(null) : navigate('classroom')}>{selected ? 'بازگشت به فهرست' : 'بازگشت به کلاس'}</button></div>
+    <div className="sticky-action"><button onClick={() => selected ? setSelected(null) : goBack()}>{selected ? 'بازگشت به فهرست' : 'بازگشت به کلاس'}</button></div>
   </div>
 }
 
-function Auth({ navigate }: { navigate: (s: Screen) => void }) {
+function Auth({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [role, setRole] = useState<'teacher' | 'student' | null>(null)
   return <div className="screen inner-screen">
     <header className="sub-header">
-      <IconButton icon="chevron" label="بازگشت" onClick={() => navigate('messenger')} />
+      <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <div><strong>احراز هویت</strong><span>انتخاب نقش کاربری</span></div>
       <IconButton icon="lock" label="امن" />
     </header>
@@ -1263,31 +1263,38 @@ function Auth({ navigate }: { navigate: (s: Screen) => void }) {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('messenger')
-  const [callFrom, setCallFrom] = useState<Screen>('chat')
+  const [history, setHistory] = useState<Screen[]>(['messenger'])
+  const screen = history[history.length - 1]
+
   const navigate = (next: Screen) => {
-    if (next === 'call' && screen !== 'call') setCallFrom(screen)
-    setScreen(next)
+    if (next === screen) return
+    setHistory(h => [...h, next])
     window.scrollTo(0, 0)
   }
+
+  const goBack = () => {
+    setHistory(h => (h.length <= 1 ? h : h.slice(0, -1)))
+    window.scrollTo(0, 0)
+  }
+
   return <div className="app-shell" dir="rtl">
-    {screen === 'home' && <Messenger navigate={navigate}/>}
-    {screen === 'messenger' && <Messenger navigate={navigate}/>}
-    {screen === 'school' && <MySchool navigate={navigate}/>}
-    {screen === 'chat' && <Chat navigate={navigate}/>}
-    {screen === 'conversation' && <Conversation navigate={navigate}/>}
-    {screen === 'materials' && <Materials navigate={navigate}/>}
-    {screen === 'assignment' && <Assignment navigate={navigate}/>}
-    {screen === 'assignments' && <Assignments navigate={navigate}/>}
-    {screen === 'exam' && <Exam navigate={navigate}/>}
-    {screen === 'attendance' && <Attendance navigate={navigate}/>}
-    {screen === 'classroom' && <Classroom navigate={navigate}/>}
-    {screen === 'gradebook' && <Gradebook navigate={navigate}/>}
-    {screen === 'grade-register' && <GradeRegister navigate={navigate}/>}
-    {screen === 'reports' && <Reports navigate={navigate}/>}
-    {screen === 'auth' && <Auth navigate={navigate}/>}
-    {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate}/>}
+    {screen === 'home' && <Messenger navigate={navigate} goBack={goBack}/>}
+    {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack}/>}
+    {screen === 'school' && <MySchool navigate={navigate} goBack={goBack}/>}
+    {screen === 'chat' && <Chat navigate={navigate} goBack={goBack}/>}
+    {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
+    {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
+    {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack}/>}
+    {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack}/>}
+    {screen === 'exam' && <Exam navigate={navigate} goBack={goBack}/>}
+    {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack}/>}
+    {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack}/>}
+    {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack}/>}
+    {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
+    {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
+    {screen === 'auth' && <Auth navigate={navigate} goBack={goBack}/>}
+    {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack}/>}
     {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
-    {screen === 'call' && <CallScreen navigate={navigate} back={callFrom}/>}
+    {screen === 'call' && <CallScreen navigate={navigate} goBack={goBack}/>}
   </div>
 }
