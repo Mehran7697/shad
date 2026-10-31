@@ -272,7 +272,6 @@ const subjects = [
         </div>
       </div>}
       {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
-        <button className="calendar-banner"
 <button
   className="calendar-banner"
   onClick={() => navigate('schedule')}
