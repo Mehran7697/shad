@@ -117,6 +117,12 @@
 .resource-icon.purple { color: #8762b1; background: #f3ecfa; }
 .resource-icon.mint { color: var(--green-dark); background: var(--green-soft); }
 .fab:active { transform: translateY(2px); }
+.lesson-banner-hero{padding:16px 18px;min-height:110px;background:linear-gradient(90deg,#ffffff 0%,#f7fff9 100%);border:1px solid var(--line);border-radius:18px}
+.lesson-banner-hero-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.lesson-banner-hero-text{flex:1;display:flex;flex-direction:column;gap:6px;text-align:right}
+.lesson-banner-hero-text small{font-size:11px;color:var(--muted)}
+.lesson-banner-hero-text strong{font-size:15px;font-weight:800;line-height:1.9}
+.lesson-banner-hero-img{width:72px;height:96px;object-fit:contain;flex:none;filter:drop-shadow(0 12px 20px rgba(31,107,71,.18))}
 .bottom-nav { height: calc(70px + env(safe-area-inset-bottom)); padding: 7px 8px env(safe-area-inset-bottom); position: fixed; z-index: 10; bottom: 0; left: max(calc((100vw - 430px)/2), 0px); width: min(100%, 430px); display: flex; align-items: flex-start; background: rgb(255 255 255 / .97); border-top: 1px solid var(--line); backdrop-filter: blur(14px); }
 .bottom-nav button { position: relative; flex: 1; border: 0; background: transparent; color: #87949b; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9px; padding: 5px 0; }
 .bottom-nav button:before { content: ''; position: absolute; top: -8px; width: 28px; height: 3px; border-radius: 0 0 4px 4px; background: transparent; }

@@ -255,13 +255,17 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
           { t: 'ریاضی · پایه نهم', time: '۱۱:۰۰', img: `${import.meta.env.BASE_URL}math-book-cover.png` },
           { t: 'عربی · پایه نهم', time: '۱۳:۰۰', img: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
           { t: 'فارسی · پایه نهم', time: '۱۵:۰۰', img: `${import.meta.env.BASE_URL}persian-book-cover.png` },
-          { t: 'آمادگی دفاعی · پایه نهم', time: '۱۶:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
-        ].map((x)=><button className="lesson-banner" key={x.t} onClick={() => navigate('classroom')}>
-          <div className="lesson-banner-content">
-            <strong>{x.t}</strong>
-            <span>ساعت برگزاری: {x.time}</span>
+          { t: 'مطالعات اجتماعی · پایه نهم', time: '۱۶:۰۰', img: `${import.meta.env.BASE_URL}social-book-cover.png` },
+          { t: 'آمادگی دفاعی · پایه نهم', time: '۱۷:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
+          { t: 'پیام‌های آسمانی · پایه نهم', time: '۱۸:۰۰', img: `${import.meta.env.BASE_URL}messages-book-cover.png` },
+        ].map((x)=><button className="lesson-banner lesson-banner-hero" key={x.t} onClick={() => navigate('classroom')}>
+          <div className="lesson-banner-hero-row">
+            <div className="lesson-banner-hero-text">
+              <small>کلاس بعدی · ساعت {x.time}</small>
+              <strong>{x.t}</strong>
+            </div>
+            <img className="lesson-banner-hero-img" src={x.img} alt={x.t} />
           </div>
-          <img className="lesson-banner-img" src={x.img} alt={x.t} />
         </button>)}
         <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
