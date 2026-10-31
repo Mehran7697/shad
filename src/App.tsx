@@ -6,7 +6,6 @@ type Screen =
   | 'school'
   | 'chat'
   | 'conversation'
-  | 'classes'
   | 'schedule'
   | 'calls'
   | 'more'
@@ -34,7 +33,6 @@ type IconName =
   | 'send'
   | 'plus'
   | 'chat'
-  | 'classes'
   | 'calendar'
   | 'calls'
   | 'grid'
@@ -223,14 +221,13 @@ function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Scree
   const items: { label: string; icon: IconName; screen: Screen }[] = [
     { label: 'خانه', icon: 'home', screen: 'home' },
     { label: 'مدرسه من', icon: 'book', screen: 'materials' },
-    { label: 'آموزشی', icon: 'board', screen: 'classes' },
     { label: 'سکوی آموزش', icon: 'platform', screen: 'more' },
   ]
-  return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'مدرسه من' || item.label === 'خانه' || item.label === 'آموزشی' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
+  return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'مدرسه من' || item.label === 'خانه' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
 function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
-  const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'آموزشی' | 'سکوی آموزش'>('مدرسه من')
+  const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'سکوی آموزش'>('مدرسه من')
 const subjects = [
   { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
   { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
@@ -289,15 +286,6 @@ const subjects = [
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
         <div className="section-heading" style={{marginTop:14}}><strong>آزمون‌های آینده</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('exam')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('exam')}><span className="resource-icon orange"><Icon name="exam" /></span><div><strong>آزمون میان‌ترم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span></div><Icon name="chevron" /></button>
-      </div>}
-      {active === 'آموزشی' && <div className="school-home">
-        <div className="display-banner">
-          <span className="display-banner-icon"><Icon name="board" /></span>
-          <div>
-            <strong>آموزشی</strong>
-            <small>بخش آموزشی مدرسهٔ من</small>
-          </div>
-        </div>
       </div>}
       {active === 'سکوی آموزش' && <div className="school-home">
         <div className="display-banner">
@@ -683,13 +671,10 @@ const scheduleWeekDays = dateCells.slice(0, 5)
 const scheduleTimes = ['۰۸:۰۰', '۰۹:۰۰', '۱۱:۳۰']
 
 function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Screen) => void }) {
-  const [classTab, setClassTab] = useState('کلاس‌ها')
-  const [todayTab, setTodayTab] = useState('امروز')
   const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     weekday: 'long', day: 'numeric', month: 'long'
   }).format(new Date())
   return <div className="screen main-section"><QuickLinks navigate={navigate} /><main className="section-content">
-    {screen === 'classes' && <><div className="chips compact" style={{padding:'10px 15px 6px'}}>{['کلاس‌ها','دروس من'].map(x => <button key={x} className={classTab === x ? 'active' : ''} onClick={() => setClassTab(x)}>{x}</button>)}</div>{classTab === 'کلاس‌ها' ? <><button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button><div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>{todayTab === 'امروز' ? <>{['علوم تجربی · ۹۰۱','ریاضی · ۹۰۲','آمادگی دفاعی · ۹۰۳'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('chat')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>{28-i*3} دانش‌آموز · {i+2} فعالیت فعال</small></div><Icon name="chevron" /></button>)}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</>}
     {screen === 'schedule' && <section className="weekly-schedule" dir="rtl">
       <div className="schedule-today-date">امروز، {todayLabel}</div>
       <div className="schedule-table-wrap">
@@ -773,7 +758,7 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
   }
   return <div className="screen inner-screen">
     <header className="sub-header">
-      <IconButton icon="chevron" label="بازگشت" onClick={() => navigate('classes')} />
+      <IconButton icon="chevron" label="بازگشت" onClick={() => navigate('school')} />
       <div><strong>علوم تجربی · پایه نهم</strong><span>کلاس ۹۰۱ · ۲۸ دانش‌آموز</span></div>
       <IconButton icon="more" label="بیشتر" />
     </header>
@@ -783,7 +768,6 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
         <strong>شروع کلاس</strong>
         <small>جلسهٔ آنلاین امروز · ۲۵ دقیقه دیگر</small>
         <div className="start-cta-group">
-          <span className="start-cta" role="button" tabIndex={0} onClick={e => { e.stopPropagation(); navigate('classes') }}>ورود به کلاسا</span>
           <span className="start-cta" role="button" tabIndex={0} onClick={e => { e.stopPropagation(); navigate('chat') }}>ورود به گروه کلاس</span>
         </div>
         <div className="start-divider" />
@@ -1108,7 +1092,7 @@ export default function App() {
     {screen === 'grade-register' && <GradeRegister navigate={navigate}/>}
     {screen === 'reports' && <Reports navigate={navigate}/>}
     {screen === 'auth' && <Auth navigate={navigate}/>}
-    {['classes','schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate}/>}
+    {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate}/>}
     {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
     {screen === 'call' && <CallScreen navigate={navigate} back={callFrom}/>}
   </div>
