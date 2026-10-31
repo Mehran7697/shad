@@ -14,6 +14,7 @@ type Screen =
   | 'assignment'
   | 'assignment-create'
   | 'exam'
+  | 'exam-create'
   | 'attendance'
   | 'call'
   | 'classroom'
@@ -145,7 +146,7 @@ const messengerChats: MsgChat[] = [
 
 const tools = [
   { title: 'ایجاد تکلیف', icon: 'book' as IconName, screen: 'assignment-create' as Screen },
-  { title: 'ساخت آزمون', icon: 'exam' as IconName, screen: 'exam' as Screen },
+  { title: 'ساخت آزمون', icon: 'exam' as IconName, screen: 'exam-create' as Screen },
   { title: 'ثبت حضور و غیاب', icon: 'attendance' as IconName, screen: 'attendance' as Screen },
   { title: 'افزودن جزوه', icon: 'file' as IconName, screen: 'materials' as Screen },
   { title: 'برنامه کلاسی', icon: 'calendar' as IconName, screen: 'schedule' as Screen },
@@ -541,7 +542,8 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   materials: { title: 'جزوه‌ها و منابع', subtitle: 'کلاس علوم تجربی' },
   assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   'assignment-create': { title: 'ایجاد تکلیف', subtitle: 'فعالیت جدید برای کلاس' },
-  exam: { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
+  exam: { title: 'آزمون‌ها', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
+  'exam-create': { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
   assignments: { title: 'تکالیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   gradebook: { title: 'دفتر نمره', subtitle: 'علوم تجربی · نیم‌ترم اول' },
@@ -1051,14 +1053,150 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
   </div>
 }
 
-function Exam({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  return <div className="screen inner-screen"><SubHeader screen="exam" back={goBack} /><main className="inner-content form-page">
-    <FormField label="عنوان آزمون" placeholder="مثلاً آزمون میان‌ترم علوم" />
-    <div className="section-heading"><strong>پرسش‌ها</strong><span>۱ پرسش</span></div>
-    <section className="question-card"><div><b>۱</b><span>چهارگزینه‌ای</span><IconButton icon="more" label="بیشتر" /></div><input placeholder="متن پرسش را بنویسید..." />{['گزینه اول', 'گزینه دوم'].map((x,i) => <label className="option" key={x}><input type="radio" name="answer" defaultChecked={i === 0} /><input placeholder={x} /></label>)}<button className="add-option"><Icon name="plus" /> افزودن گزینه</button></section>
-    <button className="outline-button"><Icon name="plus" /> افزودن پرسش</button>
-    <div className="two-fields"><FormField label="مدت آزمون" placeholder="۳۰ دقیقه" /><FormField label="زمان شروع" placeholder="فردا · ۹:۰۰" /></div>
-  </main><div className="sticky-action two"><button className="secondary">پیش‌نمایش</button><button>انتشار آزمون</button></div></div>
+function Exam({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  const weekDays = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه']
+
+  const addDays = (date: Date, amount: number) => {
+    const result = new Date(date)
+    result.setDate(result.getDate() + amount)
+    return result
+  }
+
+  const getSaturday = (date: Date) => {
+    const result = new Date(date)
+    const offset = (result.getDay() + 1) % 7
+    result.setDate(result.getDate() - offset)
+    result.setHours(12, 0, 0, 0)
+    return result
+  }
+
+  const toInputDate = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      day: 'numeric',
+      month: 'long',
+    }).format(date)
+
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const weekStart = getSaturday(selectedDate)
+  const weekDates = weekDays.map((_, index) => addDays(weekStart, index))
+  const weekEnd = weekDates[4]
+
+  const data: { t: string; day: number; m: string; s: string; color: string }[] = [
+    { t: 'آزمون میان‌ترم علوم تجربی', day: 2, m: 'شروع: دوشنبه، ۰۹:۰۰', s: 'مدت: ۳۰ دقیقه · ۲۸ شرکت‌کننده', color: 'orange' },
+    { t: 'کوییز فصل دوم ریاضی', day: 0, m: 'شروع: شنبه، ۱۰:۳۰', s: 'مدت: ۱۵ دقیقه · ۲۵ شرکت‌کننده', color: 'blue' },
+    { t: 'آزمونک آمادگی دفاعی', day: 3, m: 'شروع: سه‌شنبه، ۱۱:۰۰', s: 'مدت: ۲۰ دقیقه · ۲۲ شرکت‌کننده', color: 'green' },
+    { t: 'آزمون پایان فصل فارسی', day: 4, m: 'شروع: چهارشنبه، ۰۸:۳۰', s: 'مدت: ۴۵ دقیقه · منتشر نشده', color: 'purple' },
+    { t: 'کوییز آنلاین علوم', day: 1, m: 'شروع: یکشنبه، ۱۴:۰۰', s: 'مدت: ۱۰ دقیقه · ۱۸ از ۲۸ شرکت', color: 'mint' },
+  ]
+
+  return (
+    <div className="screen inner-screen">
+      <SubHeader screen="exam" back={goBack} />
+      <main className="inner-content">
+        <div className="assignment-week-navigation">
+          <button type="button" className="assignment-week-arrow" onClick={() => setSelectedDate(addDays(weekStart, -7))}>
+            <span>‹</span>
+            <small>هفته قبل</small>
+          </button>
+          <label className="assignment-date-picker">
+            <span className="assignment-date-icon"><Icon name="calendar" /></span>
+            <span className="assignment-date-text">
+              <strong>{formatDate(weekStart)} تا {formatDate(weekEnd)}</strong>
+              <small>برای انتخاب تاریخ کلیک کنید</small>
+            </span>
+            <span className="assignment-date-chevron">›</span>
+            <input
+              type="date"
+              value={toInputDate(selectedDate)}
+              onChange={e => {
+                if (!e.target.value) return
+                setSelectedDate(new Date(e.target.value + 'T12:00:00'))
+              }}
+            />
+          </label>
+          <button type="button" className="assignment-week-arrow" onClick={() => setSelectedDate(addDays(weekStart, 7))}>
+            <span>›</span>
+            <small>هفته بعد</small>
+          </button>
+        </div>
+
+        <div className="assignment-week-list">
+          {weekDays.map((dayName, dayIndex) => {
+            const items = data.filter(item => item.day === dayIndex)
+            return (
+              <section className="assignment-day-section" key={dayName}>
+                <div className="assignment-day-title">
+                  <strong>{dayName}</strong>
+                  <span>{formatDate(weekDates[dayIndex])}</span>
+                  <span className="assignment-day-count">{fa(items.length)} آزمون</span>
+                </div>
+                {items.length ? (
+                  items.map(item => (
+                    <button className="resource" key={item.t} onClick={() => navigate('exam-create')}>
+                      <span className={`resource-icon ${item.color}`}>
+                        <Icon name="exam" />
+                      </span>
+                      <div>
+                        <strong>{item.t}</strong>
+                        <small>{item.m}</small>
+                        <span>{item.s}</span>
+                      </div>
+                      <Icon name="chevron" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="assignment-day-empty">آزمونی برای این روز ثبت نشده است.</div>
+                )}
+              </section>
+            )
+          })}
+        </div>
+      </main>
+      <button className="fab" aria-label="ساخت آزمون" onClick={() => navigate('exam-create')}>
+        <Icon name="plus" />
+      </button>
+    </div>
+  )
+}
+
+function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => void }) {
+  const [published, setPublished] = useState(false)
+  return <div className="screen inner-screen">
+    <SubHeader screen="exam-create" back={goBack} />
+    <main className="inner-content form-page">
+      <FormField label="عنوان آزمون" placeholder="مثلاً آزمون میان‌ترم علوم" />
+      <div className="section-heading"><strong>پرسش‌ها</strong><span>۱ پرسش</span></div>
+      <section className="question-card">
+        <div><b>۱</b><span>چهارگزینه‌ای</span><IconButton icon="more" label="بیشتر" /></div>
+        <input placeholder="متن پرسش را بنویسید..." />
+        {['گزینه اول', 'گزینه دوم'].map((x, i) => (
+          <label className="option" key={x}>
+            <input type="radio" name="answer" defaultChecked={i === 0} />
+            <input placeholder={x} />
+          </label>
+        ))}
+        <button className="add-option"><Icon name="plus" /> افزودن گزینه</button>
+      </section>
+      <button className="outline-button"><Icon name="plus" /> افزودن پرسش</button>
+      <div className="two-fields">
+        <FormField label="مدت آزمون" placeholder="۳۰ دقیقه" />
+        <FormField label="زمان شروع" placeholder="فردا · ۹:۰۰" />
+      </div>
+    </main>
+    <div className="sticky-action two">
+      <button className="secondary">پیش‌نمایش</button>
+      <button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>
+        {published ? <><Icon name="check" /> منتشر شد</> : 'انتشار آزمون'}
+      </button>
+    </div>
+  </div>
 }
 
 const students = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
@@ -1624,6 +1762,7 @@ export default function App() {
     {screen === 'assignment-create' && <AssignmentCreate goBack={goBack}/>}
     {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack}/>}
     {screen === 'exam' && <Exam navigate={navigate} goBack={goBack}/>}
+    {screen === 'exam-create' && <ExamCreate goBack={goBack}/>}
     {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack}/>}
     {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack}/>}
     {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack}/>}
