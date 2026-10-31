@@ -735,17 +735,48 @@ const dateCells = Array.from({ length: 14 }, (_, i) => {
   const d = 22 + i
   return { day: d > 31 ? d - 31 : d, label: faDays[i % 7], month: d > 31 ? 'اردیبهشت' : 'فروردین' }
 })
+const scheduleWeekDays = dateCells.slice(0, 5)
+const scheduleTimes = ['۰۸:۰۰', '۰۹:۰۰', '۱۱:۳۰']
 
 function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Screen) => void }) {
-  const [sel, setSel] = useState(2)
   const [classTab, setClassTab] = useState('کلاس‌ها')
   const [todayTab, setTodayTab] = useState('امروز')
-  const cell = dateCells[sel]
-  const dayItems = scheduleItems.filter(x => x.days.includes(cell.day))
-  const dayTitle = `${sel === 2 ? 'امروز، ' : ''}${faDayFull[faDays.indexOf(cell.label)]} ${fa(cell.day)} ${cell.month}`
+  const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  }).format(new Date())
   return <div className="screen main-section"><QuickLinks navigate={navigate} /><main className="section-content">
     {screen === 'classes' && <><div className="chips compact" style={{padding:'10px 15px 6px'}}>{['کلاس‌ها','دروس من'].map(x => <button key={x} className={classTab === x ? 'active' : ''} onClick={() => setClassTab(x)}>{x}</button>)}</div>{classTab === 'کلاس‌ها' ? <><button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button><div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div><div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>{todayTab === 'امروز' ? <>{['علوم تجربی · ۹۰۱','ریاضی · ۹۰۲','آمادگی دفاعی · ۹۰۳'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('chat')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>{28-i*3} دانش‌آموز · {i+2} فعالیت فعال</small></div><Icon name="chevron" /></button>)}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</>}
-    {screen === 'schedule' && <><div className="date-strip">{dateCells.map((c,i)=><button className={i===sel?'active':''} key={i} onClick={()=>setSel(i)}><span>{c.label}</span><strong>{fa(c.day)}</strong></button>)}</div><div className="section-heading"><strong>{dayTitle}</strong><span>{fa(dayItems.length)} برنامه</span></div>{dayItems.length ? <div className="timeline">{dayItems.map(x=><div className="timeline-row" key={x.time}><time>{x.time}</time><i className={x.color}/><button><strong>{x.title}</strong><span>{x.info}</span><small><Icon name="bell" size={14}/> یادآوری روشن</small></button></div>)}</div> : <div className="empty-day"><Icon name="calendar" /><strong>برنامه‌ای ثبت نشده</strong><span>برای {faDayFull[faDays.indexOf(cell.label)]} {fa(cell.day)} {cell.month} برنامه‌ای وجود ندارد</span></div>}</>}
+    {screen === 'schedule' && <section className="weekly-schedule" dir="rtl">
+      <div className="schedule-today-date">امروز، {todayLabel}</div>
+      <div className="schedule-table-wrap">
+        <table className="schedule-table">
+          <thead>
+            <tr>
+              <th className="schedule-day-heading">روز</th>
+              {scheduleTimes.map(time => <th key={time}>{time}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {scheduleWeekDays.map((day, dayIndex) => {
+              const dayName = faDayFull[dayIndex]
+              const dayClasses = scheduleItems.filter(item => item.days.includes(day.day))
+              return <tr key={dayName}>
+                <th scope="row" className="schedule-day-name">{dayName}</th>
+                {scheduleTimes.map(time => {
+                  const item = dayClasses.find(entry => entry.time === time)
+                  return <td key={`${dayName}-${time}`}>
+                    {item ? <div className={`schedule-class-cell ${item.color}`}>
+                      <strong>{item.title}</strong>
+                      <span>{item.info}</span>
+                    </div> : <span className="schedule-empty-cell">—</span>}
+                  </td>
+                })}
+              </tr>
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>}
     {screen === 'calls' && <><div className="call-tabs"><button className="active">همه</button><button>ازدست‌رفته</button></div>{conversations.slice(0,5).map((c,i)=><button className="call-row" key={c.name} onClick={()=>navigate('call')}><Avatar item={c}/><div><strong>{c.name}</strong><span className={i===1?'missed':''}>{i===1?'تماس ازدست‌رفته':'تماس ورودی'} · {c.time}</span></div><Icon name={i%2?'video':'phone'}/></button>)}</>}
     {screen === 'more' && <><div className="profile-card"><button className="profile-large">س</button><div><strong>سارا کریمی</strong><span>دبیر علوم تجربی</span><small>school-321@shad.ir</small></div><Icon name="chevron"/></div><div className="more-grid">{[{t:'تکالیف',i:'book',s:'assignment'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'جزوه‌ها',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}].map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}</div><div className="settings-list"><button><Icon name="settings"/><div><strong>تنظیمات</strong><span>حساب، حریم خصوصی و اعلان‌ها</span></div><Icon name="chevron"/></button><button><Icon name="bookmark"/><div><strong>پیام‌های ذخیره‌شده</strong><span>فایل‌ها و پیام‌های مهم شما</span></div><Icon name="chevron"/></button></div></>}
   </main></div>
