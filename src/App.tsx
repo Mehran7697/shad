@@ -577,8 +577,11 @@ function Materials({ navigate }: { navigate: (s: Screen) => void }) {
 
 function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
   const weekDays = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
+  const weekDates = ['۲۵', '۲۶', '۲۷', '۲۸', '۲۹', '۳۰', '۳۱']
+
   const todayIndex = (new Date().getDay() + 1) % 7
   const [selectedDay, setSelectedDay] = useState(todayIndex)
+
   const data: { t: string; day: number; m: string; s: string; color: string }[] = [
     { t: 'تمرین فصل سوم', day: 2, m: 'مهلت: دوشنبه، ۲۰:۰۰', s: '۰ از ۲۸ تحویل', color: 'green' },
     { t: 'گزارش آزمایش فشار هوا', day: 4, m: 'مهلت: چهارشنبه، ۱۸:۰۰', s: '۱۲ از ۲۸ تحویل', color: 'blue' },
@@ -586,28 +589,59 @@ function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
     { t: 'تمرین فصل دوم', day: 1, m: 'پایان: یکشنبه، ۲۰:۰۰', s: '۲۶ از ۲۸ تحویل', color: 'purple' },
     { t: 'تکلیف کلاسی اول', day: 5, m: 'پایان: پنجشنبه، ۱۲:۰۰', s: '۲۸ از ۲۸ تحویل', color: 'mint' },
   ]
+
   const items = data.filter(item => item.day === selectedDay)
   const heading = selectedDay === todayIndex ? 'تکالیف امروز' : `تکالیف ${weekDays[selectedDay]}`
+
   return <div className="screen inner-screen">
     <SubHeader screen="assignments" back={() => navigate('classroom')} />
     <main className="inner-content">
       <div className="assignment-week-days" aria-label="انتخاب روز هفته">
-        {weekDays.map((day, index) => <button type="button" key={day} className={selectedDay === index ? 'active' : ''} aria-pressed={selectedDay === index} onClick={() => setSelectedDay(index)}>
-          <span>{['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'][index]}</span>
-          <small>{day}</small>
-        </button>)}
+        {weekDays.map((day, index) => (
+          <button
+            type="button"
+            key={day}
+            className={selectedDay === index ? 'active' : ''}
+            aria-pressed={selectedDay === index}
+            onClick={() => setSelectedDay(index)}
+          >
+            <span>{weekDates[index]}</span>
+            <small>{day}</small>
+          </button>
+        ))}
       </div>
-      <div className="section-heading assignment-day-heading"><strong>{heading}</strong><span>{fa(items.length)} مورد</span></div>
-      {items.length ? items.map(x => <button className="resource" key={x.t} onClick={() => navigate('assignment')}>
-        <span className={`resource-icon ${x.color}`}><Icon name="book" /></span>
-        <div><strong>{x.t}</strong><small>{x.m}</small><span>{x.s}</span></div>
-        <Icon name="chevron" />
-      </button>) : <div className="empty"><Icon name="book" size={34} /><strong>تکلیفی برای این روز وجود ندارد</strong><span>برای {weekDays[selectedDay]} تکلیفی ثبت نشده است.</span></div>}
+
+      <div className="section-heading assignment-day-heading">
+        <strong>{heading}</strong>
+        <span>{fa(items.length)} مورد</span>
+      </div>
+
+      {items.length ? items.map(x => (
+        <button className="resource" key={x.t} onClick={() => navigate('assignment')}>
+          <span className={`resource-icon ${x.color}`}>
+            <Icon name="book" />
+          </span>
+          <div>
+            <strong>{x.t}</strong>
+            <small>{x.m}</small>
+            <span>{x.s}</span>
+          </div>
+          <Icon name="chevron" />
+        </button>
+      )) : (
+        <div className="empty">
+          <Icon name="book" size={34} />
+          <strong>تکلیفی برای این روز وجود ندارد</strong>
+          <span>برای {weekDays[selectedDay]} تکلیفی ثبت نشده است.</span>
+        </div>
+      )}
     </main>
-    <button className="fab" aria-label="ایجاد تکلیف" onClick={() => navigate('assignment')}><Icon name="plus" /></button>
+
+    <button className="fab" aria-label="ایجاد تکلیف" onClick={() => navigate('assignment')}>
+      <Icon name="plus" />
+    </button>
   </div>
 }
-
 function Assignment({ navigate }: { navigate: (s: Screen) => void }) {
   const [published, setPublished] = useState(false)
   return <div className="screen inner-screen"><SubHeader screen="assignment" back={() => navigate('chat')} /><main className="inner-content form-page">
