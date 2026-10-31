@@ -665,7 +665,7 @@ function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
   ]
 
   return (
-    <div className="screen inner-screen">
+   <div className="screen inner-screen">
       <SubHeader
         screen="assignments"
         back={() => navigate('classroom')}
@@ -956,11 +956,11 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
         <div className="start-cta-group">
           <div className="start-cta-group">
   <span className="start-cta" role="button" tabIndex={0}>
-    ورود به گروه کلاس
+    ورود به کلاسا
   </span>
 
   <span className="start-cta secondary-cta" role="button" tabIndex={0}>
-    ورود به کلاس
+    ورود به گروه کلاس
   </span>
 </div>
         </div>
