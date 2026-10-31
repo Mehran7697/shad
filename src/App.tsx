@@ -155,7 +155,7 @@ const tools = [
 const quickLinks: { label: string; icon: IconName; color: string; badge?: string; screen: Screen }[] = [
   { label: 'شاد من', icon: 'person', color: 'ql-green', screen: 'more' },
     { label: 'پیام رسان', icon: 'chat', color: 'ql-blue', screen: 'messenger' },
-  { label: 'مدرسه من', icon: 'home', color: 'ql-blue', screen: 'school' },
+  { label: 'آموزش', icon: 'home', color: 'ql-blue', screen: 'school' },
   { label: 'تماشا', icon: 'video', color: 'ql-red', screen: 'chat' },
   { label: 'دیدنی', icon: 'camera', color: 'ql-amber', badge: 'جدید', screen: 'materials' },
   { label: 'ورزشی', icon: 'ball', color: 'ql-purple', screen: 'schedule' },
@@ -222,32 +222,32 @@ function Messenger({ navigate }: { navigate: (screen: Screen) => void }) {
 function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Screen) => void; active: string; setActive: (v: any) => void }) {
   const items: { label: string; icon: IconName; screen: Screen }[] = [
     { label: 'خانه', icon: 'home', screen: 'home' },
-    { label: 'دروس من', icon: 'book', screen: 'materials' },
+    { label: 'مدرسه من', icon: 'book', screen: 'materials' },
     { label: 'آموزشی', icon: 'board', screen: 'classes' },
     { label: 'سکوی آموزش', icon: 'platform', screen: 'more' },
   ]
-  return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'دروس من' || item.label === 'خانه' || item.label === 'آموزشی' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
+  return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'مدرسه من' || item.label === 'خانه' || item.label === 'آموزشی' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
 function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
-  const [active, setActive] = useState<'خانه' | 'دروس من' | 'آموزشی' | 'سکوی آموزش'>('دروس من')
+  const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'آموزشی' | 'سکوی آموزش'>('مدرسه من')
   const [todayTab, setTodayTab] = useState('امروز')
 
   return <div className="screen" dir="rtl">
     <div className="msg-header">
-      <QuickLinks navigate={navigate} active="مدرسه من" />
+      <QuickLinks navigate={navigate} active="آموزش" />
     </div>
     <main className="msg-list" style={{paddingTop:10}}>
       {active === 'خانه' && <div className="school-home">
         <div className="display-banner">
           <span className="display-banner-icon"><Icon name="home" /></span>
           <div>
-            <strong>خانه مدرسه من</strong>
+            <strong>خانه آموزش</strong>
             <small>به صفحهٔ خانهٔ مدرسهٔ خود خوش آمدید</small>
           </div>
         </div>
       </div>}
-      {active === 'دروس من' && <div className="school-home" style={{padding:'0 15px'}}>
+      {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
         <button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button>
         <div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div>
         <div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>
