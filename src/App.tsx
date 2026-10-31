@@ -259,14 +259,8 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
             { t: 'مطالعات اجتماعی · پایه نهم', time: '۱۶:۰۰', img: `${import.meta.env.BASE_URL}social-book-cover.png` },
             { t: 'آمادگی دفاعی · پایه نهم', time: '۱۷:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
             { t: 'پیام‌های آسمانی · پایه نهم', time: '۱۸:۰۰', img: `${import.meta.env.BASE_URL}messages-book-cover.png` },
-          ].map((x)=><button className="lesson-card" key={x.t} onClick={() => navigate('classroom')}>
-            <img className="lesson-card-img" src={x.img} alt={x.t} />
-            <div className="lesson-card-info">
-              <strong>{x.t}</strong>
-              <span>ساعت برگزاری: {x.time}</span>
-            </div>
-          </button>)}
-        </div>}
+          ].map((x) => <button className="lesson-card" key={x.t} onClick={() => navigate('classroom')}><img className="lesson-card-img" src={x.img} alt={x.t} /><div className="lesson-card-info"><strong>{x.t}</strong><span>ساعت برگزاری: {x.time}</span></div></button>)}
+        </div>
         <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>

@@ -1,0 +1,13 @@
+﻿powershell : At line:1 char:79
+At line:1 char:105
++ ... ad mobile"; powershell -NoProfile -Command "$s=Get-Content -Raw 'src/ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (At line:1 char:79:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
++ ...  'src/App.tsx';=.IndexOf('lesson-scroll');=.IndexOf('</div>',)+6;Writ ...
++                                                                  ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+ 

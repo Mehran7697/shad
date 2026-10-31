@@ -1,0 +1,11 @@
+/div>
+        <div className="lesson-scroll">
+          {[
+            { t: 'علوم تجربی · پایه نهم', time: '۰۹:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
+            { t: 'ریاضی · پایه نهم', time: '۱۱:۰۰', img: `${import.meta.env.BASE_URL}math-book-cover.png` },
+            { t: 'عربی · پایه نهم', time: '۱۳:۰۰', img: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
+            { t: 'فارسی · پایه نهم', time: '۱۵:۰۰', img: `${import.meta.env.BASE_URL}persian-book-cover.png` },
+            { t: 'مطالعات اجتماعی · پایه نهم', time: '۱۶:۰۰', img: `${import.meta.env.BASE_URL}social-book-cover.png` },
+            { t: 'آمادگی دفاعی · پایه نهم', time: '۱۷:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
+            { t: 'پیام‌های آسمانی · پایه نهم', time: '۱۸:۰۰', img: `${import.meta.env.BASE_URL}messages-book-cover.png` },
+          ].map((x) => (<button className="lesson-card" key={x.t} onClick={() => navigate('classroom')}><img className="lesson-card-img" src={x.img} alt={x.t} /><div className="lesson-card-info"><strong>{x.t}</strong><span>ساعت برگزاری: {x.time}</span></div></but
