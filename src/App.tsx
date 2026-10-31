@@ -265,15 +265,7 @@ const subjects = [
 
 
 
-<div
-  className="subjects-section"
-  style={{
-    width: 'calc(100% + 30px)',
-    marginInline: '-15px',
-    borderRadius: 0,
-    boxSizing: 'border-box',
-  }}
->
+<div className="subjects-section">
   <div className="subjects-heading">
     <strong>دروس من</strong>
   </div>
