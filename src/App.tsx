@@ -231,7 +231,6 @@ function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Scree
 
 function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
   const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'آموزشی' | 'سکوی آموزش'>('مدرسه من')
-  const [todayTab, setTodayTab] = useState('امروز')
 
   return <div className="screen" dir="rtl">
     <div className="msg-header">
@@ -250,8 +249,13 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
       {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
         <button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button>
         <div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div>
-        <div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>
-        {todayTab === 'امروز' ? <>{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('classroom')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {28-i*3} دانش‌آموز</small></div><Icon name="chevron" /></button>)}</> : <>{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('classroom')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {28-i*3} دانش‌آموز</small></div><Icon name="chevron" /></button>)}</>}
+        <div className="section-heading" style={{marginTop:10}}><strong>برنامه کلاسی</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('schedule')}>مشاهده همه</button></div>
+        {['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('classroom')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>کلاس {901+i} · {i===0?'۰۹:۰۰' : i===1?'۱۱:۰۰':'۱۳:۰۰'}</small></div><Icon name="chevron" /></button>)}
+        <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
+        <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
+        <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
+        <div className="section-heading" style={{marginTop:14}}><strong>آزمون‌های آینده</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('exam')}>مشاهده همه</button></div>
+        <button className="resource" onClick={() => navigate('exam')}><span className="resource-icon orange"><Icon name="exam" /></span><div><strong>آزمون میان‌ترم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span></div><Icon name="chevron" /></button>
       </div>}
       {active === 'آموزشی' && <div className="school-home">
         <div className="display-banner">
