@@ -546,9 +546,9 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
-function SubHeader({ screen, back }: { screen: Screen; back: () => void }) {
+function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر' }: { screen: Screen; back: () => void; rightIcon?: IconName; onRightClick?: () => void; rightLabel?: string }) {
   const meta = screenMeta[screen]!
-  return <header className="sub-header"><IconButton icon="chevron" label="بازگشت" onClick={back} /><div><strong>{meta.title}</strong><span>{meta.subtitle}</span></div><IconButton icon="more" label="بیشتر" /></header>
+  return <header className="sub-header"><IconButton icon="chevron" label="بازگشت" onClick={back} /><div><strong>{meta.title}</strong><span>{meta.subtitle}</span></div><IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} /></header>
 }
 
 function FormField({ label, placeholder, type = 'text' }: { label: string; placeholder: string; type?: string }) {
@@ -794,13 +794,16 @@ function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBa
 }
 
 function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const assignmentMeta = {
+  const [meta, setMeta] = useState({
     title: 'تمرین فصل سوم',
     description: 'لطفاً سوالات صفحهٔ ۴۲ تا ۴۵ کتاب علوم را حل کنید و فایل پاسخ را ارسال نمایید. در صورت نیاز می‌توانید توضیح صوتی هم ضمیمه کنید.',
     deadline: 'دوشنبه، ساعت ۲۰:۰۰',
-    file: { name: 'تمرین فصل سوم علوم.pdf', size: '۲٫۴ مگابایت' },
+    fileName: 'تمرین فصل سوم علوم.pdf',
+    fileSize: '۲٫۴ مگابایت',
     voice: '۰:۳۷',
-  }
+  })
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(meta)
 
   const initialRows = students.map((name, i) => ({
     name,
@@ -838,35 +841,92 @@ function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
     }, 1400)
   }
 
+  const openEdit = () => {
+    setDraft(meta)
+    setEditing(true)
+  }
+
+  const saveEdit = () => {
+    setMeta({ ...draft })
+    setEditing(false)
+    setToast('تغییرات تکلیف ذخیره شد')
+    setTimeout(() => setToast(null), 1400)
+  }
+
+  if (editing) {
+    return <div className="screen inner-screen">
+      <header className="sub-header">
+        <IconButton icon="chevron" label="بازگشت" onClick={() => setEditing(false)} />
+        <div><strong>ویرایش تکلیف</strong><span>علوم تجربی · کلاس ۹۰۱</span></div>
+        <IconButton icon="check" label="ذخیره" onClick={saveEdit} />
+      </header>
+      <main className="inner-content form-page">
+        <label className="field"><span>عنوان تکلیف</span>
+          <input type="text" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} />
+        </label>
+        <label className="field"><span>توضیحات</span>
+          <textarea rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} />
+        </label>
+        <label className="field"><span>مهلت تحویل</span>
+          <input type="text" value={draft.deadline} onChange={e => setDraft({ ...draft, deadline: e.target.value })} placeholder="مثلاً دوشنبه، ساعت ۲۰:۰۰" />
+        </label>
+        <label className="field"><span>نام فایل ضمیمه</span>
+          <input type="text" value={draft.fileName} onChange={e => setDraft({ ...draft, fileName: e.target.value })} />
+        </label>
+        <label className="field"><span>حجم فایل</span>
+          <input type="text" value={draft.fileSize} onChange={e => setDraft({ ...draft, fileSize: e.target.value })} />
+        </label>
+        <label className="field"><span>مدت پیام صوتی</span>
+          <input type="text" value={draft.voice} onChange={e => setDraft({ ...draft, voice: e.target.value })} />
+        </label>
+        <button type="button" className="upload">
+          <Icon name="paperclip" />
+          <div><strong>تغییر فایل ضمیمه</strong><span>PDF، تصویر یا فایل متنی</span></div>
+          <Icon name="plus" />
+        </button>
+        <button type="button" className="upload">
+          <Icon name="mic" />
+          <div><strong>تغییر توضیح صوتی</strong><span>ضبط یا جایگزینی پیام صوتی</span></div>
+          <Icon name="plus" />
+        </button>
+      </main>
+      <div className="sticky-action">
+        <button className="secondary" onClick={() => setEditing(false)}>انصراف</button>
+        <button onClick={saveEdit}>ذخیره تغییرات</button>
+      </div>
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  }
+
   return <div className="screen inner-screen">
-    <SubHeader screen="assignment" back={goBack} />
+    <SubHeader screen="assignment" back={goBack} rightIcon="pencil" rightLabel="ویرایش" onRightClick={openEdit} />
     <main className="inner-content">
       <section className="assignment-detail-card">
         <div className="assignment-detail-head">
           <span className="resource-icon green"><Icon name="book" /></span>
           <div>
-            <strong>{assignmentMeta.title}</strong>
+            <strong>{meta.title}</strong>
             <small>علوم تجربی · کلاس ۹۰۱</small>
           </div>
         </div>
-        <p className="assignment-desc">{assignmentMeta.description}</p>
+        <p className="assignment-desc">{meta.description}</p>
         <div className="assignment-meta-row">
-          <span><Icon name="clock" size={14} /> مهلت: {assignmentMeta.deadline}</span>
+          <span><Icon name="clock" size={14} /> مهلت: {meta.deadline}</span>
           <span>{fa(submitted)} از {fa(students.length)} تحویل</span>
         </div>
         <div className="assignment-assets">
           <button type="button" className="asset-chip">
             <Icon name="file" size={16} />
             <span>
-              <strong>{assignmentMeta.file.name}</strong>
-              <small>{assignmentMeta.file.size}</small>
+              <strong>{meta.fileName}</strong>
+              <small>{meta.fileSize}</small>
             </span>
           </button>
           <button type="button" className="asset-chip voice-chip">
             <Icon name="mic" size={16} />
             <span>
               <strong>توضیح صوتی معلم</strong>
-              <small>{assignmentMeta.voice}</small>
+              <small>{meta.voice}</small>
             </span>
           </button>
         </div>
@@ -967,6 +1027,7 @@ function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
     {toast && <div className="toast">{toast}</div>}
   </div>
 }
+
 
 function Exam({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   return <div className="screen inner-screen"><SubHeader screen="exam" back={goBack} /><main className="inner-content form-page">
