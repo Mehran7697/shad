@@ -187,7 +187,7 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => navigate(item.screen)}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
-function Messenger({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
+function Messenger({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
   const [started] = useState(classStarted)
   const [filter, setFilter] = useState('همه')
   const filtered = filter === 'همه' ? messengerChats : filter === 'دروس من' ? messengerChats.filter(c => c.type === 'دروس من') : messengerChats.filter(c => c.type === filter)
@@ -227,7 +227,7 @@ function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Scree
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'مدرسه من' || item.label === 'خانه' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
-function MySchool({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
+function MySchool({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
   const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'سکوی آموزش'>('مدرسه من')
 const subjects = [
   { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
@@ -500,7 +500,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
   </div>
 }
 
-function Conversation({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
+function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState<string[]>([])
   const send = () => { if (message.trim()) { setSent([...sent, message]); setMessage('') } }
@@ -793,7 +793,7 @@ function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBa
   )
 }
 
-function Assignment({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [published, setPublished] = useState(false)
   return <div className="screen inner-screen"><SubHeader screen="assignment" back={goBack} /><main className="inner-content form-page">
     <FormField label="عنوان تکلیف" placeholder="مثلاً تمرین فصل سوم" />
@@ -805,7 +805,7 @@ function Assignment({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   </main><div className="sticky-action"><button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>{published ? <><Icon name="check" /> تکلیف منتشر شد</> : 'انتشار تکلیف'}</button></div></div>
 }
 
-function Exam({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Exam({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   return <div className="screen inner-screen"><SubHeader screen="exam" back={goBack} /><main className="inner-content form-page">
     <FormField label="عنوان آزمون" placeholder="مثلاً آزمون میان‌ترم علوم" />
     <div className="section-heading"><strong>پرسش‌ها</strong><span>۱ پرسش</span></div>
@@ -816,7 +816,7 @@ function Exam({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () 
 }
 
 const students = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
-function Attendance({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [status, setStatus] = useState<Record<number, string>>({})
   return <div className="screen inner-screen"><SubHeader screen="attendance" back={goBack} /><main className="inner-content">
     <div className="attendance-summary"><div><strong>۲۸</strong><span>دانش‌آموز</span></div><div><strong className="green-text">{Object.values(status).filter(x=>x==='حاضر').length}</strong><span>حاضر</span></div><div><strong className="red-text">{Object.values(status).filter(x=>x==='غایب').length}</strong><span>غایب</span></div></div>
@@ -856,7 +856,7 @@ const dateCells = Array.from({ length: 14 }, (_, i) => {
 const scheduleWeekDays = dateCells.slice(0, 5)
 const scheduleTimes = ['۰۸:۰۰', '۰۹:۰۰', '۱۱:۳۰']
 
-function MainSection({ screen, navigate, goBack }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void }) {
+function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void }) {
   const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     weekday: 'long', day: 'numeric', month: 'long'
   }).format(new Date())
@@ -897,7 +897,7 @@ function MainSection({ screen, navigate, goBack }: { screen: Screen; navigate: (
   </main></div>
 }
 
-function CallScreen({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function CallScreen({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [connected, setConnected] = useState(true)
   const [video, setVideo] = useState(false)
   return <div className={`screen call-screen ${video?'video-call':''}`}>
@@ -1056,7 +1056,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   </div>
 }
 
-function GradeRegister({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [scores, setScores] = useState<Record<string, Record<number, string>>>({})
   const [gradeTypes, setGradeTypes] = useState<string[]>(['نمره'])
   const [activeType, setActiveType] = useState('نمره')
@@ -1158,7 +1158,7 @@ function GradeRegister({ navigate, goBack }: { navigate: (s: Screen) => void; go
   </div>
 }
 
-function Reports({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
