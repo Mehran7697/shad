@@ -117,12 +117,14 @@
 .resource-icon.purple { color: #8762b1; background: #f3ecfa; }
 .resource-icon.mint { color: var(--green-dark); background: var(--green-soft); }
 .fab:active { transform: translateY(2px); }
-.lesson-banner-hero{padding:16px 18px;min-height:110px;background:linear-gradient(90deg,#ffffff 0%,#f7fff9 100%);border:1px solid var(--line);border-radius:18px}
-.lesson-banner-hero-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.lesson-banner-hero-text{flex:1;display:flex;flex-direction:column;gap:6px;text-align:right}
-.lesson-banner-hero-text small{font-size:11px;color:var(--muted)}
-.lesson-banner-hero-text strong{font-size:15px;font-weight:800;line-height:1.9}
-.lesson-banner-hero-img{width:72px;height:96px;object-fit:contain;flex:none;filter:drop-shadow(0 12px 20px rgba(31,107,71,.18))}
+.lesson-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 15px 6px;margin:0 -15px;scrollbar-width:none}
+.lesson-scroll::-webkit-scrollbar{display:none}
+.lesson-card{flex:0 0 250px;scroll-snap-align:start;display:flex;align-items:center;gap:12px;background:white;border:1px solid var(--line);border-radius:16px;padding:10px 12px;text-align:right;transition:.17s;min-height:92px}
+.lesson-card:active{transform:scale(.98)}
+.lesson-card-img{width:62px;height:82px;object-fit:contain;flex:none;filter:drop-shadow(0 10px 16px rgba(31,107,71,.16))}
+.lesson-card-info{flex:1;display:flex;flex-direction:column;gap:4px}
+.lesson-card-info strong{font-size:12px;font-weight:800;line-height:1.8}
+.lesson-card-info span{font-size:10px;color:var(--muted)}
 .bottom-nav { height: calc(70px + env(safe-area-inset-bottom)); padding: 7px 8px env(safe-area-inset-bottom); position: fixed; z-index: 10; bottom: 0; left: max(calc((100vw - 430px)/2), 0px); width: min(100%, 430px); display: flex; align-items: flex-start; background: rgb(255 255 255 / .97); border-top: 1px solid var(--line); backdrop-filter: blur(14px); }
 .bottom-nav button { position: relative; flex: 1; border: 0; background: transparent; color: #87949b; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9px; padding: 5px 0; }
 .bottom-nav button:before { content: ''; position: absolute; top: -8px; width: 28px; height: 3px; border-radius: 0 0 4px 4px; background: transparent; }
