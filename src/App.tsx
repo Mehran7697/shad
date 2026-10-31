@@ -33,6 +33,7 @@ type IconName =
   | 'send'
   | 'plus'
   | 'chat'
+  | 'classes'
   | 'calendar'
   | 'calls'
   | 'grid'
