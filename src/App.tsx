@@ -12,6 +12,7 @@ type Screen =
   | 'materials'
   | 'assignments'
   | 'assignment'
+  | 'assignment-create'
   | 'exam'
   | 'attendance'
   | 'call'
@@ -143,7 +144,7 @@ const messengerChats: MsgChat[] = [
 ]
 
 const tools = [
-  { title: 'ایجاد تکلیف', icon: 'book' as IconName, screen: 'assignment' as Screen },
+  { title: 'ایجاد تکلیف', icon: 'book' as IconName, screen: 'assignment-create' as Screen },
   { title: 'ساخت آزمون', icon: 'exam' as IconName, screen: 'exam' as Screen },
   { title: 'ثبت حضور و غیاب', icon: 'attendance' as IconName, screen: 'attendance' as Screen },
   { title: 'افزودن جزوه', icon: 'file' as IconName, screen: 'materials' as Screen },
@@ -539,6 +540,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
 const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> = {
   materials: { title: 'جزوه‌ها و منابع', subtitle: 'کلاس علوم تجربی' },
   assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
+  'assignment-create': { title: 'ایجاد تکلیف', subtitle: 'فعالیت جدید برای کلاس' },
   exam: { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
   assignments: { title: 'تکالیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
@@ -785,7 +787,7 @@ function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBa
       <button
         className="fab"
         aria-label="ایجاد تکلیف"
-        onClick={() => navigate('assignment')}
+        onClick={() => navigate('assignment-create')}
       >
         <Icon name="plus" />
       </button>
@@ -1028,6 +1030,26 @@ function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
   </div>
 }
 
+
+function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => void }) {
+  const [published, setPublished] = useState(false)
+  return <div className="screen inner-screen">
+    <SubHeader screen="assignment-create" back={goBack} />
+    <main className="inner-content form-page">
+      <FormField label="عنوان تکلیف" placeholder="مثلاً تمرین فصل سوم" />
+      <label className="field"><span>توضیحات</span><textarea rows={4} placeholder="توضیحات و راهنمای انجام تکلیف..." /></label>
+      <button className="upload"><Icon name="paperclip" /><div><strong>افزودن فایل</strong><span>PDF، تصویر یا فایل متنی</span></div><Icon name="plus" /></button>
+      <label className="field"><span>مهلت تحویل</span><div className="two-fields"><select><option value="">تاریخ</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select><input type="time" /></div></label>
+      <div className="switch-row"><div><strong>نمایش وضعیت تحویل</strong><span>پیشرفت دانش‌آموزان را دنبال کنید</span></div><button className="switch active" aria-label="نمایش وضعیت تحویل"><i /></button></div>
+      <div className="progress-preview"><div><span>وضعیت کلاس</span><strong>۰ از ۲۸</strong></div><div className="progress"><i /></div><small>پس از انتشار، وضعیت تحویل اینجا نمایش داده می‌شود.</small></div>
+    </main>
+    <div className="sticky-action">
+      <button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>
+        {published ? <><Icon name="check" /> تکلیف منتشر شد</> : 'انتشار تکلیف'}
+      </button>
+    </div>
+  </div>
+}
 
 function Exam({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   return <div className="screen inner-screen"><SubHeader screen="exam" back={goBack} /><main className="inner-content form-page">
@@ -1599,6 +1621,7 @@ export default function App() {
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
     {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack}/>}
+    {screen === 'assignment-create' && <AssignmentCreate goBack={goBack}/>}
     {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack}/>}
     {screen === 'exam' && <Exam navigate={navigate} goBack={goBack}/>}
     {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack}/>}
