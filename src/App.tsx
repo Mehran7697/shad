@@ -248,19 +248,7 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
       </div>}
       {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
         <button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button>
-        <div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div>
-        <div className="section-heading" style={{marginTop:10}}><strong>برنامه کلاسی</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('schedule')}>مشاهده همه</button></div>
-        <div className="lesson-scroll">
-          {[
-            { t: 'علوم تجربی · پایه نهم', time: '۰۹:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
-            { t: 'ریاضی · پایه نهم', time: '۱۱:۰۰', img: `${import.meta.env.BASE_URL}math-book-cover.png` },
-            { t: 'عربی · پایه نهم', time: '۱۳:۰۰', img: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
-            { t: 'فارسی · پایه نهم', time: '۱۵:۰۰', img: `${import.meta.env.BASE_URL}persian-book-cover.png` },
-            { t: 'مطالعات اجتماعی · پایه نهم', time: '۱۶:۰۰', img: `${import.meta.env.BASE_URL}social-book-cover.png` },
-            { t: 'آمادگی دفاعی · پایه نهم', time: '۱۷:۰۰', img: `${import.meta.env.BASE_URL}book-cover.png` },
-            { t: 'پیام‌های آسمانی · پایه نهم', time: '۱۸:۰۰', img: `${import.meta.env.BASE_URL}messages-book-cover.png` },
-          ].map((x) => <button className="lesson-card" key={x.t} onClick={() => navigate('classroom')}><img className="lesson-card-img" src={x.img} alt={x.t} /><div className="lesson-card-info"><strong>{x.t}</strong><span>ساعت برگزاری: {x.time}</span></div></button>)}
-        </div>
+        <div className="hero-card"><div><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div>
         <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
