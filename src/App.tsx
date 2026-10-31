@@ -231,26 +231,6 @@ function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Scree
 
 function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
   const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'آموزشی' | 'سکوی آموزش'>('مدرسه من')
-const [heroIndex, setHeroIndex] = useState(0)
-
-const heroSlides = [
-  {
-    title: 'علوم تجربی · پایه نهم',
-    students: '۲۸ دانش‌آموز',
-    image: `${import.meta.env.BASE_URL}book-cover.png`,
-  },
-  {
-    title: 'ریاضی · پایه نهم',
-    students: '۲۸ دانش‌آموز',
-    image: `${import.meta.env.BASE_URL}math-book-cover.png`,
-  },
-  {
-    title: 'فارسی · پایه نهم',
-    students: '۲۸ دانش‌آموز',
-    image: `${import.meta.env.BASE_URL}persian-book-cover.png`,
-  },
-]
-
 const subjects = [
   { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
   { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
@@ -283,35 +263,7 @@ const subjects = [
   <span className="banner-cta">مشاهده</span>
 </button>
 
-<div className="hero-carousel">
-  <div className="hero-card">
-    <div>
-      <small>کلاس بعدی · ۲۵ دقیقه دیگر</small>
-      <strong>{heroSlides[heroIndex].title}</strong>
-      <span>{heroSlides[heroIndex].students}</span>
-      <button onClick={() => navigate('classroom')}>
-        ورود به کلاس
-      </button>
-    </div>
 
-    <img
-      className="hero-book"
-      src={heroSlides[heroIndex].image}
-      alt={heroSlides[heroIndex].title}
-    />
-  </div>
-
-  <div className="hero-dots">
-    {heroSlides.map((slide, index) => (
-      <button
-        key={slide.title}
-        className={heroIndex === index ? 'active' : ''}
-        onClick={() => setHeroIndex(index)}
-        aria-label={`نمایش ${slide.title}`}
-      />
-    ))}
-  </div>
-</div>
 
 <div
   className="subjects-section"
@@ -745,7 +697,7 @@ function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Scree
     weekday: 'long', day: 'numeric', month: 'long'
   }).format(new Date())
   return <div className="screen main-section"><QuickLinks navigate={navigate} /><main className="section-content">
-    {screen === 'classes' && <><div className="chips compact" style={{padding:'10px 15px 6px'}}>{['کلاس‌ها','دروس من'].map(x => <button key={x} className={classTab === x ? 'active' : ''} onClick={() => setClassTab(x)}>{x}</button>)}</div>{classTab === 'کلاس‌ها' ? <><button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button><div className="hero-card"><div><small>کلاس بعدی · ۲۵ دقیقه دیگر</small><strong>علوم تجربی · پایه نهم</strong><span>۲۸ دانش‌آموز</span><button onClick={() => navigate('classroom')}>ورود به کلاس</button></div><img className="hero-book" src={`${import.meta.env.BASE_URL}book-cover.png`} alt="کتاب علوم تجربی پایه نهم" /></div><div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>{todayTab === 'امروز' ? <>{['علوم تجربی · ۹۰۱','ریاضی · ۹۰۲','آمادگی دفاعی · ۹۰۳'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('chat')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>{28-i*3} دانش‌آموز · {i+2} فعالیت فعال</small></div><Icon name="chevron" /></button>)}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</>}
+    {screen === 'classes' && <><div className="chips compact" style={{padding:'10px 15px 6px'}}>{['کلاس‌ها','دروس من'].map(x => <button key={x} className={classTab === x ? 'active' : ''} onClick={() => setClassTab(x)}>{x}</button>)}</div>{classTab === 'کلاس‌ها' ? <><button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button><div className="chips compact" style={{padding:'8px 0 6px'}}>{['امروز','دروس'].map(x => <button key={x} className={todayTab === x ? 'active' : ''} onClick={() => setTodayTab(x)}>{x}</button>)}</div>{todayTab === 'امروز' ? <>{['علوم تجربی · ۹۰۱','ریاضی · ۹۰۲','آمادگی دفاعی · ۹۰۳'].map((x,i)=><button className="class-card" key={x} onClick={() => navigate('chat')}><span className={`class-icon c${i}`}><Icon name="classes" /></span><div><strong>{x}</strong><small>{28-i*3} دانش‌آموز · {i+2} فعالیت فعال</small></div><Icon name="chevron" /></button>)}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</> : <div className="school-home">{['علوم تجربی · پایه نهم','ریاضی · پایه نهم','آمادگی دفاعی · پایه نهم'].map((c,i) => <button className="msg-row school-row" key={c} onClick={() => navigate('classroom')}><div className={`msg-avatar msg-${i===0?'green':i===1?'blue':'orange'}`}>{c.split(' ')[0][0]}</div><div className="msg-copy"><strong>{c}</strong><p>کلاس {901+i} · {28-i} دانش‌آموز</p></div><div className="msg-meta"><span className="msg-badge">ورود</span></div></button>)}</div>}</>}
     {screen === 'schedule' && <section className="weekly-schedule" dir="rtl">
       <div className="schedule-today-date">امروز، {todayLabel}</div>
       <div className="schedule-table-wrap">

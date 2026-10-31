@@ -499,37 +499,6 @@
   .app-shell { border-radius: 28px; }
 }
 
-/* Hero banner carousel */
-.hero-carousel {
-  width: 100%;
-}
-
-.hero-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 7px;
-  padding: 11px 0 5px;
-  direction: ltr;
-}
-
-.hero-dots button {
-  width: 7px;
-  height: 7px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: #cbd8d4;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.hero-dots button.active {
-  width: 19px;
-  border-radius: 10px;
-  background: var(--green);
-}
-
 /* Horizontal subjects list */
 .subjects-heading {
   margin-top: 3.5px !important;
