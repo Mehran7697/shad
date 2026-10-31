@@ -313,21 +313,23 @@ const subjects = [
   </div>
 </div>
 
-<div className="section-heading subjects-heading">
-  <strong>دروس من</strong>
-</div>
+<div className="subjects-section">
+  <div className="subjects-heading">
+    <strong>دروس من</strong>
+  </div>
 
-<div className="subjects-scroll">
-  {subjects.map((subject) => (
-    <button
-      className="subject-card"
-      key={subject.name}
-      onClick={() => navigate('classroom')}
-    >
-      <img src={subject.image} alt={subject.name} />
-      <strong>{subject.name}</strong>
-    </button>
-  ))}
+  <div className="subjects-scroll">
+    {subjects.map((subject) => (
+      <button
+        className="subject-card"
+        key={subject.name}
+        onClick={() => navigate('classroom')}
+      >
+        <img src={subject.image} alt={subject.name} />
+        <strong>{subject.name}</strong>
+      </button>
+    ))}
+  </div>
 </div>
 
         <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
