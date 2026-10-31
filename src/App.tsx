@@ -575,73 +575,224 @@ function Materials({ navigate }: { navigate: (s: Screen) => void }) {
   </main></div>
 }
 
+
 function Assignments({ navigate }: { navigate: (s: Screen) => void }) {
-  const weekDays = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
-  const weekDates = ['۲۵', '۲۶', '۲۷', '۲۸', '۲۹', '۳۰', '۳۱']
-
-  const todayIndex = (new Date().getDay() + 1) % 7
-  const [selectedDay, setSelectedDay] = useState(todayIndex)
-
-  const data: { t: string; day: number; m: string; s: string; color: string }[] = [
-    { t: 'تمرین فصل سوم', day: 2, m: 'مهلت: دوشنبه، ۲۰:۰۰', s: '۰ از ۲۸ تحویل', color: 'green' },
-    { t: 'گزارش آزمایش فشار هوا', day: 4, m: 'مهلت: چهارشنبه، ۱۸:۰۰', s: '۱۲ از ۲۸ تحویل', color: 'blue' },
-    { t: 'پروژه نمودار چرخه آب', day: 0, m: 'شروع: شنبه، ۰۹:۰۰', s: 'منتشر نشده', color: 'orange' },
-    { t: 'تمرین فصل دوم', day: 1, m: 'پایان: یکشنبه، ۲۰:۰۰', s: '۲۶ از ۲۸ تحویل', color: 'purple' },
-    { t: 'تکلیف کلاسی اول', day: 5, m: 'پایان: پنجشنبه، ۱۲:۰۰', s: '۲۸ از ۲۸ تحویل', color: 'mint' },
+  const weekDays = [
+    'شنبه',
+    'یکشنبه',
+    'دوشنبه',
+    'سه‌شنبه',
+    'چهارشنبه',
   ]
 
-  const items = data.filter(item => item.day === selectedDay)
-  const heading = selectedDay === todayIndex ? 'تکالیف امروز' : `تکالیف ${weekDays[selectedDay]}`
+  const addDays = (date: Date, amount: number) => {
+    const result = new Date(date)
+    result.setDate(result.getDate() + amount)
+    return result
+  }
 
-  return <div className="screen inner-screen">
-    <SubHeader screen="assignments" back={() => navigate('classroom')} />
-    <main className="inner-content">
-      <div className="assignment-week-days" aria-label="انتخاب روز هفته">
-        {weekDays.map((day, index) => (
+  const getSaturday = (date: Date) => {
+    const result = new Date(date)
+    const offset = (result.getDay() + 1) % 7
+    result.setDate(result.getDate() - offset)
+    result.setHours(12, 0, 0, 0)
+    return result
+  }
+
+  const toInputDate = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      day: 'numeric',
+      month: 'long',
+    }).format(date)
+
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+
+  const weekStart = getSaturday(selectedDate)
+  const weekDates = weekDays.map((_, index) =>
+    addDays(weekStart, index)
+  )
+  const weekEnd = weekDates[4]
+
+  const data: {
+    t: string
+    day: number
+    m: string
+    s: string
+    color: string
+  }[] = [
+    {
+      t: 'تمرین فصل سوم',
+      day: 2,
+      m: 'مهلت: دوشنبه، ۲۰:۰۰',
+      s: '۰ از ۲۸ تحویل',
+      color: 'green',
+    },
+    {
+      t: 'گزارش آزمایش فشار هوا',
+      day: 4,
+      m: 'مهلت: چهارشنبه، ۱۸:۰۰',
+      s: '۱۲ از ۲۸ تحویل',
+      color: 'blue',
+    },
+    {
+      t: 'پروژه نمودار چرخه آب',
+      day: 0,
+      m: 'شروع: شنبه، ۰۹:۰۰',
+      s: 'منتشر نشده',
+      color: 'orange',
+    },
+    {
+      t: 'تمرین فصل دوم',
+      day: 1,
+      m: 'پایان: یکشنبه، ۲۰:۰۰',
+      s: '۲۶ از ۲۸ تحویل',
+      color: 'purple',
+    },
+    {
+      t: 'تکلیف کلاسی اول',
+      day: 3,
+      m: 'مهلت: سه‌شنبه، ۱۸:۰۰',
+      s: '۱۰ از ۲۸ تحویل',
+      color: 'mint',
+    },
+  ]
+
+  return (
+    <div className="screen inner-screen">
+      <SubHeader
+        screen="assignments"
+        back={() => navigate('classroom')}
+      />
+
+      <main className="inner-content">
+
+        <div className="assignment-week-navigation">
+
           <button
             type="button"
-            key={day}
-            className={selectedDay === index ? 'active' : ''}
-            aria-pressed={selectedDay === index}
-            onClick={() => setSelectedDay(index)}
+            className="assignment-week-arrow"
+            onClick={() =>
+              setSelectedDate(addDays(weekStart, -7))
+            }
           >
-            <span>{weekDates[index]}</span>
-            <small>{day}</small>
+            <span>‹</span>
+            <small>هفته قبل</small>
           </button>
-        ))}
-      </div>
 
-      <div className="section-heading assignment-day-heading">
-        <strong>{heading}</strong>
-        <span>{fa(items.length)} مورد</span>
-      </div>
+          <label className="assignment-date-picker">
+            <span className="assignment-date-icon">
+              <Icon name="calendar" />
+            </span>
 
-      {items.length ? items.map(x => (
-        <button className="resource" key={x.t} onClick={() => navigate('assignment')}>
-          <span className={`resource-icon ${x.color}`}>
-            <Icon name="book" />
-          </span>
-          <div>
-            <strong>{x.t}</strong>
-            <small>{x.m}</small>
-            <span>{x.s}</span>
-          </div>
-          <Icon name="chevron" />
-        </button>
-      )) : (
-        <div className="empty">
-          <Icon name="book" size={34} />
-          <strong>تکلیفی برای این روز وجود ندارد</strong>
-          <span>برای {weekDays[selectedDay]} تکلیفی ثبت نشده است.</span>
+            <span className="assignment-date-text">
+              <strong>
+                {formatDate(weekStart)} تا {formatDate(weekEnd)}
+              </strong>
+              <small>برای انتخاب تاریخ کلیک کنید</small>
+            </span>
+
+            <span className="assignment-date-chevron">⌄</span>
+
+            <input
+              type="date"
+              value={toInputDate(selectedDate)}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const [year, month, day] =
+                    e.target.value.split('-').map(Number)
+
+                  setSelectedDate(
+                    new Date(year, month - 1, day, 12)
+                  )
+                }
+              }}
+              aria-label="انتخاب تاریخ"
+            />
+          </label>
+
+          <button
+            type="button"
+            className="assignment-week-arrow"
+            onClick={() =>
+              setSelectedDate(addDays(weekStart, 7))
+            }
+          >
+            <span>›</span>
+            <small>هفته بعد</small>
+          </button>
+
         </div>
-      )}
-    </main>
 
-    <button className="fab" aria-label="ایجاد تکلیف" onClick={() => navigate('assignment')}>
-      <Icon name="plus" />
-    </button>
-  </div>
+        <div className="assignment-week-list">
+
+          {weekDays.map((day, index) => {
+            const items = data.filter(
+              item => item.day === index
+            )
+
+            return (
+              <section className="assignment-day-section" key={day}>
+
+                <div className="assignment-day-title">
+                  <strong>{day}</strong>
+                  <span>{formatDate(weekDates[index])}</span>
+                  <span className="assignment-day-count">
+                    {fa(items.length)} مورد
+                  </span>
+                </div>
+
+                {items.length ? (
+                  items.map(item => (
+                    <button
+                      className="resource"
+                      key={item.t}
+                      onClick={() => navigate('assignment')}
+                    >
+                      <span className={`resource-icon ${item.color}`}>
+                        <Icon name="book" />
+                      </span>
+
+                      <div>
+                        <strong>{item.t}</strong>
+                        <small>{item.m}</small>
+                        <span>{item.s}</span>
+                      </div>
+
+                      <Icon name="chevron" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="assignment-day-empty">
+                    تکلیفی برای این روز ثبت نشده است.
+                  </div>
+                )}
+
+              </section>
+            )
+          })}
+
+        </div>
+
+      </main>
+
+      <button
+        className="fab"
+        aria-label="ایجاد تکلیف"
+        onClick={() => navigate('assignment')}
+      >
+        <Icon name="plus" />
+      </button>
+    </div>
+  )
 }
+
 function Assignment({ navigate }: { navigate: (s: Screen) => void }) {
   const [published, setPublished] = useState(false)
   return <div className="screen inner-screen"><SubHeader screen="assignment" back={() => navigate('chat')} /><main className="inner-content form-page">
