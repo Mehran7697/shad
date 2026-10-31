@@ -653,3 +653,10 @@
   margin-inline: -15px;
   border-radius: 0;
 }
+/* Full-width subjects section */
+.section-content > .subjects-section {
+  width: calc(100% + 30px);
+  margin-inline: -15px;
+  border-radius: 0;
+  box-sizing: border-box;
+}
