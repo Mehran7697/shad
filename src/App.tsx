@@ -1021,15 +1021,88 @@ function Classroom({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   </div>
 }
 
-let gradeHistoryStore: { type: string; date: string; time: string }[] = []
+type GradeEntry = {
+  id: string
+  type: string
+  date: string
+  time: string
+  scores: Record<number, string>
+  avg: string
+}
+
+let gradeHistoryStore: GradeEntry[] = []
+
+function nowShamsi() {
+  const d = new Date()
+  const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate()
+  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+  let jy = (gm > 2) ? (gy + 1) : gy
+  let days = 355666 + (365 * gy) + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400) + gd + g_d_m[gm - 1]
+  let j_np = Math.floor(days / 12053)
+  days %= 12053
+  jy = 979 + (33 * j_np) + 4 * Math.floor(days / 1461)
+  days %= 1461
+  if (days >= 366) { jy += Math.floor((days - 1) / 365); days = (days - 1) % 365 }
+  const j_d_m = [0, 31, 62, 93, 124, 155, 186, 216, 246, 276, 305, 336]
+  let jm = 1, jd = 1
+  for (let i = 11; i >= 0; i--) { if (days >= j_d_m[i]) { jm = i + 2; jd = days - j_d_m[i] + 1; break } }
+  if (jm > 12) { jm -= 12; jy += 1 }
+  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const faTime = time.replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])
+  return {
+    date: `${fa(jy)}/${String(jm).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(jd).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`,
+    time: faTime,
+  }
+}
 
 function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const [history] = useState(gradeHistoryStore)
+  const [, setTick] = useState(0)
   const [filterDate, setFilterDate] = useState('')
+  const [selected, setSelected] = useState<GradeEntry | null>(null)
+  const history = gradeHistoryStore
   const uniqueDates = Array.from(new Set(history.map(h => h.date)))
   const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
+  const now = nowShamsi()
+
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 30000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (selected) {
+    return <div className="screen inner-screen">
+      <SubHeader screen="gradebook" back={() => setSelected(null)} />
+      <div className="grade-fixed-date">
+        <Icon name="calendar" size={16} />
+        <strong>{selected.date}</strong>
+        <span>{selected.time}</span>
+      </div>
+      <main className="inner-content">
+        <div className="attendance-summary">
+          <div><strong>{fa(Object.keys(selected.scores).length)}</strong><span>ثبت‌شده</span></div>
+          <div><strong className="green-text">{fa(selected.avg)}</strong><span>میانگین</span></div>
+          <div><strong>{fa(20)}</strong><span>از نمره</span></div>
+        </div>
+        <div className="section-heading"><strong>{selected.type}</strong><span>نیم‌ترم اول</span></div>
+        {students.map((name, i) => (
+          <div className="student" key={name}>
+            <div className="student-avatar">{name[0]}</div>
+            <strong>{name}</strong>
+            <span className="score-readonly">{selected.scores[i] !== undefined && selected.scores[i] !== '' ? fa(selected.scores[i]) : '—'}</span>
+          </div>
+        ))}
+      </main>
+      <div className="sticky-action"><button onClick={() => setSelected(null)}>بازگشت به فهرست</button></div>
+    </div>
+  }
+
   return <div className="screen inner-screen">
     <SubHeader screen="gradebook" back={goBack} />
+    <div className="grade-fixed-date">
+      <Icon name="calendar" size={16} />
+      <strong>{now.date}</strong>
+      <span>{now.time}</span>
+    </div>
     <main className="inner-content">
       <div className="grade-summary-card">
         <div className="grade-summary-item">
@@ -1041,131 +1114,137 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
           <span>روزهای فعال</span>
         </div>
         <div className="grade-summary-item">
-          <strong>{fa(28)}</strong>
+          <strong>{fa(students.length)}</strong>
           <span>دانش‌آموز</span>
         </div>
       </div>
-      <div className="grade-filter-row">
-        <label className="field grade-filter-field"><span>فیلتر تاریخ</span>
-          <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
-            <option value="">همهٔ تاریخ‌ها</option>
-            {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </label>
-      </div>
-      <div className="section-heading" style={{marginTop:8}}><strong>تاریخچهٔ ثبت نمرات</strong><span>{fa(filteredHistory.length)} مورد</span></div>
-      {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-card" key={i}>
-        <span className="history-icon"><Icon name="chart" size={18} /></span>
-        <div className="history-info">
-          <strong>{h.type}</strong>
-          <small>{h.date} · ساعت {h.time}</small>
+      {uniqueDates.length > 0 && (
+        <div className="grade-filter-row">
+          <label className="field grade-filter-field"><span>فیلتر تاریخ</span>
+            <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
+              <option value="">همهٔ تاریخ‌ها</option>
+              {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </label>
         </div>
-        <Icon name="chevron" size={14} />
-      </div>) : <div className="empty"><Icon name="chart" size={40} /><strong>تاریخچه‌ای وجود ندارد</strong><span>با زدن روی دکمهٔ + نمرهٔ جدید ثبت کنید.</span></div>}
+      )}
+      <div className="section-heading" style={{ marginTop: 8 }}>
+        <strong>نمرات ثبت‌شده</strong>
+        <span>{fa(filteredHistory.length)} مورد</span>
+      </div>
+      {filteredHistory.length ? filteredHistory.map(h => (
+        <button type="button" className="history-card" key={h.id} onClick={() => setSelected(h)} style={{ width: '100%', cursor: 'pointer', textAlign: 'right' }}>
+          <span className="history-icon"><Icon name="chart" size={18} /></span>
+          <div className="history-info">
+            <strong>{h.type}</strong>
+            <small>{h.date} · ساعت {h.time} · میانگین {fa(h.avg)}</small>
+          </div>
+          <Icon name="chevron" size={14} />
+        </button>
+      )) : (
+        <div className="empty grade-empty">
+          <Icon name="chart" size={40} />
+          <strong>هنوز نمره‌ای ثبت نشده</strong>
+          <span>با دکمهٔ + پایین صفحه، عنوان نمره را انتخاب و نمرات را وارد کنید.</span>
+        </div>
+      )}
     </main>
     <button className="fab" aria-label="ثبت نمرهٔ جدید" onClick={() => navigate('grade-register')}><Icon name="plus" /></button>
   </div>
 }
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const [scores, setScores] = useState<Record<string, Record<number, string>>>({})
-  const [gradeTypes, setGradeTypes] = useState<string[]>(['نمره'])
-  const [activeType, setActiveType] = useState('نمره')
-  const [showTypeSheet, setShowTypeSheet] = useState(false)
-  const [history, setHistory] = useState(gradeHistoryStore)
-  const [filterDate, setFilterDate] = useState('')
-  const availableTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی']
-  const currentScores = scores[activeType] || {}
-  const vals = Object.values(currentScores).filter(v => v.trim() !== '')
+  const suggestedTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی', 'پرسش کلاسی']
+  const [title, setTitle] = useState('')
+  const [scores, setScores] = useState<Record<number, string>>({})
+  const [now, setNow] = useState(nowShamsi)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(nowShamsi()), 15000)
+    return () => clearInterval(id)
+  }, [])
+
+  const vals = Object.values(scores).filter(v => v.trim() !== '')
   const avg = vals.length ? (vals.reduce((a, b) => a + Number(b), 0) / vals.length).toFixed(1) : '—'
-  const addType = (t: string) => {
-    if (!gradeTypes.includes(t)) setGradeTypes([...gradeTypes, t])
-    setActiveType(t)
-    setShowTypeSheet(false)
-  }
-  const nowShamsi = () => {
-    const d = new Date()
-    const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate()
-    const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
-    let jy = (gm > 2) ? (gy + 1) : gy
-    let days = 355666 + (365 * gy) + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400) + gd + g_d_m[gm - 1]
-    let j_np = Math.floor(days / 12053)
-    days %= 12053
-    jy = 979 + (33 * j_np) + 4 * Math.floor(days / 1461)
-    days %= 1461
-    if (days >= 366) { jy += Math.floor((days - 1) / 365); days = (days - 1) % 365 }
-    const j_d_m = [0, 31, 62, 93, 124, 155, 186, 216, 246, 276, 305, 336]
-    let jm = 1, jd = 1
-    for (let i = 11; i >= 0; i--) { if (days >= j_d_m[i]) { jm = i + 2; jd = days - j_d_m[i] + 1; break } }
-    if (jm > 12) { jm -= 12; jy += 1 }
-    const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    return { date: `${fa(jy)}/${String(jm).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(jd).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`, time }
-  }
-  const { date: nowDate, time: nowTime } = nowShamsi()
+  const filled = vals.length
+
   const handleRegister = () => {
+    const type = title.trim() || 'نمره'
     if (vals.length === 0) return
-    const entry = { type: activeType, date: nowDate, time: nowTime }
+    const entry: GradeEntry = {
+      id: `${Date.now()}`,
+      type,
+      date: now.date,
+      time: now.time,
+      scores: { ...scores },
+      avg: String(avg),
+    }
     gradeHistoryStore = [entry, ...gradeHistoryStore]
-    setHistory(gradeHistoryStore)
-    setScores({ ...scores, [activeType]: {} })
+    setSaved(true)
+    setTimeout(() => goBack(), 900)
   }
-  const uniqueDates = Array.from(new Set(history.map(h => h.date)))
-  const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
+
   return <div className="screen inner-screen">
     <SubHeader screen="grade-register" back={goBack} />
     <div className="grade-fixed-date">
       <Icon name="calendar" size={16} />
-      <strong>{nowDate}</strong>
-      <span>{nowTime}</span>
-    </div>
-    <div className="grade-tabs">
-      <div className="grade-tabs-scroll">
-        {gradeTypes.map(t => <button key={t} className={activeType === t ? 'active' : ''} onClick={() => setActiveType(t)}>{t}</button>)}
-        <button className="grade-add" onClick={() => setShowTypeSheet(true)} aria-label="افزودن نوع نمره"><Icon name="plus" size={16} /></button>
-      </div>
+      <strong>{now.date}</strong>
+      <span>{now.time}</span>
     </div>
     <main className="inner-content">
+      <label className="field">
+        <span>عنوان نمره</span>
+        <input
+          type="text"
+          placeholder="مثلاً کوییز فصل سوم"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+        />
+      </label>
+      <div className="chips compact scrollable" style={{ margin: '4px 0 14px' }}>
+        {suggestedTypes.map(t => (
+          <button
+            key={t}
+            type="button"
+            className={title === t ? 'active' : ''}
+            onClick={() => setTitle(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
       <div className="attendance-summary">
-        <div><strong>{fa(28)}</strong><span>دانش‌آموز</span></div>
-        <div><strong className="green-text">{fa(avg)}</strong><span>میانگین {activeType}</span></div>
+        <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
+        <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
+        <div><strong className="green-text">{fa(avg)}</strong><span>میانگین</span></div>
       </div>
-      <div className="section-heading"><strong>{activeType} · نیم‌ترم اول</strong><span>از {fa(20)}</span></div>
-      {students.map((name, i) => <div className="student" key={name}>
-        <div className="student-avatar">{name[0]}</div>
-        <strong>{name}</strong>
-        <input className="score-input" inputMode="numeric" placeholder="۲۰" value={fa(currentScores[i] ?? '')} onChange={e => setScores({ ...scores, [activeType]: { ...(scores[activeType] || {}), [i]: toEn(e.target.value).replace(/[^\d]/g, '') } })} />
-      </div>)}
-      <div className="grade-history" style={{marginTop:16}}>
-        <div className="section-heading"><strong>تاریخچه</strong><span>{fa(filteredHistory.length)} مورد</span></div>
-        <div className="grade-filter">
-          <label className="field"><span>فیلتر تاریخ</span>
-            <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
-              <option value="">همه</option>
-              {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
+      <div className="section-heading">
+        <strong>{title.trim() || 'نمره'} · نیم‌ترم اول</strong>
+        <span>از {fa(20)}</span>
+      </div>
+      {students.map((name, i) => (
+        <div className="student" key={name}>
+          <div className="student-avatar">{name[0]}</div>
+          <strong>{name}</strong>
+          <input
+            className="score-input"
+            inputMode="numeric"
+            placeholder="—"
+            value={scores[i] !== undefined && scores[i] !== '' ? fa(scores[i]) : ''}
+            onChange={e => {
+              const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+              setScores(prev => ({ ...prev, [i]: raw }))
+            }}
+          />
         </div>
-        {filteredHistory.length ? filteredHistory.map((h, i) => <div className="history-card" key={i}>
-          <span className="history-icon"><Icon name="chart" size={18} /></span>
-          <div className="history-info">
-            <strong>{h.type}</strong>
-            <small>{h.date} · ساعت {h.time}</small>
-          </div>
-          <Icon name="chevron" size={14} />
-        </div>) : <div className="empty"><Icon name="chart" size={40} /><strong>تاریخچه‌ای وجود ندارد</strong><span>با زدن روی دکمهٔ + نمرهٔ جدید ثبت کنید.</span></div>}
-      </div>
+      ))}
     </main>
-    <div className="sticky-action"><button onClick={handleRegister}>ثبت {activeType}</button></div>
-    {showTypeSheet && <div className="overlay" onClick={() => setShowTypeSheet(false)}>
-      <section className="bottom-sheet" onClick={e => e.stopPropagation()}>
-        <div className="sheet-handle" />
-        <div className="sheet-title"><div><strong>افزودن نوع نمره</strong><span>نوع نمره را انتخاب کنید</span></div><IconButton icon="close" label="بستن" onClick={() => setShowTypeSheet(false)} /></div>
-        <div className="tool-grid">
-          {availableTypes.filter(t => !gradeTypes.includes(t)).map(t => <button key={t} onClick={() => addType(t)}><span><Icon name="plus" /></span><strong>{t}</strong></button>)}
-        </div>
-        {availableTypes.every(t => gradeTypes.includes(t)) && <div className="empty"><strong>همهٔ انواع نمره اضافه شده‌اند</strong></div>}
-      </section>
-    </div>}
+    <div className="sticky-action">
+      <button onClick={handleRegister} disabled={vals.length === 0 || saved}>
+        {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
+      </button>
+    </div>
   </div>
 }
 
