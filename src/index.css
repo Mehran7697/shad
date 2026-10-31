@@ -534,6 +534,7 @@
 .subjects-heading {
   margin-top: 14px !important;
   margin-bottom: 10px;
+  color: var(--green);
 }
 
 .subjects-scroll {
