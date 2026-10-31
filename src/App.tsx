@@ -954,7 +954,15 @@ function Classroom({ navigate }: { navigate: (s: Screen) => void }) {
         <strong>شروع کلاس</strong>
         <small>جلسهٔ آنلاین امروز · ۲۵ دقیقه دیگر</small>
         <div className="start-cta-group">
-          <span className="start-cta" role="button" tabIndex={0} onClick={e => { e.stopPropagation(); navigate('chat') }}>ورود به گروه کلاس</span>
+          <div className="start-cta-group">
+  <span className="start-cta" role="button" tabIndex={0}>
+    ورود به گروه کلاس
+  </span>
+
+  <span className="start-cta secondary-cta" role="button" tabIndex={0}>
+    ورود به کلاس
+  </span>
+</div>
         </div>
         <div className="start-divider" />
         <div className="start-actions">

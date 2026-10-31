@@ -821,4 +821,24 @@
   font-size: 11px;
   text-align: center;
 }
+.start-cta-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  direction: rtl;
+}
 
+.start-cta-group .start-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.secondary-cta {
+  background: #fff;
+  color: var(--green);
+  border: 1px solid var(--green);
+}
