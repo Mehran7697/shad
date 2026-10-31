@@ -282,10 +282,10 @@ const subjects = [
   </div>
 </div>
 
-        <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
+        <div className="section-heading" style={{marginTop:14}}><strong>تکالیف این هفته</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
-        <div className="section-heading" style={{marginTop:14}}><strong>آزمون‌های آینده</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('exam')}>مشاهده همه</button></div>
+        <div className="section-heading" style={{marginTop:14}}><strong>آزمون‌های این هفته</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('exam')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('exam')}><span className="resource-icon orange"><Icon name="exam" /></span><div><strong>آزمون میان‌ترم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span></div><Icon name="chevron" /></button>
       </div>}
       {active === 'سکوی آموزش' && <div className="school-home">
