@@ -248,7 +248,7 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
       </div>}
       {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
         <button className="calendar-banner" onClick={() => navigate('schedule')}><div><strong>برنامه کلاسی و تقویم</strong><small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small></div><span className="banner-cta">مشاهده</span></button>
-        <div className="hero-carousel">
+        <div className="lesson-scroll">
           {[
             { t: 'علوم تجربی · پایه نهم', c: '۲۸ دانش‌آموز', img: `${import.meta.env.BASE_URL}book-cover.png` },
             { t: 'ریاضی · پایه نهم', c: '۲۵ دانش‌آموز', img: `${import.meta.env.BASE_URL}math-book-cover.png` },
@@ -258,9 +258,6 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void }) {
             { t: 'آمادگی دفاعی · پایه نهم', c: '۲۸ دانش‌آموز', img: `${import.meta.env.BASE_URL}book-cover.png` },
             { t: 'پیام‌های آسمانی · پایه نهم', c: '۲۸ دانش‌آموز', img: `${import.meta.env.BASE_URL}messages-book-cover.png` },
           ].map((x) => <button className="hero-card" key={x.t} onClick={() => navigate('classroom')}><div><strong>{x.t}</strong><span>{x.c}</span><span className="hero-cta">ورود به کلاس</span></div><img className="hero-book" src={x.img} alt={x.t} /></button>)}
-        </div>
-        <div className="carousel-dots">
-          {[0,1,2,3,4,5,6].map((d) => <span key={d} className="dot" />)}
         </div>
         <div className="section-heading" style={{marginTop:14}}><strong>تکالیف</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
         <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
