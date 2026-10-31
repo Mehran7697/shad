@@ -949,28 +949,37 @@ function Classroom({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
       <IconButton icon="more" label="بیشتر" />
     </header>
     <main className="inner-content classroom-content">
-      <button className="start-class" onClick={() => navigate('call')}>
+      <div className="start-class">
         <span className="start-play"><Icon name="video" /></span>
         <strong>شروع کلاس</strong>
         <small>جلسهٔ آنلاین امروز · ۲۵ دقیقه دیگر</small>
         <div className="start-cta-group">
-          <div className="start-cta-group">
-  <span className="start-cta" role="button" tabIndex={0}>
-    ورود به کلاسا
-  </span>
-
-  <span className="start-cta secondary-cta" role="button" tabIndex={0}>
-    ورود به گروه کلاس
-  </span>
-</div>
+          <span
+            className="start-cta"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate('call')}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('call') } }}
+          >
+            ورود به کلاس
+          </span>
+          <span
+            className="start-cta secondary-cta"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate('chat')}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('chat') } }}
+          >
+            ورود به گروه کلاس
+          </span>
         </div>
         <div className="start-divider" />
         <div className="start-actions">
-          <span role="button" tabIndex={0} onClick={e => { e.stopPropagation(); navigate('messenger') }}><i><Icon name="logout" size={18} /></i><small>ترک کردن</small></span>
-          <span role="button" tabIndex={0} onClick={e => e.stopPropagation()}><i><Icon name="bell" size={18} /></i><small>بی‌صدا کردن</small></span>
-          <span role="button" tabIndex={0} onClick={e => { e.stopPropagation(); navigate('chat') }}><i><Icon name="chat" size={18} /></i><small>پیام‌ها</small></span>
+          <span role="button" tabIndex={0} onClick={() => navigate('messenger')}><i><Icon name="logout" size={18} /></i><small>ترک کردن</small></span>
+          <span role="button" tabIndex={0}><i><Icon name="bell" size={18} /></i><small>بی‌صدا کردن</small></span>
+          <span role="button" tabIndex={0} onClick={() => navigate('chat')}><i><Icon name="chat" size={18} /></i><small>پیام‌ها</small></span>
         </div>
-      </button>
+      </div>
       <div className="media-tabs">
         <div className="media-tabs-scroll">
           {mediaTabs.map(t => <button key={t} className={mediaTab === t ? 'active' : ''} onClick={() => setMediaTab(t)}>{t}</button>)}
