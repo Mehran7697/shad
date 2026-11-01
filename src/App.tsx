@@ -220,85 +220,132 @@ function Messenger({ navigate }: { navigate: (screen: Screen) => void; goBack?: 
   </div>
 }
 
-function MySchoolNav({ navigate, active, setActive }: { navigate: (screen: Screen) => void; active: string; setActive: (v: any) => void }) {
-  const items: { label: string; icon: IconName; screen: Screen }[] = [
-    { label: 'خانه', icon: 'home', screen: 'home' },
-    { label: 'مدرسه من', icon: 'book', screen: 'materials' },
-    { label: 'سکوی آموزش', icon: 'platform', screen: 'more' },
+function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void; active: string; setActive: (v: string) => void }) {
+  const items: { label: string; icon: IconName }[] = [
+    { label: 'خانه', icon: 'home' },
+    { label: 'مدرسه من', icon: 'book' },
+    { label: 'محتوای آموزشی', icon: 'board' },
+    { label: 'سکوی آموزشی', icon: 'platform' },
   ]
-  return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => { if (item.label === 'مدرسه من' || item.label === 'خانه' || item.label === 'سکوی آموزش') { setActive(item.label) } else { navigate(item.screen) } }}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
+  return (
+    <nav className="msg-nav">
+      {items.map(item => (
+        <button
+          key={item.label}
+          className={active === item.label ? 'active' : ''}
+          onClick={() => setActive(item.label)}
+        >
+          <span><Icon name={item.icon} /></span>
+          <small>{item.label}</small>
+        </button>
+      ))}
+    </nav>
+  )
 }
 
 function MySchool({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
-  const [active, setActive] = useState<'خانه' | 'مدرسه من' | 'سکوی آموزش'>('مدرسه من')
-const subjects = [
-  { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
-  { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
-  { name: 'فارسی', image: `${import.meta.env.BASE_URL}persian-book-cover.png` },
-  { name: 'عربی', image: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
-]
+  const [active, setActive] = useState('خانه')
+  const subjects = [
+    { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
+    { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
+    { name: 'فارسی', image: `${import.meta.env.BASE_URL}persian-book-cover.png` },
+    { name: 'عربی', image: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
+  ]
+
+  const contentPlaceholder = (
+    <div className="school-home">
+      <div className="display-banner">
+        <span className="display-banner-icon"><Icon name="board" /></span>
+        <div>
+          <strong>محتوای آموزشی</strong>
+          <small>بخش محتوای آموزشی</small>
+        </div>
+      </div>
+    </div>
+  )
+
   return <div className="screen" dir="rtl">
     <div className="msg-header">
       <QuickLinks navigate={navigate} active="آموزش" />
     </div>
-    <main className="msg-list" style={{paddingTop:10}}>
-      {active === 'خانه' && <div className="school-home">
-        <div className="display-banner">
-          <span className="display-banner-icon"><Icon name="home" /></span>
-          <div>
-            <strong>خانه آموزش</strong>
-            <small>به صفحهٔ خانهٔ مدرسهٔ خود خوش آمدید</small>
-          </div>
+    <main className="msg-list" style={{ paddingTop: 10 }}>
+      {active === 'خانه' && (
+        <div className="school-home" style={{ padding: '0 15px' }}>
+          <a
+            className="display-banner"
+            href="https://app.shad.ir/education"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
+            <span className="display-banner-icon"><Icon name="home" /></span>
+            <div>
+              <strong>خانه آموزش</strong>
+              <small>app.shad.ir/education</small>
+            </div>
+          </a>
         </div>
-      </div>}
-      {active === 'مدرسه من' && <div className="school-home" style={{padding:'0 15px'}}>
-<button
-  className="calendar-banner"
-  onClick={() => navigate('schedule')}
->
-  <div>
-    <strong>برنامه کلاسی و تقویم</strong>
-    <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
-  </div>
-  <span className="banner-cta">مشاهده</span>
-</button>
-
-
-
-<div className="subjects-section">
-  <div className="subjects-heading">
-    <strong>دروس من</strong>
-  </div>
-
-  <div className="subjects-scroll">
-    {subjects.map((subject) => (
-      <button
-        className="subject-card"
-        key={subject.name}
-        onClick={() => navigate('classroom')}
-      >
-        <img src={subject.image} alt={subject.name} />
-        <strong>{subject.name}</strong>
-      </button>
-    ))}
-  </div>
-</div>
-
-        <div className="section-heading" style={{marginTop:14}}><strong>تکالیف این هفته</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('assignments')}>مشاهده همه</button></div>
-        <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon green"><Icon name="book" /></span><div><strong>تمرین فصل سوم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
-        <button className="resource" onClick={() => navigate('assignments')}><span className="resource-icon blue"><Icon name="book" /></span><div><strong>گزارش آزمایش فشار هوا</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span></div><Icon name="chevron" /></button>
-        <div className="section-heading" style={{marginTop:14}}><strong>آزمون‌های این هفته</strong><button style={{background:'transparent',border:0,color:'var(--green-dark)',fontSize:11,fontWeight:700}} onClick={() => navigate('exam')}>مشاهده همه</button></div>
-        <button className="resource" onClick={() => navigate('exam')}><span className="resource-icon orange"><Icon name="exam" /></span><div><strong>آزمون میان‌ترم علوم تجربی</strong><small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small><span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span></div><Icon name="chevron" /></button>
-      </div>}
-      {active === 'سکوی آموزش' && <div className="school-home">
-        <div className="display-banner">
-          <span className="display-banner-icon"><Icon name="platform" /></span>
-          <div>
-            <strong>سکوی آموزش</strong>
-            <small>بخش سکوی آموزش مدرسهٔ من</small>
+      )}
+      {active === 'مدرسه من' && (
+        <div className="school-home" style={{ padding: '0 15px' }}>
+          <button className="calendar-banner" onClick={() => navigate('schedule')}>
+            <div>
+              <strong>برنامه کلاسی و تقویم</strong>
+              <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
+            </div>
+            <span className="banner-cta">مشاهده</span>
+          </button>
+          <div className="subjects-section">
+            <div className="subjects-heading">
+              <strong>دروس من</strong>
+            </div>
+            <div className="subjects-scroll">
+              {subjects.map(subject => (
+                <button className="subject-card" key={subject.name} onClick={() => navigate('classroom')}>
+                  <img src={subject.image} alt={subject.name} />
+                  <strong>{subject.name}</strong>
+                </button>
+              ))}
+            </div>
           </div>
+          <div className="section-heading" style={{ marginTop: 14 }}>
+            <strong>تکالیف این هفته</strong>
+            <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => navigate('assignments')}>مشاهده همه</button>
+          </div>
+          <button className="resource" onClick={() => navigate('assignments')}>
+            <span className="resource-icon green"><Icon name="book" /></span>
+            <div>
+              <strong>تمرین فصل سوم علوم تجربی</strong>
+              <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
+              <span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span>
+            </div>
+            <Icon name="chevron" />
+          </button>
+          <button className="resource" onClick={() => navigate('assignments')}>
+            <span className="resource-icon blue"><Icon name="book" /></span>
+            <div>
+              <strong>گزارش آزمایش فشار هوا</strong>
+              <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
+              <span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span>
+            </div>
+            <Icon name="chevron" />
+          </button>
+          <div className="section-heading" style={{ marginTop: 14 }}>
+            <strong>آزمون‌های این هفته</strong>
+            <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => navigate('exam')}>مشاهده همه</button>
+          </div>
+          <button className="resource" onClick={() => navigate('exam')}>
+            <span className="resource-icon orange"><Icon name="exam" /></span>
+            <div>
+              <strong>آزمون میان‌ترم علوم تجربی</strong>
+              <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
+              <span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span>
+            </div>
+            <Icon name="chevron" />
+          </button>
         </div>
-      </div>}
+      )}
+      {(active === 'محتوای آموزشی' || active === 'سکوی آموزشی') && contentPlaceholder}
     </main>
     <MySchoolNav navigate={navigate} active={active} setActive={setActive} />
   </div>
@@ -1159,9 +1206,6 @@ function Exam({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () 
           })}
         </div>
       </main>
-      <button className="fab" aria-label="ساخت آزمون" onClick={() => navigate('exam-create')}>
-        <Icon name="plus" />
-      </button>
     </div>
   )
 }
