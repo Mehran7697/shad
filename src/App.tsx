@@ -270,20 +270,136 @@ function MySchool({ navigate }: { navigate: (screen: Screen) => void; goBack?: (
     </div>
     <main className="msg-list" style={{ paddingTop: 10 }}>
       {active === 'خانه' && (
-        <div className="school-home" style={{ padding: '0 15px' }}>
-          <a
-            className="display-banner"
-            href="https://app.shad.ir/education"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            <span className="display-banner-icon"><Icon name="home" /></span>
-            <div>
-              <strong>خانه آموزش</strong>
-              <small>app.shad.ir/education</small>
+        <div className="edu-home">
+          <div className="edu-hero">
+            <div className="edu-hero-text">
+              <strong>مدرسه من</strong>
+              <span>هر روز یه چیز تازه یاد بگیر</span>
             </div>
-          </a>
+            <div className="edu-hero-art" aria-hidden="true">📓✏️</div>
+          </div>
+
+          <section className="edu-section">
+            <div className="edu-section-head">
+              <strong>دسترسی سریع</strong>
+            </div>
+            <div className="edu-quick-grid">
+              {[
+                { t: 'دروس من', i: 'book' as IconName, action: () => navigate('classroom') },
+                { t: 'بانک سوال', i: 'exam' as IconName, action: () => navigate('exam') },
+                { t: 'فیلم آموزشی', i: 'video' as IconName, action: () => {} },
+                { t: 'بازی آموزشی', i: 'ball' as IconName, action: () => {} },
+              ].map(x => (
+                <button key={x.t} type="button" className="edu-quick-item" onClick={x.action}>
+                  <span><Icon name={x.i} size={22} /></span>
+                  <small>{x.t}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="edu-section">
+            <div className="edu-cards-scroll">
+              {[
+                { t: 'ترفندهای ریاضی: مقایسه آسان اعداد صحیح', c: '#5b8def' },
+                { t: 'ترفندهای ریاضی: ترفند طلایی اعداد توان‌دار', c: '#7c5cbf' },
+                { t: 'ترفندهای ریاضی: مقایسه پروانه‌ای کسرها', c: '#e07a3a' },
+              ].map(card => (
+                <button key={card.t} type="button" className="edu-content-card" style={{ background: `linear-gradient(145deg, ${card.c}, ${card.c}cc)` }}>
+                  <strong>{card.t}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="edu-section">
+            <div className="edu-section-head">
+              <strong>اتاق معلمان</strong>
+              <button type="button">مشاهده بیشتر</button>
+            </div>
+            <div className="edu-teachers-scroll">
+              {['سارا', 'مریم', 'رضا', 'نرگس', 'امیر', 'زهرا', 'حسین', 'فاطمه'].map((name, i) => (
+                <button key={name} type="button" className="edu-teacher-card">
+                  <div className={`edu-teacher-avatar a${i % 4}`}>{name[0]}</div>
+                  <small>{name}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="edu-section">
+            <label className="edu-ask-box">
+              <Icon name="search" size={18} />
+              <input placeholder="هر چی دلت میخواد بپرس" />
+            </label>
+          </section>
+
+          <section className="edu-section">
+            <div className="edu-section-head">
+              <strong>سوالای درسیتو بپرس</strong>
+            </div>
+            <div className="edu-bots-scroll">
+              {[
+                { t: 'مرشد', c: '#3d8bfd' },
+                { t: 'بوف', c: '#6b4eff' },
+                { t: 'اندرز', c: '#f0a020' },
+              ].map(bot => (
+                <button key={bot.t} type="button" className="edu-bot-card">
+                  <div className="edu-bot-icon" style={{ background: bot.c }}>{bot.t[0]}</div>
+                  <strong>{bot.t}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="edu-section edu-treasure">
+            <div className="edu-section-head light">
+              <strong>گنجینه یادگیری</strong>
+            </div>
+            <div className="edu-treasure-scroll">
+              {['کوئیز ۲۴', 'جونیورا', 'آناتومیار', 'مرشد', 'کی‌برد', 'اُکیان'].map(item => (
+                <button key={item} type="button" className="edu-treasure-item">
+                  <span>{item[0]}</span>
+                  <small>{item}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="edu-section">
+            <div className="edu-section-head">
+              <strong>ابزار تدریس معلمان</strong>
+              <button type="button">بیشتر</button>
+            </div>
+            <div className="edu-tools-scroll">
+              {[
+                { t: 'اسلایدهای آموزشی', s: 'تهیه ارائه و محتوا', i: 'image' as IconName },
+                { t: 'آزمون ساز', s: 'طراحی و برگزاری آزمون', i: 'exam' as IconName },
+                { t: 'طرح درس', s: 'سوالات استاندارد', i: 'file' as IconName },
+                { t: 'بانک سوالات', s: 'برنامه‌ریزی آموزشی', i: 'book' as IconName },
+              ].map(tool => (
+                <button key={tool.t} type="button" className="edu-tool-card">
+                  <span className="edu-tool-icon"><Icon name={tool.i} size={20} /></span>
+                  <strong>{tool.t}</strong>
+                  <small>{tool.s}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="edu-section" style={{ marginBottom: 20 }}>
+            <div className="edu-section-head">
+              <strong>کانال‌های آموزشی</strong>
+            </div>
+            <div className="edu-channels-scroll">
+              {['علوم نهم', 'ریاضی آسان', 'فارسی خلاق', 'عربی پایه'].map(ch => (
+                <button key={ch} type="button" className="edu-channel-card">
+                  <div className="edu-channel-avatar">{ch[0]}</div>
+                  <small>{ch}</small>
+                </button>
+              ))}
+            </div>
+          </section>
         </div>
       )}
       {active === 'مدرسه من' && (
