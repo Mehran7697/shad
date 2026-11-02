@@ -1427,3 +1427,88 @@
   background: var(--green);
   color: white;
 }
+
+.classroom-grid button.active-role {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgb(17 156 120 / .12);
+  background: var(--green-soft);
+}
+
+/* Auth enter transition */
+.auth-screen {
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+.auth-screen.auth-leaving {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.auth-enter-hint {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green-dark);
+}
+.classroom-grid button:disabled {
+  opacity: 0.85;
+}
+
+
+/* Student assignment submit — aligned with app UI */
+.student-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.student-status-bar.done {
+  background: var(--green-soft);
+  border-color: #b7e2d4;
+}
+.student-status-bar small {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: left;
+}
+.student-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.student-desc {
+  margin: 0;
+}
+.student-attach-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.student-attach-row {
+  cursor: default;
+}
+.attach-remove {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 10px;
+}
+.attach-remove:active {
+  background: #f1f5f4;
+}
+.upload.upload-recording {
+  border-color: #e86a5e;
+  background: #fff5f4;
+  color: #c0392b;
+}
+.upload.upload-recording strong {
+  color: #c0392b;
+}

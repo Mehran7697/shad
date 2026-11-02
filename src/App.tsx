@@ -1062,86 +1062,113 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   if (isStudent) {
     return <div className="screen inner-screen">
       <SubHeader screen="assignment" back={goBack} />
-      <main className="inner-content">
-        <section className="assignment-detail-card">
-          <div className="assignment-detail-head">
-            <span className="resource-icon green"><Icon name="book" /></span>
-            <div>
-              <strong>{meta.title}</strong>
-              <small>علوم تجربی · کلاس ۹۰۱</small>
-            </div>
+      <main className="inner-content form-page">
+        <div className="display-banner">
+          <span className="display-banner-icon"><Icon name="book" /></span>
+          <div>
+            <strong>{meta.title}</strong>
+            <small>علوم تجربی · کلاس ۹۰۱ · مهلت {meta.deadline}</small>
           </div>
-          <p className="assignment-desc">{meta.description}</p>
-          <div className="assignment-meta-row">
-            <span><Icon name="clock" size={14} /> مهلت: {meta.deadline}</span>
-            <span className={submitted ? 'status-pill ok' : 'status-pill wait'}>
-              {submitted ? 'ارسال‌شده' : 'در انتظار ارسال'}
-            </span>
+        </div>
+
+        <div className={`student-status-bar ${submitted ? 'done' : ''}`}>
+          <span className={`status-pill ${submitted ? 'ok' : 'wait'}`}>{submitted ? 'ارسال‌شده' : 'در انتظار ارسال'}</span>
+          <small>{submitted ? 'می‌توانید پاسخ را ویرایش و دوباره بفرستید' : 'قبل از مهلت، پاسخ خود را ارسال کنید'}</small>
+        </div>
+
+        <section className="student-block">
+          <div className="section-heading">
+            <strong>توضیحات معلم</strong>
           </div>
-          <div className="assignment-assets">
-            <button type="button" className="asset-chip" onClick={() => { setToast('دانلود شروع شد (شبیه‌سازی)'); setTimeout(() => setToast(null), 1200) }}>
-              <Icon name="file" size={16} />
-              <span>
-                <strong>{meta.fileName}</strong>
-                <small>{meta.fileSize} · دانلود</small>
-              </span>
-            </button>
-            <button type="button" className="asset-chip voice-chip">
-              <Icon name="mic" size={16} />
-              <span>
-                <strong>توضیح صوتی معلم</strong>
-                <small>{meta.voice}</small>
-              </span>
-            </button>
-          </div>
+          <p className="assignment-desc student-desc">{meta.description}</p>
         </section>
 
-        <section className="student-submit-card">
-          <div className="section-heading" style={{ margin: 0 }}>
-            <strong>ارسال پاسخ</strong>
-            <span>{submitted ? 'ویرایش ممکن است' : 'متن، فایل، عکس یا ویس'}</span>
+        <section className="student-block">
+          <div className="section-heading">
+            <strong>فایل‌های معلم</strong>
+            <span>۲ مورد</span>
+          </div>
+          <button type="button" className="resource" onClick={() => { setToast('دانلود شروع شد'); setTimeout(() => setToast(null), 1200) }}>
+            <span className="resource-icon green"><Icon name="file" /></span>
+            <div>
+              <strong>{meta.fileName}</strong>
+              <small>فایل ضمیمه معلم</small>
+              <span>{meta.fileSize} · برای دانلود لمس کنید</span>
+            </div>
+            <Icon name="chevron" />
+          </button>
+          <button type="button" className="resource">
+            <span className="resource-icon blue"><Icon name="mic" /></span>
+            <div>
+              <strong>توضیح صوتی معلم</strong>
+              <small>پیام صوتی راهنما</small>
+              <span>مدت: {meta.voice}</span>
+            </div>
+            <Icon name="chevron" />
+          </button>
+        </section>
+
+        <section className="student-block">
+          <div className="section-heading">
+            <strong>پاسخ شما</strong>
+            <span>{attachments.length ? `${fa(attachments.length)} پیوست` : 'بدون پیوست'}</span>
           </div>
 
-          <label className="field" style={{ marginTop: 10 }}>
+          <label className="field">
             <span>پاسخ متنی</span>
             <textarea
               rows={4}
-              placeholder="پاسخ خود را اینجا بنویسید..."
+              placeholder="توضیح یا پاسخ خود را بنویسید..."
               value={textAnswer}
               onChange={e => setTextAnswer(e.target.value)}
             />
           </label>
 
-          <div className="student-upload-actions">
-            <button type="button" onClick={() => addAttachment('file')}>
-              <Icon name="file" size={16} />
-              <span>فایل</span>
-            </button>
-            <button type="button" onClick={() => addAttachment('image')}>
-              <Icon name="image" size={16} />
-              <span>عکس</span>
-            </button>
-            <button
-              type="button"
-              className={recording ? 'recording' : ''}
-              onClick={() => {
-                if (recording) addAttachment('voice')
-                else setRecording(true)
-              }}
-            >
-              <Icon name="mic" size={16} />
-              <span>{recording ? 'توقف و ذخیره' : 'ویس'}</span>
-            </button>
-          </div>
+          <button type="button" className="upload" onClick={() => addAttachment('file')}>
+            <Icon name="paperclip" />
+            <div>
+              <strong>افزودن فایل</strong>
+              <span>PDF، ورد یا فایل متنی</span>
+            </div>
+            <Icon name="plus" />
+          </button>
+          <button type="button" className="upload" onClick={() => addAttachment('image')}>
+            <Icon name="image" />
+            <div>
+              <strong>افزودن عکس</strong>
+              <span>تصویر از گالری یا دوربین</span>
+            </div>
+            <Icon name="plus" />
+          </button>
+          <button
+            type="button"
+            className={`upload ${recording ? 'upload-recording' : ''}`}
+            onClick={() => {
+              if (recording) addAttachment('voice')
+              else setRecording(true)
+            }}
+          >
+            <Icon name="mic" />
+            <div>
+              <strong>{recording ? 'در حال ضبط... توقف و ذخیره' : 'افزودن پیام صوتی'}</strong>
+              <span>{recording ? 'برای ذخیره دوباره لمس کنید' : 'ویس کوتاه به‌عنوان پاسخ'}</span>
+            </div>
+            <Icon name={recording ? 'check' : 'plus'} />
+          </button>
 
           {attachments.length > 0 && (
             <div className="student-attach-list">
               {attachments.map((a, i) => (
-                <div className="student-attach-item" key={`${a.label}-${i}`}>
-                  <Icon name={a.type === 'voice' ? 'mic' : a.type === 'image' ? 'image' : 'file'} size={16} />
-                  <strong>{a.label}</strong>
-                  <button type="button" aria-label="حذف" onClick={() => removeAttachment(i)}>
-                    <Icon name="close" size={14} />
+                <div className="resource student-attach-row" key={`${a.label}-${i}`}>
+                  <span className={`resource-icon ${a.type === 'voice' ? 'blue' : a.type === 'image' ? 'orange' : 'green'}`}>
+                    <Icon name={a.type === 'voice' ? 'mic' : a.type === 'image' ? 'image' : 'file'} />
+                  </span>
+                  <div>
+                    <strong>{a.label}</strong>
+                    <small>{a.type === 'voice' ? 'پیام صوتی' : a.type === 'image' ? 'تصویر' : 'فایل'}</small>
+                  </div>
+                  <button type="button" className="attach-remove" aria-label="حذف" onClick={() => removeAttachment(i)}>
+                    <Icon name="close" size={16} />
                   </button>
                 </div>
               ))}
