@@ -1658,7 +1658,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           <div className="sheet-handle" />
 
           <div className="student-answer-scroll">
-            <div className="sap-nav-bar">
+            <div className="sap-hero">
               <button
                 type="button"
                 className="sap-nav-btn prev"
@@ -1668,6 +1668,14 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               >
                 قبلی
               </button>
+              <div className="sap-hero-main">
+                <div className="student-avatar large-avatar">{row.name[0]}</div>
+                <div className="sap-hero-text">
+                  <strong>{row.name}</strong>
+                  <small>علوم تجربی · کلاس ۹۰۱ · {fa(pos + 1)} از {fa(deliveredIndexes.length)}</small>
+                  <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
+                </div>
+              </div>
               <button
                 type="button"
                 className="sap-nav-btn next"
@@ -1680,17 +1688,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               >
                 بعدی
               </button>
-            </div>
-
-            <div className="sap-hero">
-              <div className="sap-hero-main">
-                <div className="student-avatar large-avatar">{row.name[0]}</div>
-                <div className="sap-hero-text">
-                  <strong>{row.name}</strong>
-                  <small>علوم تجربی · کلاس ۹۰۱ · {fa(pos + 1)} از {fa(deliveredIndexes.length)}</small>
-                </div>
-              </div>
-              <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
             </div>
 
             <div className="sap-section">
