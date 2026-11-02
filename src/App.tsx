@@ -747,6 +747,7 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 
 
 function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+  void role
   const weekDays = [
     'شنبه',
     'یکشنبه',
