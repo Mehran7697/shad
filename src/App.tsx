@@ -1508,7 +1508,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               <th>دانش‌آموز</th>
               <th>وضعیت</th>
               <th>نمره</th>
-              <th>بازخورد</th>
+              <th>توضیحات</th>
             </tr>
           </thead>
           <tbody>
@@ -1546,7 +1546,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                         setFeedbackDraft(row.feedback)
                       }}
                     >
-                      {hasFeedback ? 'مشاهده' : 'ثبت'}
+                      {hasFeedback ? 'مشاهده' : 'بازخورد'}
                     </button>
                   ) : (
                     <span className="muted-dash">—</span>
