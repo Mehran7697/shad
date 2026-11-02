@@ -1519,10 +1519,19 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               return (
               <tr key={row.name}>
                 <td>
-                  <div className="assignment-student-cell">
+                  <button
+                    type="button"
+                    className="assignment-student-cell student-cell-open"
+                    disabled={!canFeedback}
+                    onClick={() => {
+                      setFeedbackIndex(i)
+                      setFeedbackDraft(row.feedback)
+                    }}
+                    aria-label={`مشاهده پاسخ ${row.name}`}
+                  >
                     <div className="student-avatar">{row.name[0]}</div>
                     <strong>{row.name}</strong>
-                  </div>
+                  </button>
                 </td>
                 <td>
                   <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
