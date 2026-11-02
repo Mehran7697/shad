@@ -1614,110 +1614,159 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
 
     {feedbackIndex !== null && rows[feedbackIndex] && (() => {
       const row = rows[feedbackIndex]
+      const deliveredIndexes = rows
+        .map((r, i) => (r.status === 'تحویل' ? i : -1))
+        .filter(i => i >= 0)
+      const pos = deliveredIndexes.indexOf(feedbackIndex)
+      const prevIdx = pos > 0 ? deliveredIndexes[pos - 1] : null
+      const nextIdx = pos >= 0 && pos < deliveredIndexes.length - 1 ? deliveredIndexes[pos + 1] : null
+
+      const studentFirstName = row.name.split(' ')[0]
+
+      const goToStudent = (idx: number | null, opts?: { savedName?: string }) => {
+        if (opts?.savedName) {
+          setToast(`بازخوردی برای ${opts.savedName} ثبت شد`)
+          setTimeout(() => setToast(null), 1800)
+        }
+        if (idx === null) {
+          setFeedbackIndex(null)
+          return
+        }
+        setFeedbackIndex(idx)
+        setFeedbackDraft(rows[idx].feedback)
+        setActiveVoice(null)
+      }
+
+      const saveCurrentFeedback = () => {
+        updateRow(feedbackIndex, { feedback: feedbackDraft })
+      }
+
+      const saveFeedbackAndNext = () => {
+        saveCurrentFeedback()
+        if (nextIdx !== null) {
+          goToStudent(nextIdx, { savedName: studentFirstName })
+        } else {
+          setToast(`بازخوردی برای ${studentFirstName} ثبت شد`)
+          setTimeout(() => setToast(null), 1800)
+          setFeedbackIndex(null)
+        }
+      }
+
       return (
       <div className="overlay group-grade-overlay" onClick={() => setFeedbackIndex(null)}>
         <div className="bottom-sheet student-answer-sheet" onClick={e => e.stopPropagation()}>
           <div className="sheet-handle" />
 
-          <div className="sap-hero">
-            <div className="sap-hero-main">
-              <div className="student-avatar large-avatar">{row.name[0]}</div>
-              <div className="sap-hero-text">
-                <strong>{row.name}</strong>
-                <small>علوم تجربی · کلاس ۹۰۱</small>
+          <div className="student-answer-scroll">
+            <div className="sap-hero">
+              <div className="sap-hero-main">
+                <div className="student-avatar large-avatar">{row.name[0]}</div>
+                <div className="sap-hero-text">
+                  <strong>{row.name}</strong>
+                  <small>علوم تجربی · کلاس ۹۰۱ · {fa(pos + 1)} از {fa(deliveredIndexes.length)}</small>
+                </div>
+              </div>
+              <div className="sap-hero-side">
+                <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
+                <button
+                  type="button"
+                  className="sap-nav-btn prev"
+                  aria-label="قبلی"
+                  disabled={prevIdx === null}
+                  onClick={() => goToStudent(prevIdx)}
+                >
+                  قبلی
+                </button>
+                <button
+                  type="button"
+                  className="sap-nav-btn next"
+                  aria-label="بعدی"
+                  disabled={nextIdx === null}
+                  onClick={() => {
+                    saveCurrentFeedback()
+                    goToStudent(nextIdx, { savedName: studentFirstName })
+                  }}
+                >
+                  بعدی
+                </button>
               </div>
             </div>
-            <div className="sap-hero-side">
-              <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
-              <IconButton icon="close" label="بستن" onClick={() => setFeedbackIndex(null)} />
-            </div>
-          </div>
 
-          <div className="sap-section">
-            <div className="sap-section-title">
-              <Icon name="book" size={16} />
-              <strong>پاسخ دانش‌آموز</strong>
-            </div>
-            {row.textAnswer ? (
-              <p className="sap-text">{row.textAnswer}</p>
-            ) : (
-              <div className="sap-empty">متن پاسخ ثبت نشده</div>
-            )}
-            <div className="sap-assets">
-              {row.file && (
-                <button type="button" className="sap-asset">
-                  <span className="resource-icon green"><Icon name="file" size={18} /></span>
-                  <div>
-                    <strong>{row.file}</strong>
-                    <small>فایل ارسالی · مشاهده</small>
-                  </div>
-                </button>
+            <div className="sap-section">
+              <div className="sap-section-title">
+                <Icon name="book" size={16} />
+                <strong>پاسخ دانش‌آموز</strong>
+              </div>
+              {row.textAnswer ? (
+                <p className="sap-text">{row.textAnswer}</p>
+              ) : (
+                <div className="sap-empty">متن پاسخ ثبت نشده</div>
               )}
-              {row.voiceAnswer && (
-                <button type="button" className="sap-asset">
-                  <span className="resource-icon blue"><Icon name="mic" size={18} /></span>
-                  <div>
-                    <strong>پیام صوتی</strong>
-                    <small>مدت {row.voiceAnswer} · پخش</small>
-                  </div>
-                </button>
-              )}
+              <div className="sap-assets">
+                {row.file && (
+                  <button type="button" className="sap-asset">
+                    <span className="resource-icon green"><Icon name="file" size={18} /></span>
+                    <div>
+                      <strong>{row.file}</strong>
+                      <small>فایل ارسالی · مشاهده</small>
+                    </div>
+                  </button>
+                )}
+                {row.voiceAnswer && (
+                  <button type="button" className="sap-asset">
+                    <span className="resource-icon blue"><Icon name="mic" size={18} /></span>
+                    <div>
+                      <strong>پیام صوتی</strong>
+                      <small>مدت {row.voiceAnswer} · پخش</small>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="sap-section">
+              <div className="sap-section-title">
+                <Icon name="chat" size={16} />
+                <strong>بازخورد معلم</strong>
+              </div>
+              <label className="field">
+                <span>متن بازخورد</span>
+                <textarea
+                  rows={3}
+                  placeholder="نظر خود را برای دانش‌آموز بنویسید..."
+                  value={feedbackDraft}
+                  onChange={e => setFeedbackDraft(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className={`sap-voice-btn ${row.hasVoiceFeedback || activeVoice === feedbackIndex ? 'active' : ''}`}
+                onClick={() => {
+                  if (activeVoice === feedbackIndex) {
+                    setActiveVoice(null)
+                    updateRow(feedbackIndex, { hasVoiceFeedback: true })
+                    setToast('بازخورد صوتی ذخیره شد')
+                    setTimeout(() => setToast(null), 1200)
+                  } else {
+                    setActiveVoice(feedbackIndex)
+                  }
+                }}
+              >
+                <Icon name="mic" size={18} />
+                <span>
+                  {activeVoice === feedbackIndex
+                    ? 'در حال ضبط... برای توقف بزنید'
+                    : row.hasVoiceFeedback
+                      ? 'بازخورد صوتی ثبت شده'
+                      : 'ضبط بازخورد صوتی'}
+                </span>
+              </button>
             </div>
           </div>
 
-          <div className="sap-section">
-            <div className="sap-section-title">
-              <Icon name="chat" size={16} />
-              <strong>بازخورد معلم</strong>
-            </div>
-            <label className="field">
-              <span>متن بازخورد</span>
-              <textarea
-                rows={3}
-                placeholder="نظر خود را برای دانش‌آموز بنویسید..."
-                value={feedbackDraft}
-                onChange={e => setFeedbackDraft(e.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              className={`sap-voice-btn ${row.hasVoiceFeedback || activeVoice === feedbackIndex ? 'active' : ''}`}
-              onClick={() => {
-                if (activeVoice === feedbackIndex) {
-                  setActiveVoice(null)
-                  updateRow(feedbackIndex, { hasVoiceFeedback: true })
-                  setToast('بازخورد صوتی ذخیره شد')
-                  setTimeout(() => setToast(null), 1200)
-                } else {
-                  setActiveVoice(feedbackIndex)
-                }
-              }}
-            >
-              <Icon name="mic" size={18} />
-              <span>
-                {activeVoice === feedbackIndex
-                  ? 'در حال ضبط... برای توقف بزنید'
-                  : row.hasVoiceFeedback
-                    ? 'بازخورد صوتی ثبت شده'
-                    : 'ضبط بازخورد صوتی'}
-              </span>
-            </button>
-          </div>
-
-          <div className="group-grade-footer">
+          <div className="student-answer-footer">
             <button type="button" className="secondary" onClick={() => setFeedbackIndex(null)}>بستن</button>
-            <button
-              type="button"
-              className="primary"
-              onClick={() => {
-                updateRow(feedbackIndex, { feedback: feedbackDraft })
-                setFeedbackIndex(null)
-                setToast('بازخورد ثبت شد')
-                setTimeout(() => setToast(null), 1200)
-              }}
-            >
-              ثبت
-            </button>
+            <button type="button" className="primary" onClick={saveFeedbackAndNext}>ثبت</button>
           </div>
         </div>
       </div>
