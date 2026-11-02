@@ -1817,3 +1817,95 @@
   font-size: 11px;
   color: #a07820;
 }
+
+.group-grade-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.group-grade-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.group-grade-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.group-grade-actions button {
+  height: 46px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  background: var(--green);
+}
+.group-grade-actions .secondary {
+  color: var(--green-dark);
+  background: var(--green-soft);
+}
+
+.group-grade-overlay {
+  z-index: 40;
+}
+.group-grade-sheet {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+.group-grade-footer {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.group-grade-footer button {
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  cursor: pointer;
+}
+.group-grade-footer .secondary {
+  color: var(--green-dark) !important;
+  background: var(--green-soft) !important;
+}
+.group-grade-footer .primary {
+  color: #fff !important;
+  background: var(--green) !important;
+  box-shadow: 0 8px 18px rgb(17 156 120 / .22);
+}
+.group-grade-footer .primary:active {
+  transform: scale(0.98);
+}
+
+.table-action-btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.table-action-btn.register {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.table-action-btn.view {
+  background: #eef4ff;
+  color: #2f6fdb;
+}
