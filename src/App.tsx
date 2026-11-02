@@ -1000,6 +1000,8 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     name,
     status: i % 3 === 0 ? 'انتظار' : 'تحویل',
     file: i % 3 === 0 ? '' : `پاسخ_${name.split(' ')[0]}.pdf`,
+    textAnswer: i % 3 === 0 ? '' : `پاسخ ${name.split(' ')[0]} برای تمرین فصل سوم. سوالات صفحه ۴۲ تا ۴۵ حل شده است.`,
+    voiceAnswer: i % 3 === 0 ? '' : '۰:۲۴',
     score: '',
     feedback: '',
     hasVoiceFeedback: false,
@@ -1508,12 +1510,11 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               <th>دانش‌آموز</th>
               <th>وضعیت</th>
               <th>نمره</th>
-              <th>توضیحات</th>
+              <th>مشاهده پاسخ</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => {
-              const hasFeedback = row.feedback.trim() !== '' || row.hasVoiceFeedback
               const canFeedback = row.status === 'تحویل'
               return (
               <tr key={row.name}>
@@ -1540,13 +1541,13 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                   {canFeedback ? (
                     <button
                       type="button"
-                      className={`table-action-btn ${hasFeedback ? 'view' : 'register'}`}
+                      className="table-action-btn view"
                       onClick={() => {
                         setFeedbackIndex(i)
                         setFeedbackDraft(row.feedback)
                       }}
                     >
-                      {hasFeedback ? 'مشاهده' : 'بازخورد'}
+                      مشاهده
                     </button>
                   ) : (
                     <span className="muted-dash">—</span>
@@ -1611,30 +1612,78 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
       </div>
     )}
 
-    {feedbackIndex !== null && rows[feedbackIndex] && (
+    {feedbackIndex !== null && rows[feedbackIndex] && (() => {
+      const row = rows[feedbackIndex]
+      return (
       <div className="overlay group-grade-overlay" onClick={() => setFeedbackIndex(null)}>
-        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+        <div className="bottom-sheet student-answer-sheet" onClick={e => e.stopPropagation()}>
           <div className="sheet-handle" />
-          <div className="sheet-title">
+          <div className="student-profile-head">
+            <div className="student-avatar large-avatar">{row.name[0]}</div>
             <div>
-              <strong>{(rows[feedbackIndex].feedback.trim() || rows[feedbackIndex].hasVoiceFeedback) ? 'مشاهده بازخورد' : 'ثبت بازخورد'}</strong>
-              <span>{rows[feedbackIndex].name}</span>
+              <strong>{row.name}</strong>
+              <small>علوم تجربی · کلاس ۹۰۱</small>
+              <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
             </div>
             <IconButton icon="close" label="بستن" onClick={() => setFeedbackIndex(null)} />
           </div>
-          <div className="group-grade-body">
+
+          <div className="student-answer-body">
+            <div className="sa-panel-head">
+              <strong>پاسخ دانش‌آموز</strong>
+            </div>
+
+            {row.textAnswer ? (
+              <p className="sa-desc">{row.textAnswer}</p>
+            ) : (
+              <div className="sa-waiting"><div><strong>متن پاسخ ثبت نشده</strong></div></div>
+            )}
+
+            <div className="sa-file-list">
+              {row.file ? (
+                <button type="button" className="resource">
+                  <span className="resource-icon green"><Icon name="file" /></span>
+                  <div>
+                    <strong>{row.file}</strong>
+                    <small>فایل ارسالی</small>
+                    <span>برای مشاهده لمس کنید</span>
+                  </div>
+                  <Icon name="chevron" />
+                </button>
+              ) : null}
+              {row.voiceAnswer ? (
+                <button type="button" className="resource">
+                  <span className="resource-icon blue"><Icon name="mic" /></span>
+                  <div>
+                    <strong>پیام صوتی دانش‌آموز</strong>
+                    <small>پخش پاسخ صوتی</small>
+                    <span>مدت: {row.voiceAnswer}</span>
+                  </div>
+                  <Icon name="chevron" />
+                </button>
+              ) : null}
+              {!row.file && !row.voiceAnswer && !row.textAnswer && (
+                <div className="sa-waiting"><div><strong>پاسخی ارسال نشده</strong></div></div>
+              )}
+            </div>
+
+            <div className="sa-panel-head" style={{ marginTop: 4 }}>
+              <strong>بازخورد شما</strong>
+            </div>
+
             <label className="field">
               <span>متن بازخورد</span>
               <textarea
-                rows={4}
-                placeholder="نظر خود را بنویسید..."
+                rows={3}
+                placeholder="نظر خود را برای دانش‌آموز بنویسید..."
                 value={feedbackDraft}
                 onChange={e => setFeedbackDraft(e.target.value)}
               />
             </label>
+
             <button
               type="button"
-              className={`upload ${rows[feedbackIndex].hasVoiceFeedback || activeVoice === feedbackIndex ? 'upload-recording' : ''}`}
+              className={`upload ${row.hasVoiceFeedback || activeVoice === feedbackIndex ? 'upload-recording' : ''}`}
               onClick={() => {
                 if (activeVoice === feedbackIndex) {
                   setActiveVoice(null)
@@ -1651,15 +1700,16 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 <strong>
                   {activeVoice === feedbackIndex
                     ? 'در حال ضبط... توقف'
-                    : rows[feedbackIndex].hasVoiceFeedback
+                    : row.hasVoiceFeedback
                       ? 'بازخورد صوتی ثبت شده'
                       : 'افزودن بازخورد صوتی'}
                 </strong>
                 <span>اختیاری</span>
               </div>
-              <Icon name={rows[feedbackIndex].hasVoiceFeedback ? 'check' : 'plus'} />
+              <Icon name={row.hasVoiceFeedback ? 'check' : 'plus'} />
             </button>
           </div>
+
           <div className="group-grade-footer">
             <button type="button" className="secondary" onClick={() => setFeedbackIndex(null)}>بستن</button>
             <button
@@ -1677,7 +1727,8 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           </div>
         </div>
       </div>
-    )}
+      )
+    })()}
 
     {toast && <div className="toast">{toast}</div>}
   </div>
