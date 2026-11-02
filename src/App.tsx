@@ -1015,8 +1015,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [feedbackDraft, setFeedbackDraft] = useState('')
 
   const submittedCount = rows.filter(r => r.status === 'تحویل').length
-  const graded = rows.filter(r => r.score.trim() !== '').length
-
   const updateRow = (index: number, patch: Partial<(typeof rows)[0]>) => {
     setRows(prev => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)))
   }
