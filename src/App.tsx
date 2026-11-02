@@ -716,9 +716,9 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
-function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر' }: { screen: Screen; back: () => void; rightIcon?: IconName; onRightClick?: () => void; rightLabel?: string }) {
+function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', title, subtitle }: { screen: Screen; back: () => void; rightIcon?: IconName; onRightClick?: () => void; rightLabel?: string; title?: string; subtitle?: string }) {
   const meta = screenMeta[screen]!
-  return <header className="sub-header"><IconButton icon="chevron" label="بازگشت" onClick={back} /><div><strong>{meta.title}</strong><span>{meta.subtitle}</span></div><IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} /></header>
+  return <header className="sub-header"><IconButton icon="chevron" label="بازگشت" onClick={back} /><div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div><IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} /></header>
 }
 
 function FormField({ label, placeholder, type = 'text' }: { label: string; placeholder: string; type?: string }) {
@@ -1105,7 +1105,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   if (isStudent) {
     const showForm = !submitted || editingSubmission
     return <div className="screen inner-screen">
-      <SubHeader screen="assignment" back={goBack} />
+      <SubHeader screen="assignment" back={goBack} title={meta.title} subtitle="علوم تجربی · کلاس ۹۰۱" />
       <main className="inner-content form-page">
         <div className="display-banner">
           <span className="display-banner-icon"><Icon name="book" /></span>
@@ -1399,18 +1399,16 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     <SubHeader
       screen="assignment"
       back={goBack}
+      title={meta.title}
+      subtitle="علوم تجربی · کلاس ۹۰۱"
       rightIcon="pencil"
       rightLabel="ویرایش"
       onRightClick={openEdit}
     />
     <main className="inner-content">
       <section className="assignment-detail-card">
-        <div className="assignment-detail-head">
-          <span className="resource-icon green"><Icon name="book" /></span>
-          <div>
-            <strong>{meta.title}</strong>
-            <small>علوم تجربی · کلاس ۹۰۱</small>
-          </div>
+        <div className="section-heading" style={{ margin: 0 }}>
+          <strong>توضیحات تکلیف</strong>
         </div>
         <p className="assignment-desc">{meta.description}</p>
         <div className="assignment-meta-row">
