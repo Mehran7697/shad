@@ -965,7 +965,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
 }
 
 function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
-  void role
+  const isStudent = role === 'student'
   const [meta, setMeta] = useState({
     title: 'تمرین فصل سوم',
     description: 'لطفاً سوالات صفحهٔ ۴۲ تا ۴۵ کتاب علوم را حل کنید و فایل پاسخ را ارسال نمایید. در صورت نیاز می‌توانید توضیح صوتی هم ضمیمه کنید.',
@@ -976,6 +976,13 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   })
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(meta)
+  const [toast, setToast] = useState<string | null>(null)
+
+  // student submission state
+  const [textAnswer, setTextAnswer] = useState('')
+  const [attachments, setAttachments] = useState<{ type: 'file' | 'image' | 'voice'; label: string }[]>([])
+  const [recording, setRecording] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
   const initialRows = students.map((name, i) => ({
     name,
@@ -988,10 +995,9 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
 
   const [rows, setRows] = useState(initialRows)
   const [activeVoice, setActiveVoice] = useState<number | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const submitted = rows.filter(r => r.status === 'تحویل').length
+  const submittedCount = rows.filter(r => r.status === 'تحویل').length
   const graded = rows.filter(r => r.score.trim() !== '').length
 
   const updateRow = (index: number, patch: Partial<(typeof rows)[0]>) => {
@@ -1025,6 +1031,134 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     setTimeout(() => setToast(null), 1400)
   }
 
+  const addAttachment = (type: 'file' | 'image' | 'voice') => {
+    const labels = {
+      file: 'پاسخ_تمرین.pdf',
+      image: 'عکس_پاسخ.jpg',
+      voice: 'پیام_صوتی.m4a',
+    }
+    setAttachments(prev => [...prev, { type, label: labels[type] }])
+    setToast(type === 'voice' ? 'پیام صوتی اضافه شد' : 'فایل اضافه شد')
+    setTimeout(() => setToast(null), 1200)
+    if (type === 'voice') setRecording(false)
+  }
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const submitHomework = () => {
+    if (!textAnswer.trim() && attachments.length === 0) {
+      setToast('متن یا فایل پاسخ را اضافه کنید')
+      setTimeout(() => setToast(null), 1400)
+      return
+    }
+    setSubmitted(true)
+    setToast('تکلیف با موفقیت ارسال شد')
+    setTimeout(() => setToast(null), 1600)
+  }
+
+  // ---------- Student view ----------
+  if (isStudent) {
+    return <div className="screen inner-screen">
+      <SubHeader screen="assignment" back={goBack} />
+      <main className="inner-content">
+        <section className="assignment-detail-card">
+          <div className="assignment-detail-head">
+            <span className="resource-icon green"><Icon name="book" /></span>
+            <div>
+              <strong>{meta.title}</strong>
+              <small>علوم تجربی · کلاس ۹۰۱</small>
+            </div>
+          </div>
+          <p className="assignment-desc">{meta.description}</p>
+          <div className="assignment-meta-row">
+            <span><Icon name="clock" size={14} /> مهلت: {meta.deadline}</span>
+            <span className={submitted ? 'status-pill ok' : 'status-pill wait'}>
+              {submitted ? 'ارسال‌شده' : 'در انتظار ارسال'}
+            </span>
+          </div>
+          <div className="assignment-assets">
+            <button type="button" className="asset-chip" onClick={() => { setToast('دانلود شروع شد (شبیه‌سازی)'); setTimeout(() => setToast(null), 1200) }}>
+              <Icon name="file" size={16} />
+              <span>
+                <strong>{meta.fileName}</strong>
+                <small>{meta.fileSize} · دانلود</small>
+              </span>
+            </button>
+            <button type="button" className="asset-chip voice-chip">
+              <Icon name="mic" size={16} />
+              <span>
+                <strong>توضیح صوتی معلم</strong>
+                <small>{meta.voice}</small>
+              </span>
+            </button>
+          </div>
+        </section>
+
+        <section className="student-submit-card">
+          <div className="section-heading" style={{ margin: 0 }}>
+            <strong>ارسال پاسخ</strong>
+            <span>{submitted ? 'ویرایش ممکن است' : 'متن، فایل، عکس یا ویس'}</span>
+          </div>
+
+          <label className="field" style={{ marginTop: 10 }}>
+            <span>پاسخ متنی</span>
+            <textarea
+              rows={4}
+              placeholder="پاسخ خود را اینجا بنویسید..."
+              value={textAnswer}
+              onChange={e => setTextAnswer(e.target.value)}
+            />
+          </label>
+
+          <div className="student-upload-actions">
+            <button type="button" onClick={() => addAttachment('file')}>
+              <Icon name="file" size={16} />
+              <span>فایل</span>
+            </button>
+            <button type="button" onClick={() => addAttachment('image')}>
+              <Icon name="image" size={16} />
+              <span>عکس</span>
+            </button>
+            <button
+              type="button"
+              className={recording ? 'recording' : ''}
+              onClick={() => {
+                if (recording) addAttachment('voice')
+                else setRecording(true)
+              }}
+            >
+              <Icon name="mic" size={16} />
+              <span>{recording ? 'توقف و ذخیره' : 'ویس'}</span>
+            </button>
+          </div>
+
+          {attachments.length > 0 && (
+            <div className="student-attach-list">
+              {attachments.map((a, i) => (
+                <div className="student-attach-item" key={`${a.label}-${i}`}>
+                  <Icon name={a.type === 'voice' ? 'mic' : a.type === 'image' ? 'image' : 'file'} size={16} />
+                  <strong>{a.label}</strong>
+                  <button type="button" aria-label="حذف" onClick={() => removeAttachment(i)}>
+                    <Icon name="close" size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+      <div className="sticky-action">
+        <button onClick={submitHomework}>
+          {submitted ? <><Icon name="check" /> به‌روزرسانی ارسال</> : 'ارسال تکلیف'}
+        </button>
+      </div>
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  }
+
+  // ---------- Teacher edit ----------
   if (editing) {
     return <div className="screen inner-screen">
       <header className="sub-header">
@@ -1070,6 +1204,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     </div>
   }
 
+  // ---------- Teacher review ----------
   return <div className="screen inner-screen">
     <SubHeader
       screen="assignment"
@@ -1090,7 +1225,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
         <p className="assignment-desc">{meta.description}</p>
         <div className="assignment-meta-row">
           <span><Icon name="clock" size={14} /> مهلت: {meta.deadline}</span>
-          <span>{fa(submitted)} از {fa(students.length)} تحویل</span>
+          <span>{fa(submittedCount)} از {fa(students.length)} تحویل</span>
         </div>
         <div className="assignment-assets">
           <button type="button" className="asset-chip">
