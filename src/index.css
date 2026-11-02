@@ -1455,32 +1455,228 @@
 
 
 /* Student assignment submit — aligned with app UI */
-.student-status-bar {
+
+/* ===== Student assignment (polished) ===== */
+.sa-status-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sa-status-card.is-sent {
+  background: linear-gradient(180deg, #f3fbf8 0%, #ffffff 55%);
+  border-color: #cfeadf;
+}
+.sa-status-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 14px;
 }
-.student-status-bar.done {
+.sa-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.sa-status-badge.ok {
   background: var(--green-soft);
-  border-color: #b7e2d4;
+  color: var(--green-dark);
 }
-.student-status-bar small {
+.sa-status-badge.wait {
+  background: #fff3e6;
+  color: #b66b24;
+}
+.sa-status-time {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sa-status-time strong {
+  font-size: 14px;
+  color: var(--ink);
+}
+.sa-status-time small {
   font-size: 10px;
   color: var(--muted);
-  text-align: left;
 }
-.student-block {
+.sa-status-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.sa-status-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.sa-stat {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sa-stat small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.sa-stat strong {
+  font-size: 12px;
+}
+.late-text { color: #c0392b; }
+.on-time-text { color: var(--green-dark); }
+.wait-text { color: #b66b24; }
+.sa-status-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.sa-status-actions button {
+  height: 40px;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.sa-status-actions button.danger {
+  color: #c0392b;
+  border-color: #f0c7c2;
+  background: #fff8f7;
+}
+
+.sa-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sa-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sa-panel-head strong {
+  font-size: 13px;
+}
+.sa-panel-head > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.sa-chip {
+  font-size: 10px !important;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.sa-chip.ok {
+  background: var(--green-soft);
+  color: var(--green-dark) !important;
+}
+.sa-chip.wait {
+  background: #fff3e6;
+  color: #b66b24 !important;
+}
+.sa-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px;
+}
+.sa-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sa-feedback {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.student-desc {
+.sa-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #e8f7f1, #f3fbf8);
+  border: 1px solid #cfeadf;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.sa-score span {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.sa-score b {
+  font-size: 22px;
+  color: var(--green-dark);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.sa-score b small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sa-feedback p {
   margin: 0;
+  font-size: 12px;
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px;
+}
+.sa-waiting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px;
+  color: var(--muted);
+}
+.sa-waiting > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sa-waiting strong {
+  font-size: 12px;
+  color: var(--ink);
+}
+.sa-waiting span {
+  font-size: 10px;
+  line-height: 1.6;
+}
+.sa-upload-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .student-attach-list {
   display: flex;
@@ -1500,9 +1696,6 @@
   place-items: center;
   flex: none;
   border-radius: 10px;
-}
-.attach-remove:active {
-  background: #f1f5f4;
 }
 .upload.upload-recording {
   border-color: #e86a5e;
