@@ -1618,59 +1618,58 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
       <div className="overlay group-grade-overlay" onClick={() => setFeedbackIndex(null)}>
         <div className="bottom-sheet student-answer-sheet" onClick={e => e.stopPropagation()}>
           <div className="sheet-handle" />
-          <div className="student-profile-head">
-            <div className="student-avatar large-avatar">{row.name[0]}</div>
-            <div>
-              <strong>{row.name}</strong>
-              <small>علوم تجربی · کلاس ۹۰۱</small>
-              <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
+
+          <div className="sap-hero">
+            <div className="sap-hero-main">
+              <div className="student-avatar large-avatar">{row.name[0]}</div>
+              <div className="sap-hero-text">
+                <strong>{row.name}</strong>
+                <small>علوم تجربی · کلاس ۹۰۱</small>
+              </div>
             </div>
-            <IconButton icon="close" label="بستن" onClick={() => setFeedbackIndex(null)} />
+            <div className="sap-hero-side">
+              <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
+              <IconButton icon="close" label="بستن" onClick={() => setFeedbackIndex(null)} />
+            </div>
           </div>
 
-          <div className="student-answer-body">
-            <div className="sa-panel-head">
+          <div className="sap-section">
+            <div className="sap-section-title">
+              <Icon name="book" size={16} />
               <strong>پاسخ دانش‌آموز</strong>
             </div>
-
             {row.textAnswer ? (
-              <p className="sa-desc">{row.textAnswer}</p>
+              <p className="sap-text">{row.textAnswer}</p>
             ) : (
-              <div className="sa-waiting"><div><strong>متن پاسخ ثبت نشده</strong></div></div>
+              <div className="sap-empty">متن پاسخ ثبت نشده</div>
             )}
-
-            <div className="sa-file-list">
-              {row.file ? (
-                <button type="button" className="resource">
-                  <span className="resource-icon green"><Icon name="file" /></span>
+            <div className="sap-assets">
+              {row.file && (
+                <button type="button" className="sap-asset">
+                  <span className="resource-icon green"><Icon name="file" size={18} /></span>
                   <div>
                     <strong>{row.file}</strong>
-                    <small>فایل ارسالی</small>
-                    <span>برای مشاهده لمس کنید</span>
+                    <small>فایل ارسالی · مشاهده</small>
                   </div>
-                  <Icon name="chevron" />
                 </button>
-              ) : null}
-              {row.voiceAnswer ? (
-                <button type="button" className="resource">
-                  <span className="resource-icon blue"><Icon name="mic" /></span>
+              )}
+              {row.voiceAnswer && (
+                <button type="button" className="sap-asset">
+                  <span className="resource-icon blue"><Icon name="mic" size={18} /></span>
                   <div>
-                    <strong>پیام صوتی دانش‌آموز</strong>
-                    <small>پخش پاسخ صوتی</small>
-                    <span>مدت: {row.voiceAnswer}</span>
+                    <strong>پیام صوتی</strong>
+                    <small>مدت {row.voiceAnswer} · پخش</small>
                   </div>
-                  <Icon name="chevron" />
                 </button>
-              ) : null}
-              {!row.file && !row.voiceAnswer && !row.textAnswer && (
-                <div className="sa-waiting"><div><strong>پاسخی ارسال نشده</strong></div></div>
               )}
             </div>
+          </div>
 
-            <div className="sa-panel-head" style={{ marginTop: 4 }}>
-              <strong>بازخورد شما</strong>
+          <div className="sap-section">
+            <div className="sap-section-title">
+              <Icon name="chat" size={16} />
+              <strong>بازخورد معلم</strong>
             </div>
-
             <label className="field">
               <span>متن بازخورد</span>
               <textarea
@@ -1680,10 +1679,9 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 onChange={e => setFeedbackDraft(e.target.value)}
               />
             </label>
-
             <button
               type="button"
-              className={`upload ${row.hasVoiceFeedback || activeVoice === feedbackIndex ? 'upload-recording' : ''}`}
+              className={`sap-voice-btn ${row.hasVoiceFeedback || activeVoice === feedbackIndex ? 'active' : ''}`}
               onClick={() => {
                 if (activeVoice === feedbackIndex) {
                   setActiveVoice(null)
@@ -1695,18 +1693,14 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 }
               }}
             >
-              <Icon name="mic" />
-              <div>
-                <strong>
-                  {activeVoice === feedbackIndex
-                    ? 'در حال ضبط... توقف'
-                    : row.hasVoiceFeedback
-                      ? 'بازخورد صوتی ثبت شده'
-                      : 'افزودن بازخورد صوتی'}
-                </strong>
-                <span>اختیاری</span>
-              </div>
-              <Icon name={row.hasVoiceFeedback ? 'check' : 'plus'} />
+              <Icon name="mic" size={18} />
+              <span>
+                {activeVoice === feedbackIndex
+                  ? 'در حال ضبط... برای توقف بزنید'
+                  : row.hasVoiceFeedback
+                    ? 'بازخورد صوتی ثبت شده'
+                    : 'ضبط بازخورد صوتی'}
+              </span>
             </button>
           </div>
 
