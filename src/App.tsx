@@ -1902,8 +1902,19 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
 }
 
 function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; goBack: () => void; setRole: (r: UserRole) => void }) {
-  const [selected, setSelected] = useState<UserRole | null>(null)
-  return <div className="screen inner-screen">
+  const [leaving, setLeaving] = useState<UserRole | null>(null)
+
+  const enterAs = (role: UserRole) => {
+    if (leaving) return
+    setLeaving(role)
+    setRole(role)
+    // short transition then go to messenger for both roles
+    window.setTimeout(() => {
+      navigate('messenger')
+    }, 280)
+  }
+
+  return <div className={`screen inner-screen auth-screen ${leaving ? 'auth-leaving' : ''}`}>
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <div><strong>احراز هویت</strong><span>انتخاب نقش کاربری</span></div>
@@ -1918,26 +1929,31 @@ function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; go
         </div>
       </div>
       <div className="classroom-grid">
-        <button className={selected === 'teacher' ? 'active-role' : ''} onClick={() => setSelected('teacher')}>
+        <button
+          className={leaving === 'teacher' ? 'active-role' : ''}
+          onClick={() => enterAs('teacher')}
+          disabled={!!leaving}
+        >
           <span><Icon name="person" /></span>
           <strong>معلم</strong>
           <small>مدیریت کلاس، نمرات و تکالیف</small>
         </button>
-        <button className={selected === 'student' ? 'active-role' : ''} onClick={() => setSelected('student')}>
+        <button
+          className={leaving === 'student' ? 'active-role' : ''}
+          onClick={() => enterAs('student')}
+          disabled={!!leaving}
+        >
           <span><Icon name="users" /></span>
           <strong>دانش‌آموز</strong>
           <small>مشاهدهٔ دروس و ارسال تکلیف</small>
         </button>
       </div>
+      {leaving && (
+        <div className="auth-enter-hint">
+          در حال ورود به پیام‌رسان...
+        </div>
+      )}
     </main>
-    {selected && <div className="sticky-action">
-      <button onClick={() => {
-        setRole(selected)
-        navigate(selected === 'teacher' ? 'classroom' : 'messenger')
-      }}>
-        {selected === 'teacher' ? 'ورود به عنوان معلم' : 'ورود به عنوان دانش‌آموز'}
-      </button>
-    </div>}
   </div>
 }
 
