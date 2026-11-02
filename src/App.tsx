@@ -983,6 +983,18 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [attachments, setAttachments] = useState<{ type: 'file' | 'image' | 'voice'; label: string }[]>([])
   const [recording, setRecording] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [editingSubmission, setEditingSubmission] = useState(false)
+  const [submittedAt, setSubmittedAt] = useState<{ date: string; time: string; ts: number } | null>(null)
+  const [delayLabel, setDelayLabel] = useState<string | null>(null)
+  // mock deadline: 90 minutes ago → demo late submission
+  const assignmentDeadlineTs = useRef(Date.now() - 90 * 60 * 1000).current
+  // mock teacher review state (demo)
+  const [teacherViewed, setTeacherViewed] = useState(false)
+  const [teacherFeedback] = useState({
+    text: 'پاسخ خوب بود؛ فقط بخش سوم را کامل‌تر بنویس.',
+    score: '۱۷',
+    voice: false,
+  })
 
   const initialRows = students.map((name, i) => ({
     name,
@@ -1047,19 +1059,51 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     setAttachments(prev => prev.filter((_, i) => i !== index))
   }
 
+  const formatDelay = (ms: number) => {
+    if (ms <= 0) return null
+    const totalMin = Math.floor(ms / 60000)
+    const hours = Math.floor(totalMin / 60)
+    const mins = totalMin % 60
+    if (hours > 0 && mins > 0) return `${fa(hours)} ساعت و ${fa(mins)} دقیقه تأخیر`
+    if (hours > 0) return `${fa(hours)} ساعت تأخیر`
+    return `${fa(mins)} دقیقه تأخیر`
+  }
+
   const submitHomework = () => {
     if (!textAnswer.trim() && attachments.length === 0) {
       setToast('متن یا فایل پاسخ را اضافه کنید')
       setTimeout(() => setToast(null), 1400)
       return
     }
+    const now = new Date()
+    const shamsi = nowShamsi()
+    const ts = now.getTime()
+    setSubmittedAt({ date: shamsi.date, time: shamsi.time, ts })
+    setDelayLabel(formatDelay(ts - assignmentDeadlineTs))
     setSubmitted(true)
-    setToast('تکلیف با موفقیت ارسال شد')
+    setEditingSubmission(false)
+    setTeacherViewed(false)
+    setToast(editingSubmission ? 'ارسال به‌روزرسانی شد' : 'تکلیف با موفقیت ارسال شد')
     setTimeout(() => setToast(null), 1600)
+    // simulate teacher viewing after a short delay
+    setTimeout(() => setTeacherViewed(true), 3500)
+  }
+
+  const deleteSubmission = () => {
+    setSubmitted(false)
+    setSubmittedAt(null)
+    setDelayLabel(null)
+    setEditingSubmission(false)
+    setTeacherViewed(false)
+    setTextAnswer('')
+    setAttachments([])
+    setToast('ارسال تکلیف حذف شد')
+    setTimeout(() => setToast(null), 1400)
   }
 
   // ---------- Student view ----------
   if (isStudent) {
+    const showForm = !submitted || editingSubmission
     return <div className="screen inner-screen">
       <SubHeader screen="assignment" back={goBack} />
       <main className="inner-content form-page">
@@ -1073,8 +1117,74 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
 
         <div className={`student-status-bar ${submitted ? 'done' : ''}`}>
           <span className={`status-pill ${submitted ? 'ok' : 'wait'}`}>{submitted ? 'ارسال‌شده' : 'در انتظار ارسال'}</span>
-          <small>{submitted ? 'می‌توانید پاسخ را ویرایش و دوباره بفرستید' : 'قبل از مهلت، پاسخ خود را ارسال کنید'}</small>
+          <small>
+            {submitted && submittedAt
+              ? `ارسال: ${submittedAt.date} · ${submittedAt.time}`
+              : 'قبل از مهلت، پاسخ خود را ارسال کنید'}
+          </small>
         </div>
+
+        {submitted && submittedAt && !editingSubmission && (
+          <section className="student-block student-meta-card">
+            <div className="section-heading">
+              <strong>وضعیت ارسال</strong>
+            </div>
+            <div className="student-meta-grid">
+              <div>
+                <small>تاریخ ارسال</small>
+                <strong>{submittedAt.date}</strong>
+              </div>
+              <div>
+                <small>ساعت ارسال</small>
+                <strong>{submittedAt.time}</strong>
+              </div>
+              <div>
+                <small>تأخیر</small>
+                <strong className={delayLabel ? 'late-text' : 'on-time-text'}>
+                  {delayLabel ?? 'بدون تأخیر'}
+                </strong>
+              </div>
+              <div>
+                <small>مشاهده معلم</small>
+                <strong className={teacherViewed ? 'on-time-text' : 'wait-text'}>
+                  {teacherViewed ? 'مشاهده شده' : 'هنوز ندیده'}
+                </strong>
+              </div>
+            </div>
+            <div className="student-action-row">
+              <button type="button" className="outline-button" onClick={() => setEditingSubmission(true)}>
+                <Icon name="pencil" size={16} /> ویرایش ارسال
+              </button>
+              <button type="button" className="outline-button danger" onClick={deleteSubmission}>
+                <Icon name="close" size={16} /> حذف ارسال
+              </button>
+            </div>
+          </section>
+        )}
+
+        {submitted && !editingSubmission && (
+          <section className="student-block">
+            <div className="section-heading">
+              <strong>بازخورد معلم</strong>
+              <span>{teacherViewed ? 'ثبت‌شده' : 'منتظر بررسی'}</span>
+            </div>
+            {teacherViewed ? (
+              <div className="teacher-feedback-card">
+                <div className="teacher-feedback-score">
+                  <small>نمره</small>
+                  <strong>{fa(teacherFeedback.score)}</strong>
+                </div>
+                <p>{teacherFeedback.text}</p>
+              </div>
+            ) : (
+              <div className="empty compact-empty">
+                <Icon name="bell" size={28} />
+                <strong>هنوز بازخوردی ثبت نشده</strong>
+                <span>پس از مشاهده معلم، نمره و نظر اینجا نمایش داده می‌شود.</span>
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="student-block">
           <div className="section-heading">
@@ -1108,78 +1218,120 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           </button>
         </section>
 
-        <section className="student-block">
-          <div className="section-heading">
-            <strong>پاسخ شما</strong>
-            <span>{attachments.length ? `${fa(attachments.length)} پیوست` : 'بدون پیوست'}</span>
-          </div>
-
-          <label className="field">
-            <span>پاسخ متنی</span>
-            <textarea
-              rows={4}
-              placeholder="توضیح یا پاسخ خود را بنویسید..."
-              value={textAnswer}
-              onChange={e => setTextAnswer(e.target.value)}
-            />
-          </label>
-
-          <button type="button" className="upload" onClick={() => addAttachment('file')}>
-            <Icon name="paperclip" />
-            <div>
-              <strong>افزودن فایل</strong>
-              <span>PDF، ورد یا فایل متنی</span>
+        {showForm && (
+          <section className="student-block">
+            <div className="section-heading">
+              <strong>{editingSubmission ? 'ویرایش پاسخ' : 'پاسخ شما'}</strong>
+              <span>{attachments.length ? `${fa(attachments.length)} پیوست` : 'بدون پیوست'}</span>
             </div>
-            <Icon name="plus" />
-          </button>
-          <button type="button" className="upload" onClick={() => addAttachment('image')}>
-            <Icon name="image" />
-            <div>
-              <strong>افزودن عکس</strong>
-              <span>تصویر از گالری یا دوربین</span>
-            </div>
-            <Icon name="plus" />
-          </button>
-          <button
-            type="button"
-            className={`upload ${recording ? 'upload-recording' : ''}`}
-            onClick={() => {
-              if (recording) addAttachment('voice')
-              else setRecording(true)
-            }}
-          >
-            <Icon name="mic" />
-            <div>
-              <strong>{recording ? 'در حال ضبط... توقف و ذخیره' : 'افزودن پیام صوتی'}</strong>
-              <span>{recording ? 'برای ذخیره دوباره لمس کنید' : 'ویس کوتاه به‌عنوان پاسخ'}</span>
-            </div>
-            <Icon name={recording ? 'check' : 'plus'} />
-          </button>
 
-          {attachments.length > 0 && (
-            <div className="student-attach-list">
-              {attachments.map((a, i) => (
-                <div className="resource student-attach-row" key={`${a.label}-${i}`}>
-                  <span className={`resource-icon ${a.type === 'voice' ? 'blue' : a.type === 'image' ? 'orange' : 'green'}`}>
-                    <Icon name={a.type === 'voice' ? 'mic' : a.type === 'image' ? 'image' : 'file'} />
-                  </span>
-                  <div>
-                    <strong>{a.label}</strong>
-                    <small>{a.type === 'voice' ? 'پیام صوتی' : a.type === 'image' ? 'تصویر' : 'فایل'}</small>
+            <label className="field">
+              <span>پاسخ متنی</span>
+              <textarea
+                rows={4}
+                placeholder="توضیح یا پاسخ خود را بنویسید..."
+                value={textAnswer}
+                onChange={e => setTextAnswer(e.target.value)}
+              />
+            </label>
+
+            <button type="button" className="upload" onClick={() => addAttachment('file')}>
+              <Icon name="paperclip" />
+              <div>
+                <strong>افزودن فایل</strong>
+                <span>PDF، ورد یا فایل متنی</span>
+              </div>
+              <Icon name="plus" />
+            </button>
+            <button type="button" className="upload" onClick={() => addAttachment('image')}>
+              <Icon name="image" />
+              <div>
+                <strong>افزودن عکس</strong>
+                <span>تصویر از گالری یا دوربین</span>
+              </div>
+              <Icon name="plus" />
+            </button>
+            <button
+              type="button"
+              className={`upload ${recording ? 'upload-recording' : ''}`}
+              onClick={() => {
+                if (recording) addAttachment('voice')
+                else setRecording(true)
+              }}
+            >
+              <Icon name="mic" />
+              <div>
+                <strong>{recording ? 'در حال ضبط... توقف و ذخیره' : 'افزودن پیام صوتی'}</strong>
+                <span>{recording ? 'برای ذخیره دوباره لمس کنید' : 'ویس کوتاه به‌عنوان پاسخ'}</span>
+              </div>
+              <Icon name={recording ? 'check' : 'plus'} />
+            </button>
+
+            {attachments.length > 0 && (
+              <div className="student-attach-list">
+                {attachments.map((a, i) => (
+                  <div className="resource student-attach-row" key={`${a.label}-${i}`}>
+                    <span className={`resource-icon ${a.type === 'voice' ? 'blue' : a.type === 'image' ? 'orange' : 'green'}`}>
+                      <Icon name={a.type === 'voice' ? 'mic' : a.type === 'image' ? 'image' : 'file'} />
+                    </span>
+                    <div>
+                      <strong>{a.label}</strong>
+                      <small>{a.type === 'voice' ? 'پیام صوتی' : a.type === 'image' ? 'تصویر' : 'فایل'}</small>
+                    </div>
+                    <button type="button" className="attach-remove" aria-label="حذف" onClick={() => removeAttachment(i)}>
+                      <Icon name="close" size={16} />
+                    </button>
                   </div>
-                  <button type="button" className="attach-remove" aria-label="حذف" onClick={() => removeAttachment(i)}>
-                    <Icon name="close" size={16} />
-                  </button>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {submitted && !editingSubmission && (
+          <section className="student-block">
+            <div className="section-heading">
+              <strong>پاسخ ارسال‌شده</strong>
             </div>
-          )}
-        </section>
+            {textAnswer.trim() && (
+              <p className="assignment-desc student-desc">{textAnswer}</p>
+            )}
+            {attachments.length > 0 && (
+              <div className="student-attach-list">
+                {attachments.map((a, i) => (
+                  <div className="resource student-attach-row" key={`sent-${a.label}-${i}`}>
+                    <span className={`resource-icon ${a.type === 'voice' ? 'blue' : a.type === 'image' ? 'orange' : 'green'}`}>
+                      <Icon name={a.type === 'voice' ? 'mic' : a.type === 'image' ? 'image' : 'file'} />
+                    </span>
+                    <div>
+                      <strong>{a.label}</strong>
+                      <small>{a.type === 'voice' ? 'پیام صوتی' : a.type === 'image' ? 'تصویر' : 'فایل'}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!textAnswer.trim() && attachments.length === 0 && (
+              <div className="empty compact-empty">
+                <strong>محتوایی ثبت نشده</strong>
+              </div>
+            )}
+          </section>
+        )}
       </main>
       <div className="sticky-action">
-        <button onClick={submitHomework}>
-          {submitted ? <><Icon name="check" /> به‌روزرسانی ارسال</> : 'ارسال تکلیف'}
-        </button>
+        {showForm ? (
+          <>
+            {editingSubmission && (
+              <button className="secondary" onClick={() => setEditingSubmission(false)}>انصراف</button>
+            )}
+            <button onClick={submitHomework}>
+              {editingSubmission ? 'ذخیره و ارسال مجدد' : submitted ? <><Icon name="check" /> به‌روزرسانی ارسال</> : 'ارسال تکلیف'}
+            </button>
+          </>
+        ) : (
+          <button className="secondary" onClick={goBack}>بازگشت</button>
+        )}
       </div>
       {toast && <div className="toast">{toast}</div>}
     </div>
