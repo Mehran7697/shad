@@ -1678,9 +1678,10 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 </div>
                 <div className="sap-hero-text">
                   <strong>{row.name}</strong>
-                  <small>علوم تجربی · کلاس ۹۰۱ · {fa(pos + 1)} از {fa(deliveredIndexes.length)}</small>
+                  <small>علوم تجربی · کلاس ۹۰۱</small>
                 </div>
               </div>
+              <span className="sap-student-position">{fa(pos + 1)} از {fa(deliveredIndexes.length)}</span>
               <button
                 type="button"
                 className="sap-nav-btn next"

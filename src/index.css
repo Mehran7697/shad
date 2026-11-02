@@ -2244,3 +2244,69 @@
   background: var(--green) !important;
   box-shadow: 0 8px 18px rgb(17 156 120 / .22);
 }
+
+
+/* Student answer sheet: compact, centered student identity */
+.sap-hero {
+  position: relative;
+  min-height: 164px;
+  padding: 14px 12px 30px;
+  align-items: center;
+}
+.sap-hero-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+}
+.sap-avatar-wrap {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid #d7ebe3;
+  background: #e8f7f2;
+}
+.sap-avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+}
+.sap-hero-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.sap-hero-text strong {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.sap-hero-text small {
+  font-size: 10px;
+  line-height: 1.6;
+}
+.sap-student-position {
+  position: absolute;
+  left: 12px;
+  bottom: 9px;
+  direction: rtl;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+}
+.sap-hero > .sap-nav-btn {
+  flex: none;
+  align-self: center;
+  padding: 6px 9px;
+  font-size: 9px;
+}
