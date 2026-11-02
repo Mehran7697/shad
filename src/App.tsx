@@ -1011,6 +1011,8 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [groupSheet, setGroupSheet] = useState(false)
   const [maxScore, setMaxScore] = useState('20')
   const [groupScore, setGroupScore] = useState('')
+  const [feedbackIndex, setFeedbackIndex] = useState<number | null>(null)
+  const [feedbackDraft, setFeedbackDraft] = useState('')
 
   const submittedCount = rows.filter(r => r.status === 'تحویل').length
   const graded = rows.filter(r => r.score.trim() !== '').length
@@ -1033,6 +1035,12 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const applyGroupGrade = () => {
     const maxN = Number(toEn(maxScore).replace(/[^\d]/g, '')) || 20
     const scoreN = Number(toEn(groupScore).replace(/[^\d]/g, ''))
+    const delivered = rows.filter(r => r.status === 'تحویل')
+    if (delivered.length === 0) {
+      setToast('هنوز کسی تحویل نداده است')
+      setTimeout(() => setToast(null), 1400)
+      return
+    }
     if (!groupScore.trim() || Number.isNaN(scoreN)) {
       setToast('نمره را وارد کنید')
       setTimeout(() => setToast(null), 1400)
@@ -1049,7 +1057,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     )))
     setGroupSheet(false)
     setSaving(true)
-    setToast(`نمره ${fa(value)} از ${fa(maxN)} برای همه ثبت شد`)
+    setToast(`نمره ${fa(value)} از ${fa(maxN)} برای ${fa(delivered.length)} نفر ثبت شد`)
     setTimeout(() => {
       setSaving(false)
       setToast(null)
@@ -1499,13 +1507,15 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
             <tr>
               <th>دانش‌آموز</th>
               <th>وضعیت</th>
-              <th>فایل</th>
               <th>نمره</th>
               <th>بازخورد</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
+            {rows.map((row, i) => {
+              const hasFeedback = row.feedback.trim() !== '' || row.hasVoiceFeedback
+              const canFeedback = row.status === 'تحویل'
+              return (
               <tr key={row.name}>
                 <td>
                   <div className="assignment-student-cell">
@@ -1517,56 +1527,34 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                   <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
                 </td>
                 <td>
-                  {row.file ? (
-                    <button type="button" className="file-link" title={row.file}>
-                      <Icon name="file" size={14} />
-                      <span>فایل</span>
-                    </button>
-                  ) : (
-                    <span className="muted-dash">—</span>
-                  )}
-                </td>
-                <td>
                   <input
                     className="score-input compact"
                     inputMode="numeric"
                     placeholder={fa(maxScore || '20')}
-                    disabled={row.status !== 'تحویل'}
+                    disabled={!canFeedback}
                     value={row.score ? fa(row.score) : ''}
                     onChange={e => updateRow(i, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
                   />
                 </td>
                 <td>
-                  <div className="feedback-cell">
-                    <input
-                      className="feedback-input"
-                      placeholder="متن بازخورد..."
-                      disabled={row.status !== 'تحویل'}
-                      value={row.feedback}
-                      onChange={e => updateRow(i, { feedback: e.target.value })}
-                    />
+                  {canFeedback ? (
                     <button
                       type="button"
-                      className={`voice-feedback-btn ${row.hasVoiceFeedback || activeVoice === i ? 'active' : ''}`}
-                      disabled={row.status !== 'تحویل'}
-                      aria-label="بازخورد صوتی"
+                      className={`table-action-btn ${hasFeedback ? 'view' : 'register'}`}
                       onClick={() => {
-                        if (activeVoice === i) {
-                          setActiveVoice(null)
-                          updateRow(i, { hasVoiceFeedback: true })
-                          setToast('بازخورد صوتی ذخیره شد')
-                          setTimeout(() => setToast(null), 1200)
-                        } else {
-                          setActiveVoice(i)
-                        }
+                        setFeedbackIndex(i)
+                        setFeedbackDraft(row.feedback)
                       }}
                     >
-                      <Icon name="mic" size={14} />
+                      {hasFeedback ? 'مشاهده' : 'ثبت'}
                     </button>
-                  </div>
+                  ) : (
+                    <span className="muted-dash">—</span>
+                  )}
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -1578,19 +1566,19 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     </div>
 
     {groupSheet && (
-      <div className="overlay" onClick={() => setGroupSheet(false)}>
+      <div className="overlay group-grade-overlay" onClick={() => setGroupSheet(false)}>
         <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
           <div className="sheet-handle" />
           <div className="sheet-title">
             <div>
               <strong>ثبت نمره گروهی</strong>
-              <span>یک نمره برای همه دانش‌آموزان تحویل‌داده</span>
+              <span>فقط برای {fa(submittedCount)} نفر تحویل‌داده</span>
             </div>
             <IconButton icon="close" label="بستن" onClick={() => setGroupSheet(false)} />
           </div>
           <div className="group-grade-body">
             <label className="field">
-              <span>حداکثر نمره (از چند؟)</span>
+              <span>حداکثر نمره</span>
               <input
                 inputMode="numeric"
                 value={maxScore ? fa(maxScore) : ''}
@@ -1599,7 +1587,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               />
             </label>
             <label className="field">
-              <span>نمره برای همه</span>
+              <span>نمره مشترک</span>
               <input
                 inputMode="numeric"
                 value={groupScore ? fa(groupScore) : ''}
@@ -1608,12 +1596,80 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               />
             </label>
             <p className="group-grade-hint">
-              این نمره فقط برای دانش‌آموزانی که تحویل داده‌اند ثبت می‌شود.
+              نمره فقط برای دانش‌آموزانی که وضعیت «تحویل» دارند ثبت می‌شود. بقیه بدون نمره می‌مانند.
             </p>
-            <div className="group-grade-actions">
-              <button type="button" className="secondary" onClick={() => setGroupSheet(false)}>انصراف</button>
-              <button type="button" onClick={applyGroupGrade}>ثبت برای همه</button>
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setGroupSheet(false)}>انصراف</button>
+            <button type="button" className="primary" onClick={applyGroupGrade}>ثبت</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {feedbackIndex !== null && rows[feedbackIndex] && (
+      <div className="overlay group-grade-overlay" onClick={() => setFeedbackIndex(null)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>{(rows[feedbackIndex].feedback.trim() || rows[feedbackIndex].hasVoiceFeedback) ? 'مشاهده بازخورد' : 'ثبت بازخورد'}</strong>
+              <span>{rows[feedbackIndex].name}</span>
             </div>
+            <IconButton icon="close" label="بستن" onClick={() => setFeedbackIndex(null)} />
+          </div>
+          <div className="group-grade-body">
+            <label className="field">
+              <span>متن بازخورد</span>
+              <textarea
+                rows={4}
+                placeholder="نظر خود را بنویسید..."
+                value={feedbackDraft}
+                onChange={e => setFeedbackDraft(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className={`upload ${rows[feedbackIndex].hasVoiceFeedback || activeVoice === feedbackIndex ? 'upload-recording' : ''}`}
+              onClick={() => {
+                if (activeVoice === feedbackIndex) {
+                  setActiveVoice(null)
+                  updateRow(feedbackIndex, { hasVoiceFeedback: true })
+                  setToast('بازخورد صوتی ذخیره شد')
+                  setTimeout(() => setToast(null), 1200)
+                } else {
+                  setActiveVoice(feedbackIndex)
+                }
+              }}
+            >
+              <Icon name="mic" />
+              <div>
+                <strong>
+                  {activeVoice === feedbackIndex
+                    ? 'در حال ضبط... توقف'
+                    : rows[feedbackIndex].hasVoiceFeedback
+                      ? 'بازخورد صوتی ثبت شده'
+                      : 'افزودن بازخورد صوتی'}
+                </strong>
+                <span>اختیاری</span>
+              </div>
+              <Icon name={rows[feedbackIndex].hasVoiceFeedback ? 'check' : 'plus'} />
+            </button>
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setFeedbackIndex(null)}>بستن</button>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => {
+                updateRow(feedbackIndex, { feedback: feedbackDraft })
+                setFeedbackIndex(null)
+                setToast('بازخورد ثبت شد')
+                setTimeout(() => setToast(null), 1200)
+              }}
+            >
+              ثبت
+            </button>
           </div>
         </div>
       </div>
