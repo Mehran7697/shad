@@ -1008,6 +1008,9 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [rows, setRows] = useState(initialRows)
   const [activeVoice, setActiveVoice] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  const [groupSheet, setGroupSheet] = useState(false)
+  const [maxScore, setMaxScore] = useState('20')
+  const [groupScore, setGroupScore] = useState('')
 
   const submittedCount = rows.filter(r => r.status === 'تحویل').length
   const graded = rows.filter(r => r.score.trim() !== '').length
@@ -1022,13 +1025,35 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     setTimeout(() => setToast(null), 2200)
   }
 
-  const saveAll = () => {
+  const openGroupGrade = () => {
+    setGroupScore('')
+    setGroupSheet(true)
+  }
+
+  const applyGroupGrade = () => {
+    const maxN = Number(toEn(maxScore).replace(/[^\d]/g, '')) || 20
+    const scoreN = Number(toEn(groupScore).replace(/[^\d]/g, ''))
+    if (!groupScore.trim() || Number.isNaN(scoreN)) {
+      setToast('نمره را وارد کنید')
+      setTimeout(() => setToast(null), 1400)
+      return
+    }
+    if (scoreN > maxN) {
+      setToast(`نمره نمی‌تواند بیشتر از ${fa(maxN)} باشد`)
+      setTimeout(() => setToast(null), 1600)
+      return
+    }
+    const value = String(scoreN)
+    setRows(prev => prev.map(r => (
+      r.status === 'تحویل' ? { ...r, score: value } : r
+    )))
+    setGroupSheet(false)
     setSaving(true)
-    setToast('بازخورد و نمرات ذخیره شد')
+    setToast(`نمره ${fa(value)} از ${fa(maxN)} برای همه ثبت شد`)
     setTimeout(() => {
       setSaving(false)
       setToast(null)
-    }, 1400)
+    }, 1600)
   }
 
   const openEdit = () => {
@@ -1505,7 +1530,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                   <input
                     className="score-input compact"
                     inputMode="numeric"
-                    placeholder="—"
+                    placeholder={fa(maxScore || '20')}
                     disabled={row.status !== 'تحویل'}
                     value={row.score ? fa(row.score) : ''}
                     onChange={e => updateRow(i, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
@@ -1547,10 +1572,53 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
       </div>
     </main>
     <div className="sticky-action">
-      <button onClick={saveAll} disabled={saving}>
-        {saving ? <><Icon name="check" /> ذخیره شد</> : 'ذخیره نمرات و بازخوردها'}
+      <button onClick={openGroupGrade} disabled={saving}>
+        {saving ? <><Icon name="check" /> ثبت شد</> : 'ثبت نمره به صورت گروهی'}
       </button>
     </div>
+
+    {groupSheet && (
+      <div className="overlay" onClick={() => setGroupSheet(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>ثبت نمره گروهی</strong>
+              <span>یک نمره برای همه دانش‌آموزان تحویل‌داده</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setGroupSheet(false)} />
+          </div>
+          <div className="group-grade-body">
+            <label className="field">
+              <span>حداکثر نمره (از چند؟)</span>
+              <input
+                inputMode="numeric"
+                value={maxScore ? fa(maxScore) : ''}
+                placeholder="۲۰"
+                onChange={e => setMaxScore(toEn(e.target.value).replace(/[^\d]/g, ''))}
+              />
+            </label>
+            <label className="field">
+              <span>نمره برای همه</span>
+              <input
+                inputMode="numeric"
+                value={groupScore ? fa(groupScore) : ''}
+                placeholder={`مثلاً ${fa(maxScore || '20')}`}
+                onChange={e => setGroupScore(toEn(e.target.value).replace(/[^\d]/g, ''))}
+              />
+            </label>
+            <p className="group-grade-hint">
+              این نمره فقط برای دانش‌آموزانی که تحویل داده‌اند ثبت می‌شود.
+            </p>
+            <div className="group-grade-actions">
+              <button type="button" className="secondary" onClick={() => setGroupSheet(false)}>انصراف</button>
+              <button type="button" onClick={applyGroupGrade}>ثبت برای همه</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
     {toast && <div className="toast">{toast}</div>}
   </div>
 }
