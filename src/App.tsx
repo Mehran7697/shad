@@ -23,6 +23,7 @@ type Screen =
   | 'gradebook'
   | 'grade-register'
   | 'reports'
+  | 'auth'
 
 type IconName =
   | 'search'
@@ -184,7 +185,7 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
   const items = [
     { label: 'تماس‌ها', icon: 'phone' as IconName, screen: 'calls' as Screen },
     { label: 'گفتگو', icon: 'chat' as IconName, screen: 'messenger' as Screen },
-    { label: 'بیشتر', icon: 'more' as IconName, screen: 'more' as Screen },
+    { label: 'احراز هویت', icon: 'lock' as IconName, screen: 'auth' as Screen },
     { label: 'شادبین', icon: 'search' as IconName, screen: 'classroom' as Screen },
   ]
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => navigate(item.screen)}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
@@ -951,21 +952,19 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
 
       </main>
 
-      {role === 'teacher' && (
-        <button
-          className="fab"
-          aria-label="ایجاد تکلیف"
-          onClick={() => navigate('assignment-create')}
-        >
-          <Icon name="plus" />
-        </button>
-      )}
+      <button
+        className="fab"
+        aria-label="ایجاد تکلیف"
+        onClick={() => navigate('assignment-create')}
+      >
+        <Icon name="plus" />
+      </button>
     </div>
   )
 }
 
 function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
-  const isTeacher = role === 'teacher'
+  void role
   const [meta, setMeta] = useState({
     title: 'تمرین فصل سوم',
     description: 'لطفاً سوالات صفحهٔ ۴۲ تا ۴۵ کتاب علوم را حل کنید و فایل پاسخ را ارسال نمایید. در صورت نیاز می‌توانید توضیح صوتی هم ضمیمه کنید.',
@@ -1074,9 +1073,9 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     <SubHeader
       screen="assignment"
       back={goBack}
-      rightIcon={isTeacher ? 'pencil' : 'more'}
-      rightLabel={isTeacher ? 'ویرایش' : 'بیشتر'}
-      onRightClick={isTeacher ? openEdit : undefined}
+      rightIcon="pencil"
+      rightLabel="ویرایش"
+      onRightClick={openEdit}
     />
     <main className="inner-content">
       <section className="assignment-detail-card">
@@ -1505,10 +1504,8 @@ const classSections: { title: string; sub: string; icon: IconName; screen: Scree
 ]
 
 function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
-  const isTeacher = role === 'teacher'
-  const visibleSections = isTeacher
-    ? classSections
-    : classSections.filter(s => ['تکالیف', 'آزمون‌ها', 'جزوه‌ها'].includes(s.title))
+  void role
+  const visibleSections = classSections
   const [mediaTab, setMediaTab] = useState('نمای کلی')
   const mediaTabs = ['نمای کلی', 'رسانه', 'فایل‌ها', 'لینک‌ها', 'موسیقی', 'صدا', 'گیف‌ها']
   const mediaContent: Record<string, { t: string; m: string; i: IconName }[]> = {
@@ -1582,13 +1579,11 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
                 <strong>{x.title}</strong>
                 <small>{x.sub}</small>
               </button>)}
-              {isTeacher && (
-                <button onClick={() => navigate('reports')}>
-                  <span><Icon name="chart" /></span>
-                  <strong>گزارش‌های کلاس</strong>
-                  <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
-                </button>
-              )}
+              <button onClick={() => navigate('reports')}>
+                <span><Icon name="chart" /></span>
+                <strong>گزارش‌های کلاس</strong>
+                <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
+              </button>
             </div>
           ) : mediaTab === 'رسانه' ? (
             <div className="media-overview">
@@ -1905,6 +1900,46 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   </div>
 }
 
+function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; goBack: () => void; setRole: (r: UserRole) => void }) {
+  const [selected, setSelected] = useState<UserRole | null>(null)
+  return <div className="screen inner-screen">
+    <header className="sub-header">
+      <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
+      <div><strong>احراز هویت</strong><span>انتخاب نقش کاربری</span></div>
+      <IconButton icon="lock" label="امن" />
+    </header>
+    <main className="inner-content classroom-content">
+      <div className="display-banner">
+        <span className="display-banner-icon"><Icon name="lock" /></span>
+        <div>
+          <strong>احراز هویت</strong>
+          <small>برای ادامه، نقش خود را انتخاب کنید</small>
+        </div>
+      </div>
+      <div className="classroom-grid">
+        <button className={selected === 'teacher' ? 'active-role' : ''} onClick={() => setSelected('teacher')}>
+          <span><Icon name="person" /></span>
+          <strong>معلم</strong>
+          <small>مدیریت کلاس، نمرات و تکالیف</small>
+        </button>
+        <button className={selected === 'student' ? 'active-role' : ''} onClick={() => setSelected('student')}>
+          <span><Icon name="users" /></span>
+          <strong>دانش‌آموز</strong>
+          <small>مشاهدهٔ دروس و ارسال تکلیف</small>
+        </button>
+      </div>
+    </main>
+    {selected && <div className="sticky-action">
+      <button onClick={() => {
+        setRole(selected)
+        navigate(selected === 'teacher' ? 'classroom' : 'messenger')
+      }}>
+        {selected === 'teacher' ? 'ورود به عنوان معلم' : 'ورود به عنوان دانش‌آموز'}
+      </button>
+    </div>}
+  </div>
+}
+
 export default function App() {
   const [history, setHistory] = useState<Screen[]>(['messenger'])
   const [role, setRole] = useState<UserRole>('teacher')
@@ -1929,17 +1964,18 @@ export default function App() {
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
     {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'assignment-create' && role === 'teacher' && <AssignmentCreate goBack={goBack}/>}
+    {screen === 'assignment-create' && <AssignmentCreate goBack={goBack}/>}
     {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'exam' && <Exam navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'exam-create' && role === 'teacher' && <ExamCreate goBack={goBack}/>}
-    {screen === 'attendance' && role === 'teacher' && <Attendance navigate={navigate} goBack={goBack}/>}
+    {screen === 'exam-create' && <ExamCreate goBack={goBack}/>}
+    {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack}/>}
     {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'gradebook' && role === 'teacher' && <Gradebook navigate={navigate} goBack={goBack}/>}
-    {screen === 'grade-register' && role === 'teacher' && <GradeRegister navigate={navigate} goBack={goBack}/>}
-    {screen === 'reports' && role === 'teacher' && <Reports navigate={navigate} goBack={goBack}/>}
+    {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack}/>}
+    {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
+    {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
+    {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
     {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
-    {screen === 'calls' && <BottomMenu navigate={navigate} active="تماس‌ها" />}
+    {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
     {screen === 'call' && <CallScreen navigate={navigate} goBack={goBack}/>}
   </div>
 }
