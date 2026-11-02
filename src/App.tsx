@@ -1658,6 +1658,30 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           <div className="sheet-handle" />
 
           <div className="student-answer-scroll">
+            <div className="sap-nav-bar">
+              <button
+                type="button"
+                className="sap-nav-btn prev"
+                aria-label="قبلی"
+                disabled={prevIdx === null}
+                onClick={() => goToStudent(prevIdx)}
+              >
+                قبلی
+              </button>
+              <button
+                type="button"
+                className="sap-nav-btn next"
+                aria-label="بعدی"
+                disabled={nextIdx === null}
+                onClick={() => {
+                  saveCurrentFeedback()
+                  goToStudent(nextIdx, { savedName: studentFirstName })
+                }}
+              >
+                بعدی
+              </button>
+            </div>
+
             <div className="sap-hero">
               <div className="sap-hero-main">
                 <div className="student-avatar large-avatar">{row.name[0]}</div>
@@ -1666,30 +1690,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                   <small>علوم تجربی · کلاس ۹۰۱ · {fa(pos + 1)} از {fa(deliveredIndexes.length)}</small>
                 </div>
               </div>
-              <div className="sap-hero-side">
-                <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
-                <button
-                  type="button"
-                  className="sap-nav-btn prev"
-                  aria-label="قبلی"
-                  disabled={prevIdx === null}
-                  onClick={() => goToStudent(prevIdx)}
-                >
-                  قبلی
-                </button>
-                <button
-                  type="button"
-                  className="sap-nav-btn next"
-                  aria-label="بعدی"
-                  disabled={nextIdx === null}
-                  onClick={() => {
-                    saveCurrentFeedback()
-                    goToStudent(nextIdx, { savedName: studentFirstName })
-                  }}
-                >
-                  بعدی
-                </button>
-              </div>
+              <span className={`status-pill ${row.status === 'تحویل' ? 'ok' : 'wait'}`}>{row.status}</span>
             </div>
 
             <div className="sap-section">
