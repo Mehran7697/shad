@@ -1411,10 +1411,23 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           <strong>توضیحات تکلیف</strong>
         </div>
         <p className="assignment-desc">{meta.description}</p>
-        <div className="assignment-meta-row">
-          <span><Icon name="clock" size={14} /> مهلت: {meta.deadline}</span>
-          <span>{fa(submittedCount)} از {fa(students.length)} تحویل</span>
+
+        <div className="assign-ring-wrap">
+          <div
+            className="assign-ring"
+            style={{ ['--pct' as string]: `${Math.round((submittedCount / students.length) * 100)}%` }}
+          >
+            <div className="assign-ring-inner">
+              <strong>{fa(submittedCount)}</strong>
+              <small>از {fa(students.length)}</small>
+            </div>
+          </div>
+          <div className="assign-ring-label">
+            <strong>وضعیت تحویل</strong>
+            <span>{fa(submittedCount)} نفر از {fa(students.length)} نفر تحویل داده‌اند</span>
+          </div>
         </div>
+
         <div className="assignment-assets">
           <button type="button" className="asset-chip">
             <Icon name="file" size={16} />
@@ -1431,6 +1444,15 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
             </span>
           </button>
         </div>
+
+        <div className="assign-deadline-banner">
+          <span className="assign-deadline-icon"><Icon name="clock" size={18} /></span>
+          <div>
+            <strong>مهلت تحویل</strong>
+            <small>{meta.deadline}</small>
+          </div>
+        </div>
+
         <button type="button" className="export-zip-btn" onClick={exportZip}>
           <Icon name="file" size={16} />
           خروجی همه فایل‌ها (ZIP)
