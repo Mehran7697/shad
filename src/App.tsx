@@ -1498,7 +1498,9 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
 
       <div className="section-heading" style={{ marginTop: 16 }}>
         <strong>لیست دانش‌آموزان</strong>
-        <span>{fa(graded)} نمره‌داده‌شده</span>
+        <button type="button" className="heading-action-btn" onClick={openGroupGrade}>
+          ثبت نمره گروهی
+        </button>
       </div>
 
       <div className="assignment-table-wrap">
@@ -1560,8 +1562,12 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
       </div>
     </main>
     <div className="sticky-action">
-      <button onClick={openGroupGrade} disabled={saving}>
-        {saving ? <><Icon name="check" /> ثبت شد</> : 'ثبت نمره به صورت گروهی'}
+      <button onClick={() => {
+        setSaving(true)
+        setToast('تغییرات ثبت شد')
+        setTimeout(() => { setSaving(false); setToast(null) }, 1400)
+      }} disabled={saving}>
+        {saving ? <><Icon name="check" /> ثبت شد</> : 'ثبت تغییرات'}
       </button>
     </div>
 
