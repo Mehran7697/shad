@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
+type UserRole = 'teacher' | 'student'
+
 type Screen =
   | 'home'
   | 'messenger'
@@ -21,7 +23,6 @@ type Screen =
   | 'gradebook'
   | 'grade-register'
   | 'reports'
-  | 'auth'
 
 type IconName =
   | 'search'
@@ -183,13 +184,13 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
   const items = [
     { label: 'تماس‌ها', icon: 'phone' as IconName, screen: 'calls' as Screen },
     { label: 'گفتگو', icon: 'chat' as IconName, screen: 'messenger' as Screen },
-    { label: 'احراز هویت', icon: 'lock' as IconName, screen: 'auth' as Screen },
+    { label: 'بیشتر', icon: 'more' as IconName, screen: 'more' as Screen },
     { label: 'شادبین', icon: 'search' as IconName, screen: 'classroom' as Screen },
   ]
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => navigate(item.screen)}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
-function Messenger({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
+function Messenger({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [started] = useState(classStarted)
   const [filter, setFilter] = useState('همه')
   const filtered = filter === 'همه' ? messengerChats : filter === 'دروس من' ? messengerChats.filter(c => c.type === 'دروس من') : messengerChats.filter(c => c.type === filter)
@@ -243,8 +244,9 @@ function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void
   )
 }
 
-function MySchool({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void }) {
-  const [active, setActive] = useState('خانه')
+function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
+  const [active, setActive] = useState(role === 'teacher' ? 'مدرسه من' : 'خانه')
+  void role
   const subjects = [
     { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
     { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
@@ -743,7 +745,7 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 }
 
 
-function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
   const weekDays = [
     'شنبه',
     'یکشنبه',
@@ -949,18 +951,21 @@ function Assignments({ navigate, goBack }: { navigate: (s: Screen) => void; goBa
 
       </main>
 
-      <button
-        className="fab"
-        aria-label="ایجاد تکلیف"
-        onClick={() => navigate('assignment-create')}
-      >
-        <Icon name="plus" />
-      </button>
+      {role === 'teacher' && (
+        <button
+          className="fab"
+          aria-label="ایجاد تکلیف"
+          onClick={() => navigate('assignment-create')}
+        >
+          <Icon name="plus" />
+        </button>
+      )}
     </div>
   )
 }
 
-function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+  const isTeacher = role === 'teacher'
   const [meta, setMeta] = useState({
     title: 'تمرین فصل سوم',
     description: 'لطفاً سوالات صفحهٔ ۴۲ تا ۴۵ کتاب علوم را حل کنید و فایل پاسخ را ارسال نمایید. در صورت نیاز می‌توانید توضیح صوتی هم ضمیمه کنید.',
@@ -1066,7 +1071,13 @@ function Assignment({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
   }
 
   return <div className="screen inner-screen">
-    <SubHeader screen="assignment" back={goBack} rightIcon="pencil" rightLabel="ویرایش" onRightClick={openEdit} />
+    <SubHeader
+      screen="assignment"
+      back={goBack}
+      rightIcon={isTeacher ? 'pencil' : 'more'}
+      rightLabel={isTeacher ? 'ویرایش' : 'بیشتر'}
+      onRightClick={isTeacher ? openEdit : undefined}
+    />
     <main className="inner-content">
       <section className="assignment-detail-card">
         <div className="assignment-detail-head">
@@ -1216,7 +1227,8 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
   </div>
 }
 
-function Exam({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+  void role
   const weekDays = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه']
 
   const addDays = (date: Date, amount: number) => {
@@ -1400,10 +1412,11 @@ const dateCells = Array.from({ length: 14 }, (_, i) => {
 const scheduleWeekDays = dateCells.slice(0, 5)
 const scheduleTimes = ['۰۸:۰۰', '۰۹:۰۰', '۱۱:۳۰']
 
-function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void }) {
+function MainSection({ screen, navigate, role, setRole }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void; role: UserRole; setRole: (r: UserRole) => void }) {
   const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     weekday: 'long', day: 'numeric', month: 'long'
   }).format(new Date())
+  const isTeacher = role === 'teacher'
   return <div className="screen main-section"><QuickLinks navigate={navigate} /><main className="section-content">
     {screen === 'schedule' && <section className="weekly-schedule" dir="rtl">
       <div className="schedule-today-date">امروز، {todayLabel}</div>
@@ -1437,7 +1450,34 @@ function MainSection({ screen, navigate }: { screen: Screen; navigate: (s: Scree
       </div>
     </section>}
     {screen === 'calls' && <><div className="call-tabs"><button className="active">همه</button><button>ازدست‌رفته</button></div>{conversations.slice(0,5).map((c,i)=><button className="call-row" key={c.name} onClick={()=>navigate('call')}><Avatar item={c}/><div><strong>{c.name}</strong><span className={i===1?'missed':''}>{i===1?'تماس ازدست‌رفته':'تماس ورودی'} · {c.time}</span></div><Icon name={i%2?'video':'phone'}/></button>)}</>}
-    {screen === 'more' && <><div className="profile-card"><button className="profile-large">س</button><div><strong>سارا کریمی</strong><span>دبیر علوم تجربی</span><small>school-321@shad.ir</small></div><Icon name="chevron"/></div><div className="more-grid">{[{t:'تکالیف',i:'book',s:'assignment'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'جزوه‌ها',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}].map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}</div><div className="settings-list"><button><Icon name="settings"/><div><strong>تنظیمات</strong><span>حساب، حریم خصوصی و اعلان‌ها</span></div><Icon name="chevron"/></button><button><Icon name="bookmark"/><div><strong>پیام‌های ذخیره‌شده</strong><span>فایل‌ها و پیام‌های مهم شما</span></div><Icon name="chevron"/></button></div></>}
+    {screen === 'more' && <>
+      <div className="profile-card">
+        <button className="profile-large">{isTeacher ? 'س' : 'ع'}</button>
+        <div>
+          <strong>{isTeacher ? 'سارا کریمی' : 'علی احمدی'}</strong>
+          <span>{isTeacher ? 'دبیر علوم تجربی' : 'دانش‌آموز پایه نهم'}</span>
+          <small>{isTeacher ? 'school-321@shad.ir' : 'student-901@shad.ir'}</small>
+        </div>
+        <Icon name="chevron"/>
+      </div>
+      <div className="role-switch">
+        <span>نقش فعال</span>
+        <div>
+          <button type="button" className={role === 'teacher' ? 'active' : ''} onClick={() => setRole('teacher')}>معلم</button>
+          <button type="button" className={role === 'student' ? 'active' : ''} onClick={() => setRole('student')}>دانش‌آموز</button>
+        </div>
+      </div>
+      <div className="more-grid">
+        {(isTeacher
+          ? [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'جزوه‌ها',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
+          : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'جزوه‌ها',i:'file',s:'materials'},{t:'برنامه کلاسی',i:'calendar',s:'schedule'}]
+        ).map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}
+      </div>
+      <div className="settings-list">
+        <button><Icon name="settings"/><div><strong>تنظیمات</strong><span>حساب، حریم خصوصی و اعلان‌ها</span></div><Icon name="chevron"/></button>
+        <button><Icon name="bookmark"/><div><strong>پیام‌های ذخیره‌شده</strong><span>فایل‌ها و پیام‌های مهم شما</span></div><Icon name="chevron"/></button>
+      </div>
+    </>}
   </main></div>
 }
 
@@ -1464,7 +1504,11 @@ const classSections: { title: string; sub: string; icon: IconName; screen: Scree
   { title: 'دفتر نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
 ]
 
-function Classroom({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+  const isTeacher = role === 'teacher'
+  const visibleSections = isTeacher
+    ? classSections
+    : classSections.filter(s => ['تکالیف', 'آزمون‌ها', 'جزوه‌ها'].includes(s.title))
   const [mediaTab, setMediaTab] = useState('نمای کلی')
   const mediaTabs = ['نمای کلی', 'رسانه', 'فایل‌ها', 'لینک‌ها', 'موسیقی', 'صدا', 'گیف‌ها']
   const mediaContent: Record<string, { t: string; m: string; i: IconName }[]> = {
@@ -1533,16 +1577,18 @@ function Classroom({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
         <div className="media-tab-content">
           {mediaTab === 'نمای کلی' ? (
             <div className="classroom-grid" style={{padding:0}}>
-              {classSections.map((x) => <button key={x.title} onClick={() => navigate(x.screen)}>
+              {visibleSections.map((x) => <button key={x.title} onClick={() => navigate(x.screen)}>
                 <span><Icon name={x.icon} /></span>
                 <strong>{x.title}</strong>
                 <small>{x.sub}</small>
               </button>)}
-              <button onClick={() => navigate('reports')}>
-                <span><Icon name="chart" /></span>
-                <strong>گزارش‌های کلاس</strong>
-                <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
-              </button>
+              {isTeacher && (
+                <button onClick={() => navigate('reports')}>
+                  <span><Icon name="chart" /></span>
+                  <strong>گزارش‌های کلاس</strong>
+                  <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
+                </button>
+              )}
             </div>
           ) : mediaTab === 'رسانه' ? (
             <div className="media-overview">
@@ -1859,45 +1905,9 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   </div>
 }
 
-function Auth({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const [role, setRole] = useState<'teacher' | 'student' | null>(null)
-  return <div className="screen inner-screen">
-    <header className="sub-header">
-      <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
-      <div><strong>احراز هویت</strong><span>انتخاب نقش کاربری</span></div>
-      <IconButton icon="lock" label="امن" />
-    </header>
-    <main className="inner-content classroom-content">
-      <div className="display-banner">
-        <span className="display-banner-icon"><Icon name="lock" /></span>
-        <div>
-          <strong>احراز هویت</strong>
-          <small>برای ادامه، نقش خود را انتخاب کنید</small>
-        </div>
-      </div>
-      <div className="classroom-grid">
-        <button onClick={() => setRole('teacher')}>
-          <span><Icon name="person" /></span>
-          <strong>معلم</strong>
-          <small>مدیریت کلاس، نمرات و تکالیف</small>
-        </button>
-        <button onClick={() => setRole('student')}>
-          <span><Icon name="users" /></span>
-          <strong>دانش‌آموز</strong>
-          <small>مشاهدهٔ دروس و ارسال تکلیف</small>
-        </button>
-      </div>
-    </main>
-    {role && <div className="sticky-action">
-      <button onClick={() => navigate(role === 'teacher' ? 'classroom' : 'home')}>
-        {role === 'teacher' ? 'ورود به عنوان معلم' : 'ورود به عنوان دانش‌آموز'}
-      </button>
-    </div>}
-  </div>
-}
-
 export default function App() {
   const [history, setHistory] = useState<Screen[]>(['messenger'])
+  const [role, setRole] = useState<UserRole>('teacher')
   const screen = history[history.length - 1]
 
   const navigate = (next: Screen) => {
@@ -1911,26 +1921,25 @@ export default function App() {
     window.scrollTo(0, 0)
   }
 
-  return <div className="app-shell" dir="rtl">
-    {screen === 'home' && <Messenger navigate={navigate} goBack={goBack}/>}
-    {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack}/>}
-    {screen === 'school' && <MySchool navigate={navigate} goBack={goBack}/>}
+  return <div className="app-shell" dir="rtl" data-role={role}>
+    {screen === 'home' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'school' && <MySchool navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'chat' && <Chat navigate={navigate} goBack={goBack}/>}
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
-    {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack}/>}
-    {screen === 'assignment-create' && <AssignmentCreate goBack={goBack}/>}
-    {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack}/>}
-    {screen === 'exam' && <Exam navigate={navigate} goBack={goBack}/>}
-    {screen === 'exam-create' && <ExamCreate goBack={goBack}/>}
-    {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack}/>}
-    {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack}/>}
-    {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack}/>}
-    {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
-    {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
-    {screen === 'auth' && <Auth navigate={navigate} goBack={goBack}/>}
-    {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack}/>}
-    {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
+    {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'assignment-create' && role === 'teacher' && <AssignmentCreate goBack={goBack}/>}
+    {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'exam' && <Exam navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'exam-create' && role === 'teacher' && <ExamCreate goBack={goBack}/>}
+    {screen === 'attendance' && role === 'teacher' && <Attendance navigate={navigate} goBack={goBack}/>}
+    {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'gradebook' && role === 'teacher' && <Gradebook navigate={navigate} goBack={goBack}/>}
+    {screen === 'grade-register' && role === 'teacher' && <GradeRegister navigate={navigate} goBack={goBack}/>}
+    {screen === 'reports' && role === 'teacher' && <Reports navigate={navigate} goBack={goBack}/>}
+    {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
+    {screen === 'calls' && <BottomMenu navigate={navigate} active="تماس‌ها" />}
     {screen === 'call' && <CallScreen navigate={navigate} goBack={goBack}/>}
   </div>
 }
