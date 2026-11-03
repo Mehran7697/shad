@@ -3,6 +3,143 @@ import { useState, useEffect, useRef } from 'react'
 /** when set, Chat scrolls to this message id after return */
 let chatFocusTarget: string | null = null
 
+type MaterialFolder = { id: string; name: string; count: number }
+let materialsFolders: MaterialFolder[] = [
+  { id: '1', name: 'فصل سوم علوم', count: 5 },
+  { id: '2', name: 'آزمایشگاه', count: 3 },
+  { id: '3', name: 'نمونه سوال', count: 2 },
+]
+const materialsFolderListeners = new Set<() => void>()
+function subscribeFolders(fn: () => void) {
+  materialsFolderListeners.add(fn)
+  return () => { materialsFolderListeners.delete(fn) }
+}
+function setMaterialsFolders(next: MaterialFolder[] | ((prev: MaterialFolder[]) => MaterialFolder[])) {
+  materialsFolders = typeof next === 'function' ? next(materialsFolders) : next
+  materialsFolderListeners.forEach(fn => fn())
+}
+
+function useMaterialsFolders() {
+  const [, tick] = useState(0)
+  useEffect(() => subscribeFolders(() => tick(x => x + 1)), [])
+  return [materialsFolders, setMaterialsFolders] as const
+}
+
+function SaveToFolderSheet({
+  open,
+  onClose,
+  onSaved,
+}: {
+  open: boolean
+  onClose: () => void
+  onSaved?: (name: string) => void
+}) {
+  const [folders, setFolders] = useMaterialsFolders()
+  const [createOpen, setCreateOpen] = useState(false)
+  const [folderName, setFolderName] = useState('')
+
+  if (!open) return null
+
+  const saveTo = (id: string, name: string) => {
+    setFolders(prev => prev.map(x => x.id === id ? { ...x, count: x.count + 1 } : x))
+    onSaved?.(name)
+    onClose()
+    setCreateOpen(false)
+    setFolderName('')
+  }
+
+  const createAndSave = () => {
+    const name = folderName.trim()
+    if (!name) return
+    const id = String(Date.now())
+    setFolders(prev => [{ id, name, count: 1 }, ...prev])
+    onSaved?.(name)
+    onClose()
+    setCreateOpen(false)
+    setFolderName('')
+  }
+
+  return (
+    <div className="overlay save-collection-overlay" onClick={onClose}>
+      <div className="bottom-sheet save-collection-sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        {!createOpen ? (
+          <>
+            <button
+              type="button"
+              className="save-collection-main"
+              onClick={() => {
+                if (folders[0]) saveTo(folders[0].id, folders[0].name)
+                else setCreateOpen(true)
+              }}
+            >
+              <span className="save-collection-thumb"><Icon name="bookmark" size={20} /></span>
+              <div>
+                <strong>ذخیره‌شده‌ها</strong>
+                <small>خصوصی · ذخیره سریع</small>
+              </div>
+              <Icon name="bookmark" size={18} />
+            </button>
+            <div className="save-collection-head">
+              <strong>پوشه‌ها</strong>
+              <button type="button" onClick={() => { setFolderName(''); setCreateOpen(true) }}>پوشه جدید</button>
+            </div>
+            <div className="folder-pick-list">
+              {folders.map(f => (
+                <div key={f.id} className="save-collection-row">
+                  <span className="save-collection-thumb mint"><Icon name="file" size={18} /></span>
+                  <div>
+                    <strong>{f.name}</strong>
+                    <small>{fa(f.count)} مورد</small>
+                  </div>
+                  <button
+                    type="button"
+                    className="save-collection-add"
+                    aria-label={`ذخیره در ${f.name}`}
+                    onClick={() => saveTo(f.id, f.name)}
+                  >
+                    <Icon name="plus" size={18} />
+                  </button>
+                </div>
+              ))}
+              {!folders.length && (
+                <div className="sa-waiting">
+                  <div>
+                    <strong>پوشه‌ای وجود ندارد</strong>
+                    <span>با «پوشه جدید» اولین پوشه را بسازید.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="save-collection-create-bar">
+              <button type="button" className="text-btn" onClick={() => setCreateOpen(false)}>انصراف</button>
+              <strong>پوشه جدید</strong>
+              <button type="button" className="text-btn primary" disabled={!folderName.trim()} onClick={createAndSave}>ذخیره</button>
+            </div>
+            <div className="save-collection-create-body">
+              <span className="save-collection-preview"><Icon name="file" size={28} /></span>
+              <label className="save-collection-input">
+                <span>نام پوشه</span>
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="نام پوشه را بنویسید"
+                  value={folderName}
+                  onChange={e => setFolderName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') createAndSave() }}
+                />
+              </label>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 type UserRole = 'teacher' | 'student'
 
 type Screen =
@@ -492,6 +629,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
   const [scoreSuccess, setScoreSuccess] = useState(false)
   const [showCallPopup, setShowCallPopup] = useState(false)
   const [activityOpen, setActivityOpen] = useState(true)
+  const [saveSheetOpen, setSaveSheetOpen] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setSeconds(s => s + 1), 1000)
@@ -584,7 +722,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
     <main className="messages">
       <div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">خانم کریمی</strong><p>سلام بچه‌ها، وقتتون بخیر. فایل تمرین فصل سوم رو براتون فرستادم.</p><span>۱۰:۲۸</span></div></div>
-      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div><button aria-label="ذخیره فایل" onClick={() => { setToast('در بخش جزوه ذخیره شد'); setTimeout(() => { setToast(null); navigate('materials') }, 1200) }}><Icon name="bookmark" /></button><span>۱۰:۲۹</span></div></div>
+      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div><button aria-label="ذخیره فایل" onClick={() => setSaveSheetOpen(true)}><Icon name="bookmark" /></button><span>۱۰:۲۹</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>ممنون خانم، تا چه روزی فرصت داریم؟</p><span>۱۰:۳۴ <b>✓✓</b></span></div></div>
       <div className="message-row received" id="chat-msg-assignment">
         <div className="message-bubble announcement">
@@ -618,6 +756,14 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
         <IconButton icon="smile" label="شکلک" />
       </div>
     </div>
+    <SaveToFolderSheet
+      open={saveSheetOpen}
+      onClose={() => setSaveSheetOpen(false)}
+      onSaved={(name) => {
+        setToast(`در پوشه «${name}» ذخیره شد`)
+        setTimeout(() => setToast(null), 1600)
+      }}
+    />
     {toast && <div className="toast">{toast}</div>}
     {showCallPopup && <div className="overlay" onClick={() => setShowCallPopup(false)}>
       <section className="bottom-sheet call-popup" onClick={e => e.stopPropagation()}>
@@ -700,6 +846,8 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
 function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState<string[]>([])
+  const [saveSheetOpen, setSaveSheetOpen] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   const send = () => { if (message.trim()) { setSent([...sent, message]); setMessage('') } }
   const chat = messengerChats[0]
   return <div className="screen chat-screen conversation-light" dir="rtl">
@@ -716,7 +864,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
     <main className="messages">
       <div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">لاک پشت کوچولو</strong><p>با یه در شیشه و خمیر بازی بسازش! 🎨</p><span>۰۹:۰۵</span></div></div>
-      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="image" /></div><div><strong>تصویر</strong><small>۱٫۲ مگابایت · JPG</small></div><button aria-label="ذخیره فایل"><Icon name="bookmark" /></button><span>۰۹:۰۶</span></div></div>
+      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="image" /></div><div><strong>تصویر</strong><small>۱٫۲ مگابایت · JPG</small></div><button aria-label="ذخیره فایل" onClick={() => setSaveSheetOpen(true)}><Icon name="bookmark" /></button><span>۰۹:۰۶</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>عالیه! چطور ساخته میشه؟</p><span>۰۹:۱۰ <b>✓✓</b></span></div></div>
       <div className="message-row received"><div className="message-bubble"><p>با یه در شیشه خالی و خمیر بازی شروع کن 🐢</p><span>۰۹:۱۲</span></div></div>
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
@@ -730,6 +878,15 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
         <IconButton icon="send" label="ارسال" onClick={send} className="send-button" />
       </div>
     </div>
+    <SaveToFolderSheet
+      open={saveSheetOpen}
+      onClose={() => setSaveSheetOpen(false)}
+      onSaved={(name) => {
+        setToast(`در پوشه «${name}» ذخیره شد`)
+        setTimeout(() => setToast(null), 1600)
+      }}
+    />
+    {toast && <div className="toast">{toast}</div>}
   </div>
 }
 
@@ -804,11 +961,7 @@ function FormField({ label, placeholder, type = 'text' }: { label: string; place
 }
 
 function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const [folders, setFolders] = useState([
-    { id: '1', name: 'فصل سوم علوم', count: 5 },
-    { id: '2', name: 'آزمایشگاه', count: 3 },
-    { id: '3', name: 'نمونه سوال', count: 2 },
-  ])
+  const [folders, setFolders] = useMaterialsFolders()
   const [activeFolder, setActiveFolder] = useState<{ id: string; name: string } | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
@@ -958,125 +1111,14 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
       </button>
     </main>
 
-    {pickFolderOpen && (
-      <div className="overlay save-collection-overlay" onClick={() => setPickFolderOpen(false)}>
-        <div className="bottom-sheet save-collection-sheet" onClick={e => e.stopPropagation()}>
-          <div className="sheet-handle" />
-
-          {!createOpen ? (
-            <>
-              <button
-                type="button"
-                className="save-collection-main"
-                onClick={() => {
-                  if (activeFolder) {
-                    setFolders(prev => prev.map(x => x.id === activeFolder.id ? { ...x, count: x.count + 1 } : x))
-                    setPickFolderOpen(false)
-                    setToast(`در پوشه «${activeFolder.name}» ذخیره شد`)
-                    setTimeout(() => setToast(null), 1600)
-                  }
-                }}
-              >
-                <span className="save-collection-thumb"><Icon name="bookmark" size={20} /></span>
-                <div>
-                  <strong>ذخیره‌شده‌ها</strong>
-                  <small>خصوصی · سریع در پوشه فعلی</small>
-                </div>
-                <Icon name="bookmark" size={18} />
-              </button>
-
-              <div className="save-collection-head">
-                <strong>پوشه‌ها</strong>
-                <button type="button" onClick={() => { setFolderName(''); setCreateOpen(true) }}>پوشه جدید</button>
-              </div>
-
-              <div className="folder-pick-list">
-                {folders.map(f => (
-                  <div key={f.id} className="save-collection-row">
-                    <span className="save-collection-thumb mint"><Icon name="file" size={18} /></span>
-                    <div>
-                      <strong>{f.name}</strong>
-                      <small>{fa(f.count)} مورد</small>
-                    </div>
-                    <button
-                      type="button"
-                      className="save-collection-add"
-                      aria-label={`ذخیره در ${f.name}`}
-                      onClick={() => {
-                        setFolders(prev => prev.map(x => x.id === f.id ? { ...x, count: x.count + 1 } : x))
-                        setPickFolderOpen(false)
-                        setToast(`در پوشه «${f.name}» ذخیره شد`)
-                        setTimeout(() => setToast(null), 1600)
-                      }}
-                    >
-                      <Icon name="plus" size={18} />
-                    </button>
-                  </div>
-                ))}
-                {!folders.length && (
-                  <div className="sa-waiting">
-                    <div>
-                      <strong>پوشه‌ای وجود ندارد</strong>
-                      <span>با «پوشه جدید» اولین پوشه را بسازید.</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="save-collection-create-bar">
-                <button type="button" className="text-btn" onClick={() => setCreateOpen(false)}>انصراف</button>
-                <strong>پوشه جدید</strong>
-                <button
-                  type="button"
-                  className="text-btn primary"
-                  disabled={!folderName.trim()}
-                  onClick={() => {
-                    const name = folderName.trim()
-                    if (!name) return
-                    const id = String(Date.now())
-                    setFolders(prev => [{ id, name, count: 1 }, ...prev])
-                    setFolderName('')
-                    setCreateOpen(false)
-                    setPickFolderOpen(false)
-                    setToast(`در پوشه «${name}» ذخیره شد`)
-                    setTimeout(() => setToast(null), 1600)
-                  }}
-                >
-                  ذخیره
-                </button>
-              </div>
-              <div className="save-collection-create-body">
-                <span className="save-collection-preview"><Icon name="file" size={28} /></span>
-                <label className="save-collection-input">
-                  <span>نام پوشه</span>
-                  <input
-                    autoFocus
-                    type="text"
-                    placeholder="نام پوشه را بنویسید"
-                    value={folderName}
-                    onChange={e => setFolderName(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && folderName.trim()) {
-                        const name = folderName.trim()
-                        const id = String(Date.now())
-                        setFolders(prev => [{ id, name, count: 1 }, ...prev])
-                        setFolderName('')
-                        setCreateOpen(false)
-                        setPickFolderOpen(false)
-                        setToast(`در پوشه «${name}» ذخیره شد`)
-                        setTimeout(() => setToast(null), 1600)
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    )}
+    <SaveToFolderSheet
+      open={pickFolderOpen}
+      onClose={() => { setPickFolderOpen(false); setCreateOpen(false); setFolderName('') }}
+      onSaved={(name) => {
+        setToast(`در پوشه «${name}» ذخیره شد`)
+        setTimeout(() => setToast(null), 1600)
+      }}
+    />
     {toast && <div className="toast">{toast}</div>}
   </div>
 }
