@@ -745,9 +745,50 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
-function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', title, subtitle }: { screen: Screen; back: () => void; rightIcon?: IconName; onRightClick?: () => void; rightLabel?: string; title?: string; subtitle?: string }) {
+function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
+  screen: Screen
+  back: () => void
+  rightIcon?: IconName
+  onRightClick?: () => void
+  rightLabel?: string
+  title?: string
+  subtitle?: string
+  searchOpen?: boolean
+  searchValue?: string
+  onSearchChange?: (v: string) => void
+  onSearchClose?: () => void
+  searchPlaceholder?: string
+}) {
   const meta = screenMeta[screen]!
-  return <header className="sub-header"><IconButton icon="chevron" label="بازگشت" onClick={back} /><div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div><IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} /></header>
+  if (searchOpen) {
+    return (
+      <header className="sub-header sub-header-search">
+        <IconButton icon="chevron" label="بستن جست‌وجو" onClick={onSearchClose ?? back} />
+        <div className="header-search-field">
+          <Icon name="search" size={18} />
+          <input
+            autoFocus
+            type="search"
+            value={searchValue}
+            placeholder={searchPlaceholder}
+            onChange={e => onSearchChange?.(e.target.value)}
+          />
+        </div>
+        {searchValue ? (
+          <IconButton icon="close" label="پاک کردن" onClick={() => onSearchChange?.('')} />
+        ) : (
+          <span className="header-search-spacer" />
+        )}
+      </header>
+    )
+  }
+  return (
+    <header className="sub-header">
+      <IconButton icon="chevron" label="بازگشت" onClick={back} />
+      <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
+      <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
+    </header>
+  )
 }
 
 function FormField({ label, placeholder, type = 'text' }: { label: string; placeholder: string; type?: string }) {
@@ -756,6 +797,8 @@ function FormField({ label, placeholder, type = 'text' }: { label: string; place
 
 function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const items = [
     {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf'},
     {n:'آزمایش فشار هوا',m:'ویدیو · ۰۸:۳۴',i:'video' as IconName, type:'video'},
@@ -763,13 +806,37 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     {n:'فایل صوتی درس سوم',m:'صدا · MP3 · ۴٫۱ مگابایت',i:'mic' as IconName, type:'audio'},
     {n:'یادداشت درس سوم',m:'متن · ۱۲۰ کلمه',i:'file' as IconName, type:'text'},
   ]
-  const filtered = filter === 'all' ? items : items.filter(x => x.type === filter)
+  const q = query.trim()
+  const filtered = items.filter(x => {
+    const byType = filter === 'all' || x.type === filter
+    const byQuery = !q || x.n.includes(q) || x.m.includes(q)
+    return byType && byQuery
+  })
   const labels = {all:'همه', pdf:'PDF', video:'ویدیو', image:'تصویر', audio:'صدا', text:'متن'} as const
-  return <div className="screen inner-screen"><SubHeader screen="materials" back={goBack} /><main className="inner-content">
-    <div className="search-box"><Icon name="search" /><input placeholder="جست‌وجو در منابع کلاسی" /></div>
+  return <div className="screen inner-screen">
+    <SubHeader
+      screen="materials"
+      back={goBack}
+      rightIcon="search"
+      rightLabel="جست‌وجو"
+      onRightClick={() => setSearchOpen(true)}
+      searchOpen={searchOpen}
+      searchValue={query}
+      onSearchChange={setQuery}
+      onSearchClose={() => { setSearchOpen(false); setQuery('') }}
+      searchPlaceholder="جست‌وجو در منابع کلاسی"
+    />
+    <main className="inner-content">
     <div className="chips compact scrollable">{(['all','pdf','video','image','audio','text'] as const).map((k) => <button key={k} className={filter===k?'active':''} onClick={()=>setFilter(k)}>{labels[k]}</button>)}</div>
     <div className="section-heading"><strong>این هفته</strong><span>{String(filtered.length).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d])} مورد</span></div>
     {filtered.map(x => <button className="resource" key={x.n} onClick={() => navigate('chat')}><span className="resource-icon"><Icon name={x.i} /></span><div><strong>{x.n}</strong><small>{x.m}</small><span>یکشنبه، ۲۴ فروردین</span></div><Icon name="chevron" /></button>)}
+    {!filtered.length && (
+      <div className="empty compact-empty">
+        <Icon name="search" size={32} />
+        <strong>موردی پیدا نشد</strong>
+        <span>عبارت دیگری را جست‌وجو کنید.</span>
+      </div>
+    )}
     <button className="save-message"><Icon name="bookmark" /><div><strong>ذخیره از گفتگو</strong><span>پیام یا فایل مفید را به منابع اضافه کنید</span></div></button>
   </main></div>
 }

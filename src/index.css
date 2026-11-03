@@ -2339,3 +2339,33 @@
   box-shadow: 0 0 0 3px rgb(17 156 120 / .35);
   transition: box-shadow 0.3s ease;
 }
+
+.sub-header-search {
+  gap: 8px;
+}
+.header-search-field {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  color: var(--muted);
+}
+.header-search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+}
+.header-search-spacer {
+  width: 40px;
+  flex: none;
+}
