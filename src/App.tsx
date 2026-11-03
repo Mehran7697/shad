@@ -763,22 +763,30 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
   if (searchOpen) {
     return (
       <header className="sub-header sub-header-search">
-        <IconButton icon="chevron" label="بستن جست‌وجو" onClick={onSearchClose ?? back} />
-        <div className="header-search-field">
-          <Icon name="search" size={18} />
+        <IconButton icon="chevron" label="بازگشت به حالت قبل" onClick={onSearchClose ?? back} />
+        <label className="header-search-field">
+          <span className="header-search-icon" aria-hidden="true"><Icon name="search" size={18} /></span>
           <input
             autoFocus
             type="search"
             value={searchValue}
             placeholder={searchPlaceholder}
             onChange={e => onSearchChange?.(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') onSearchClose?.()
+            }}
           />
-        </div>
-        {searchValue ? (
-          <IconButton icon="close" label="پاک کردن" onClick={() => onSearchChange?.('')} />
-        ) : (
-          <span className="header-search-spacer" />
-        )}
+          {!!searchValue && (
+            <button
+              type="button"
+              className="header-search-clear"
+              aria-label="پاک کردن"
+              onClick={() => onSearchChange?.('')}
+            >
+              <Icon name="close" size={16} />
+            </button>
+          )}
+        </label>
       </header>
     )
   }
