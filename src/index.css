@@ -2403,3 +2403,225 @@
   transform: scale(.94);
 }
 
+
+.folder-card .resource-icon.mint {
+  color: var(--green-dark);
+  background: var(--green-soft);
+}
+.group-grade-footer button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.folder-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+.folder-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 14px;
+  padding: 12px;
+  text-align: right;
+}
+.folder-pick-item.active {
+  border-color: #b9e3d7;
+  background: var(--green-soft);
+}
+.folder-pick-item > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.folder-pick-item strong {
+  font-size: 12px;
+}
+.folder-pick-item small {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.save-collection-overlay {
+  z-index: 40;
+}
+.save-collection-sheet {
+  padding: 8px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height: min(78vh, 640px);
+  overflow: auto;
+}
+.save-collection-main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: right;
+  margin-bottom: 14px;
+}
+.save-collection-main > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.save-collection-main strong {
+  font-size: 13px;
+}
+.save-collection-main small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.save-collection-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: #e8eef0;
+  color: var(--ink);
+  overflow: hidden;
+}
+.save-collection-thumb.mint {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.save-collection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.save-collection-head strong {
+  font-size: 13px;
+}
+.save-collection-head > button {
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+.save-collection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.save-collection-row:last-child {
+  border-bottom: 0;
+}
+.save-collection-row > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.save-collection-row strong {
+  font-size: 13px;
+}
+.save-collection-row small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.save-collection-add {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: white;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.save-collection-add:active {
+  background: var(--green-soft);
+  border-color: #b9e3d7;
+  color: var(--green-dark);
+}
+.save-collection-create-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.save-collection-create-bar strong {
+  text-align: center;
+  font-size: 14px;
+}
+.save-collection-create-bar .text-btn {
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  justify-self: start;
+}
+.save-collection-create-bar .text-btn.primary {
+  color: var(--green);
+  justify-self: end;
+}
+.save-collection-create-bar .text-btn:disabled {
+  opacity: 0.4;
+}
+.save-collection-create-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0 12px;
+}
+.save-collection-preview {
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #e8f7f2, #edf6fb);
+  color: var(--green-dark);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+}
+.save-collection-input {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.save-collection-input > span {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.save-collection-input input {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  padding: 0 14px;
+  background: white;
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+}
+.save-collection-input input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgb(17 156 120 / .12);
+}

@@ -959,49 +959,121 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     </main>
 
     {pickFolderOpen && (
-      <div className="overlay group-grade-overlay" onClick={() => setPickFolderOpen(false)}>
-        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+      <div className="overlay save-collection-overlay" onClick={() => setPickFolderOpen(false)}>
+        <div className="bottom-sheet save-collection-sheet" onClick={e => e.stopPropagation()}>
           <div className="sheet-handle" />
-          <div className="sheet-title">
-            <div>
-              <strong>انتخاب پوشه</strong>
-              <span>مورد انتخابی در کدام پوشه ذخیره شود؟</span>
-            </div>
-            <IconButton icon="close" label="بستن" onClick={() => setPickFolderOpen(false)} />
-          </div>
-          <div className="folder-pick-list">
-            {folders.map(f => (
+
+          {!createOpen ? (
+            <>
               <button
-                key={f.id}
                 type="button"
-                className={`folder-pick-item ${activeFolder?.id === f.id ? 'active' : ''}`}
+                className="save-collection-main"
                 onClick={() => {
-                  setFolders(prev => prev.map(x => x.id === f.id ? { ...x, count: x.count + 1 } : x))
-                  setPickFolderOpen(false)
-                  setToast(`در پوشه «${f.name}» ذخیره شد`)
-                  setTimeout(() => setToast(null), 1600)
+                  if (activeFolder) {
+                    setFolders(prev => prev.map(x => x.id === activeFolder.id ? { ...x, count: x.count + 1 } : x))
+                    setPickFolderOpen(false)
+                    setToast(`در پوشه «${activeFolder.name}» ذخیره شد`)
+                    setTimeout(() => setToast(null), 1600)
+                  }
                 }}
               >
-                <span className="resource-icon mint"><Icon name="file" size={18} /></span>
+                <span className="save-collection-thumb"><Icon name="bookmark" size={20} /></span>
                 <div>
-                  <strong>{f.name}</strong>
-                  <small>{fa(f.count)} مورد</small>
+                  <strong>ذخیره‌شده‌ها</strong>
+                  <small>خصوصی · سریع در پوشه فعلی</small>
                 </div>
-                <Icon name="chevron" size={16} />
+                <Icon name="bookmark" size={18} />
               </button>
-            ))}
-            {!folders.length && (
-              <div className="sa-waiting">
-                <div>
-                  <strong>پوشه‌ای وجود ندارد</strong>
-                  <span>ابتدا از لیست پوشه‌ها یک پوشه بسازید.</span>
-                </div>
+
+              <div className="save-collection-head">
+                <strong>پوشه‌ها</strong>
+                <button type="button" onClick={() => { setFolderName(''); setCreateOpen(true) }}>پوشه جدید</button>
               </div>
-            )}
-          </div>
-          <div className="group-grade-footer">
-            <button type="button" className="secondary" onClick={() => setPickFolderOpen(false)}>بستن</button>
-          </div>
+
+              <div className="folder-pick-list">
+                {folders.map(f => (
+                  <div key={f.id} className="save-collection-row">
+                    <span className="save-collection-thumb mint"><Icon name="file" size={18} /></span>
+                    <div>
+                      <strong>{f.name}</strong>
+                      <small>{fa(f.count)} مورد</small>
+                    </div>
+                    <button
+                      type="button"
+                      className="save-collection-add"
+                      aria-label={`ذخیره در ${f.name}`}
+                      onClick={() => {
+                        setFolders(prev => prev.map(x => x.id === f.id ? { ...x, count: x.count + 1 } : x))
+                        setPickFolderOpen(false)
+                        setToast(`در پوشه «${f.name}» ذخیره شد`)
+                        setTimeout(() => setToast(null), 1600)
+                      }}
+                    >
+                      <Icon name="plus" size={18} />
+                    </button>
+                  </div>
+                ))}
+                {!folders.length && (
+                  <div className="sa-waiting">
+                    <div>
+                      <strong>پوشه‌ای وجود ندارد</strong>
+                      <span>با «پوشه جدید» اولین پوشه را بسازید.</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="save-collection-create-bar">
+                <button type="button" className="text-btn" onClick={() => setCreateOpen(false)}>انصراف</button>
+                <strong>پوشه جدید</strong>
+                <button
+                  type="button"
+                  className="text-btn primary"
+                  disabled={!folderName.trim()}
+                  onClick={() => {
+                    const name = folderName.trim()
+                    if (!name) return
+                    const id = String(Date.now())
+                    setFolders(prev => [{ id, name, count: 1 }, ...prev])
+                    setFolderName('')
+                    setCreateOpen(false)
+                    setPickFolderOpen(false)
+                    setToast(`در پوشه «${name}» ذخیره شد`)
+                    setTimeout(() => setToast(null), 1600)
+                  }}
+                >
+                  ذخیره
+                </button>
+              </div>
+              <div className="save-collection-create-body">
+                <span className="save-collection-preview"><Icon name="file" size={28} /></span>
+                <label className="save-collection-input">
+                  <span>نام پوشه</span>
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="نام پوشه را بنویسید"
+                    value={folderName}
+                    onChange={e => setFolderName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && folderName.trim()) {
+                        const name = folderName.trim()
+                        const id = String(Date.now())
+                        setFolders(prev => [{ id, name, count: 1 }, ...prev])
+                        setFolderName('')
+                        setCreateOpen(false)
+                        setPickFolderOpen(false)
+                        setToast(`در پوشه «${name}» ذخیره شد`)
+                        setTimeout(() => setToast(null), 1600)
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )}
