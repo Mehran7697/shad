@@ -812,6 +812,8 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [activeFolder, setActiveFolder] = useState<{ id: string; name: string } | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
+  const [pickFolderOpen, setPickFolderOpen] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -947,8 +949,63 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
           <span>عبارت دیگری را جست‌وجو کنید.</span>
         </div>
       )}
-      <button className="save-message"><Icon name="bookmark" /><div><strong>ذخیره از گفتگو</strong><span>پیام یا فایل مفید را به این پوشه اضافه کنید</span></div></button>
+      <button type="button" className="save-message" onClick={() => setPickFolderOpen(true)}>
+        <Icon name="bookmark" />
+        <div>
+          <strong>ذخیره از گفتگو</strong>
+          <span>انتخاب پوشه برای ذخیره پیام یا فایل</span>
+        </div>
+      </button>
     </main>
+
+    {pickFolderOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setPickFolderOpen(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>انتخاب پوشه</strong>
+              <span>مورد انتخابی در کدام پوشه ذخیره شود؟</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setPickFolderOpen(false)} />
+          </div>
+          <div className="folder-pick-list">
+            {folders.map(f => (
+              <button
+                key={f.id}
+                type="button"
+                className={`folder-pick-item ${activeFolder?.id === f.id ? 'active' : ''}`}
+                onClick={() => {
+                  setFolders(prev => prev.map(x => x.id === f.id ? { ...x, count: x.count + 1 } : x))
+                  setPickFolderOpen(false)
+                  setToast(`در پوشه «${f.name}» ذخیره شد`)
+                  setTimeout(() => setToast(null), 1600)
+                }}
+              >
+                <span className="resource-icon mint"><Icon name="file" size={18} /></span>
+                <div>
+                  <strong>{f.name}</strong>
+                  <small>{fa(f.count)} مورد</small>
+                </div>
+                <Icon name="chevron" size={16} />
+              </button>
+            ))}
+            {!folders.length && (
+              <div className="sa-waiting">
+                <div>
+                  <strong>پوشه‌ای وجود ندارد</strong>
+                  <span>ابتدا از لیست پوشه‌ها یک پوشه بسازید.</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setPickFolderOpen(false)}>بستن</button>
+          </div>
+        </div>
+      </div>
+    )}
+    {toast && <div className="toast">{toast}</div>}
   </div>
 }
 
