@@ -434,7 +434,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
             <strong>تکالیف این هفته</strong>
             <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => navigate('assignments')}>مشاهده همه</button>
           </div>
-          <button className="resource" onClick={() => navigate('assignments')}>
+          <button className="resource" onClick={() => navigate('assignment')}>
             <span className="resource-icon green"><Icon name="book" /></span>
             <div>
               <strong>تمرین فصل سوم علوم تجربی</strong>
@@ -443,7 +443,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
             </div>
             <Icon name="chevron" />
           </button>
-          <button className="resource" onClick={() => navigate('assignments')}>
+          <button className="resource" onClick={() => navigate('assignment')}>
             <span className="resource-icon blue"><Icon name="book" /></span>
             <div>
               <strong>گزارش آزمایش فشار هوا</strong>
