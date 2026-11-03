@@ -2332,3 +2332,10 @@
   outline-offset: 3px;
   border-radius: 6px;
 }
+
+
+.message-row.message-highlight .message-bubble,
+.message-row.message-highlight .message-bubble.announcement {
+  box-shadow: 0 0 0 3px rgb(17 156 120 / .35);
+  transition: box-shadow 0.3s ease;
+}

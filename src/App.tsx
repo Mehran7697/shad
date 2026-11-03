@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 
+/** when set, Chat scrolls to this message id after return */
+let chatFocusTarget: string | null = null
+
 type UserRole = 'teacher' | 'student'
 
 type Screen =
@@ -495,6 +498,21 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
     return () => clearInterval(timer)
   }, [])
 
+  useEffect(() => {
+    if (!chatFocusTarget) return
+    const id = chatFocusTarget
+    chatFocusTarget = null
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.classList.add('message-highlight')
+        window.setTimeout(() => el.classList.remove('message-highlight'), 1800)
+      }
+    }, 80)
+    return () => window.clearTimeout(t)
+  }, [])
+
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60)
     const remS = s % 60
@@ -568,7 +586,18 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
       <div className="message-row received"><div className="message-bubble"><strong className="sender">خانم کریمی</strong><p>سلام بچه‌ها، وقتتون بخیر. فایل تمرین فصل سوم رو براتون فرستادم.</p><span>۱۰:۲۸</span></div></div>
       <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div><button aria-label="ذخیره فایل" onClick={() => { setToast('در بخش جزوه ذخیره شد'); setTimeout(() => { setToast(null); navigate('materials') }, 1200) }}><Icon name="bookmark" /></button><span>۱۰:۲۹</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>ممنون خانم، تا چه روزی فرصت داریم؟</p><span>۱۰:۳۴ <b>✓✓</b></span></div></div>
-      <div className="message-row received"><div className="message-bubble announcement"><small>تکلیف جدید</small><strong>تمرین فصل سوم</strong><p>مهلت تحویل: دوشنبه، ساعت ۲۰:۰۰</p><button onClick={() => navigate('assignments')}>مشاهده تکلیف</button><span>۱۰:۳۶</span></div></div>
+      <div className="message-row received" id="chat-msg-assignment">
+        <div className="message-bubble announcement">
+          <small>تکلیف جدید</small>
+          <strong>تمرین فصل سوم</strong>
+          <p>مهلت تحویل: دوشنبه، ساعت ۲۰:۰۰</p>
+          <button onClick={() => {
+            chatFocusTarget = 'chat-msg-assignment'
+            navigate('assignment')
+          }}>مشاهده تکلیف</button>
+          <span>۱۰:۳۶</span>
+        </div>
+      </div>
       <div className="message-row received"><div className="message-bubble voice"><button aria-label="پخش پیام صوتی"><span>▶</span></button><div className="wave"><i/><i/><i/><i/><i/><i/><i/><i/></div><small>۰:۳۷</small><span>۱۰:۴۱</span></div></div>
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
     </main>
