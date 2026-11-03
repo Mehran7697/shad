@@ -804,9 +804,18 @@ function FormField({ label, placeholder, type = 'text' }: { label: string; place
 }
 
 function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  const [folders, setFolders] = useState([
+    { id: '1', name: 'فصل سوم علوم', count: 5 },
+    { id: '2', name: 'آزمایشگاه', count: 3 },
+    { id: '3', name: 'نمونه سوال', count: 2 },
+  ])
+  const [activeFolder, setActiveFolder] = useState<{ id: string; name: string } | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [folderName, setFolderName] = useState('')
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+
   const items = [
     {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf'},
     {n:'آزمایش فشار هوا',m:'ویدیو · ۰۸:۳۴',i:'video' as IconName, type:'video'},
@@ -821,10 +830,103 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     return byType && byQuery
   })
   const labels = {all:'همه', pdf:'PDF', video:'ویدیو', image:'تصویر', audio:'صدا', text:'متن'} as const
+
+  const createFolder = () => {
+    const name = folderName.trim()
+    if (!name) return
+    setFolders(prev => [{ id: String(Date.now()), name, count: 0 }, ...prev])
+    setFolderName('')
+    setCreateOpen(false)
+  }
+
+  // Folders list
+  if (!activeFolder) {
+    return <div className="screen inner-screen">
+      <SubHeader
+        screen="materials"
+        back={goBack}
+        title="پوشه‌ها"
+        subtitle="منابع کلاسی"
+        rightIcon="more"
+        rightLabel="بیشتر"
+      />
+      <main className="inner-content">
+        <div className="section-heading">
+          <strong>پوشه‌های کلاس</strong>
+          <span>{fa(folders.length)} پوشه</span>
+        </div>
+        {folders.map(f => (
+          <button
+            key={f.id}
+            type="button"
+            className="resource folder-card"
+            onClick={() => setActiveFolder({ id: f.id, name: f.name })}
+          >
+            <span className="resource-icon mint"><Icon name="file" /></span>
+            <div>
+              <strong>{f.name}</strong>
+              <small>پوشه منابع</small>
+              <span>{fa(f.count)} مورد</span>
+            </div>
+            <Icon name="chevron" />
+          </button>
+        ))}
+        {!folders.length && (
+          <div className="empty">
+            <Icon name="file" size={40} />
+            <strong>پوشه‌ای نیست</strong>
+            <span>با دکمه + پایین صفحه پوشه بسازید.</span>
+          </div>
+        )}
+      </main>
+      <button className="fab" aria-label="ایجاد پوشه" onClick={() => setCreateOpen(true)}>
+        <Icon name="plus" />
+      </button>
+      {createOpen && (
+        <div className="overlay group-grade-overlay" onClick={() => setCreateOpen(false)}>
+          <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>پوشه جدید</strong>
+                <span>نام دلخواه پوشه را وارد کنید</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setCreateOpen(false)} />
+            </div>
+            <div className="group-grade-body">
+              <label className="field">
+                <span>نام پوشه</span>
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="مثلاً فصل سوم"
+                  value={folderName}
+                  onChange={e => setFolderName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') createFolder() }}
+                />
+              </label>
+            </div>
+            <div className="group-grade-footer">
+              <button type="button" className="secondary" onClick={() => setCreateOpen(false)}>انصراف</button>
+              <button type="button" className="primary" onClick={createFolder} disabled={!folderName.trim()}>ایجاد</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  }
+
+  // Folder content = current materials page
   return <div className="screen inner-screen">
     <SubHeader
       screen="materials"
-      back={goBack}
+      back={() => {
+        setSearchOpen(false)
+        setQuery('')
+        setActiveFolder(null)
+      }}
+      title={activeFolder.name}
+      subtitle="منابع کلاسی"
       rightIcon="search"
       rightLabel="جست‌وجو"
       onRightClick={() => setSearchOpen(true)}
@@ -832,21 +934,22 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
       searchValue={query}
       onSearchChange={setQuery}
       onSearchClose={() => { setSearchOpen(false); setQuery('') }}
-      searchPlaceholder="جست‌وجو در منابع کلاسی"
+      searchPlaceholder={`جست‌وجو در ${activeFolder.name}`}
     />
     <main className="inner-content">
-    <div className="chips compact scrollable">{(['all','pdf','video','image','audio','text'] as const).map((k) => <button key={k} className={filter===k?'active':''} onClick={()=>setFilter(k)}>{labels[k]}</button>)}</div>
-    <div className="section-heading"><strong>این هفته</strong><span>{String(filtered.length).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d])} مورد</span></div>
-    {filtered.map(x => <button className="resource" key={x.n} onClick={() => navigate('chat')}><span className="resource-icon"><Icon name={x.i} /></span><div><strong>{x.n}</strong><small>{x.m}</small><span>یکشنبه، ۲۴ فروردین</span></div><Icon name="chevron" /></button>)}
-    {!filtered.length && (
-      <div className="empty compact-empty">
-        <Icon name="search" size={32} />
-        <strong>موردی پیدا نشد</strong>
-        <span>عبارت دیگری را جست‌وجو کنید.</span>
-      </div>
-    )}
-    <button className="save-message"><Icon name="bookmark" /><div><strong>ذخیره از گفتگو</strong><span>پیام یا فایل مفید را به منابع اضافه کنید</span></div></button>
-  </main></div>
+      <div className="chips compact scrollable">{(['all','pdf','video','image','audio','text'] as const).map((k) => <button key={k} className={filter===k?'active':''} onClick={()=>setFilter(k)}>{labels[k]}</button>)}</div>
+      <div className="section-heading"><strong>محتوای پوشه</strong><span>{String(filtered.length).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d])} مورد</span></div>
+      {filtered.map(x => <button className="resource" key={x.n} onClick={() => navigate('chat')}><span className="resource-icon"><Icon name={x.i} /></span><div><strong>{x.n}</strong><small>{x.m}</small><span>یکشنبه، ۲۴ فروردین</span></div><Icon name="chevron" /></button>)}
+      {!filtered.length && (
+        <div className="empty compact-empty">
+          <Icon name="search" size={32} />
+          <strong>موردی پیدا نشد</strong>
+          <span>عبارت دیگری را جست‌وجو کنید.</span>
+        </div>
+      )}
+      <button className="save-message"><Icon name="bookmark" /><div><strong>ذخیره از گفتگو</strong><span>پیام یا فایل مفید را به این پوشه اضافه کنید</span></div></button>
+    </main>
+  </div>
 }
 
 
