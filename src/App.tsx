@@ -734,7 +734,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
 }
 
 const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> = {
-  materials: { title: 'جزوه‌ها و منابع', subtitle: 'کلاس علوم تجربی' },
+  materials: { title: 'منابع کلاسی', subtitle: 'کلاس علوم تجربی' },
   assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   'assignment-create': { title: 'ایجاد تکلیف', subtitle: 'فعالیت جدید برای کلاس' },
   exam: { title: 'آزمون‌ها', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
@@ -766,7 +766,7 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const filtered = filter === 'all' ? items : items.filter(x => x.type === filter)
   const labels = {all:'همه', pdf:'PDF', video:'ویدیو', image:'تصویر', audio:'صدا', text:'متن'} as const
   return <div className="screen inner-screen"><SubHeader screen="materials" back={goBack} /><main className="inner-content">
-    <div className="search-box"><Icon name="search" /><input placeholder="جست‌وجو در جزوه‌ها و منابع" /></div>
+    <div className="search-box"><Icon name="search" /><input placeholder="جست‌وجو در منابع کلاسی" /></div>
     <div className="chips compact scrollable">{(['all','pdf','video','image','audio','text'] as const).map((k) => <button key={k} className={filter===k?'active':''} onClick={()=>setFilter(k)}>{labels[k]}</button>)}</div>
     <div className="section-heading"><strong>این هفته</strong><span>{String(filtered.length).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d])} مورد</span></div>
     {filtered.map(x => <button className="resource" key={x.n} onClick={() => navigate('chat')}><span className="resource-icon"><Icon name={x.i} /></span><div><strong>{x.n}</strong><small>{x.m}</small><span>یکشنبه، ۲۴ فروردین</span></div><Icon name="chevron" /></button>)}
@@ -2082,8 +2082,8 @@ function MainSection({ screen, navigate, role, setRole }: { screen: Screen; navi
       </div>
       <div className="more-grid">
         {(isTeacher
-          ? [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'جزوه‌ها',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
-          : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'جزوه‌ها',i:'file',s:'materials'},{t:'برنامه کلاسی',i:'calendar',s:'schedule'}]
+          ? [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
+          : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'برنامه کلاسی',i:'calendar',s:'schedule'}]
         ).map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}
       </div>
       <div className="settings-list">
@@ -2112,7 +2112,7 @@ function CallScreen({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
 const classSections: { title: string; sub: string; icon: IconName; screen: Screen }[] = [
   { title: 'تکالیف', sub: '۲ تکلیف فعال', icon: 'book', screen: 'assignments' },
   { title: 'آزمون‌ها', sub: '۱ آزمون پیش‌رو', icon: 'exam', screen: 'exam' },
-  { title: 'جزوه‌ها', sub: '۴ فایل این هفته', icon: 'file', screen: 'materials' },
+  { title: 'منابع کلاسی', sub: '۴ فایل این هفته', icon: 'file', screen: 'materials' },
   { title: 'حضور و غیاب', sub: 'ثبت امروز', icon: 'attendance', screen: 'attendance' },
   { title: 'دفتر نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
 ]
