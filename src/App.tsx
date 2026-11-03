@@ -630,6 +630,8 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
   const [showCallPopup, setShowCallPopup] = useState(false)
   const [activityOpen, setActivityOpen] = useState(true)
   const [saveSheetOpen, setSaveSheetOpen] = useState(false)
+  const [saveTargetId, setSaveTargetId] = useState<string | null>(null)
+  const [savedIds, setSavedIds] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const timer = setInterval(() => setSeconds(s => s + 1), 1000)
@@ -722,7 +724,16 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
     <main className="messages">
       <div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">خانم کریمی</strong><p>سلام بچه‌ها، وقتتون بخیر. فایل تمرین فصل سوم رو براتون فرستادم.</p><span>۱۰:۲۸</span></div></div>
-      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div><button aria-label="ذخیره فایل" onClick={() => setSaveSheetOpen(true)}><Icon name="bookmark" /></button><span>۱۰:۲۹</span></div></div>
+      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div><button type="button" className={`bookmark-btn ${savedIds['chat-pdf'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
+            if (savedIds['chat-pdf']) {
+              setSavedIds(prev => ({ ...prev, 'chat-pdf': false }))
+              setToast('از ذخیره‌ها حذف شد')
+              setTimeout(() => setToast(null), 1400)
+              return
+            }
+            setSaveTargetId('chat-pdf')
+            setSaveSheetOpen(true)
+          }}><Icon name="bookmark" /></button><span>۱۰:۲۹</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>ممنون خانم، تا چه روزی فرصت داریم؟</p><span>۱۰:۳۴ <b>✓✓</b></span></div></div>
       <div className="message-row received" id="chat-msg-assignment">
         <div className="message-bubble announcement">
@@ -758,8 +769,10 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
     </div>
     <SaveToFolderSheet
       open={saveSheetOpen}
-      onClose={() => setSaveSheetOpen(false)}
+      onClose={() => { setSaveSheetOpen(false); setSaveTargetId(null) }}
       onSaved={(name) => {
+        if (saveTargetId) setSavedIds(prev => ({ ...prev, [saveTargetId]: true }))
+        setSaveTargetId(null)
         setToast(`در پوشه «${name}» ذخیره شد`)
         setTimeout(() => setToast(null), 1600)
       }}
@@ -847,6 +860,8 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState<string[]>([])
   const [saveSheetOpen, setSaveSheetOpen] = useState(false)
+  const [saveTargetId, setSaveTargetId] = useState<string | null>(null)
+  const [savedIds, setSavedIds] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string | null>(null)
   const send = () => { if (message.trim()) { setSent([...sent, message]); setMessage('') } }
   const chat = messengerChats[0]
@@ -864,7 +879,16 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
     <main className="messages">
       <div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">لاک پشت کوچولو</strong><p>با یه در شیشه و خمیر بازی بسازش! 🎨</p><span>۰۹:۰۵</span></div></div>
-      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="image" /></div><div><strong>تصویر</strong><small>۱٫۲ مگابایت · JPG</small></div><button aria-label="ذخیره فایل" onClick={() => setSaveSheetOpen(true)}><Icon name="bookmark" /></button><span>۰۹:۰۶</span></div></div>
+      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="image" /></div><div><strong>تصویر</strong><small>۱٫۲ مگابایت · JPG</small></div><button type="button" className={`bookmark-btn ${savedIds['conv-img'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
+            if (savedIds['conv-img']) {
+              setSavedIds(prev => ({ ...prev, 'conv-img': false }))
+              setToast('از ذخیره‌ها حذف شد')
+              setTimeout(() => setToast(null), 1400)
+              return
+            }
+            setSaveTargetId('conv-img')
+            setSaveSheetOpen(true)
+          }}><Icon name="bookmark" /></button><span>۰۹:۰۶</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>عالیه! چطور ساخته میشه؟</p><span>۰۹:۱۰ <b>✓✓</b></span></div></div>
       <div className="message-row received"><div className="message-bubble"><p>با یه در شیشه خالی و خمیر بازی شروع کن 🐢</p><span>۰۹:۱۲</span></div></div>
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
@@ -880,8 +904,10 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
     </div>
     <SaveToFolderSheet
       open={saveSheetOpen}
-      onClose={() => setSaveSheetOpen(false)}
+      onClose={() => { setSaveSheetOpen(false); setSaveTargetId(null) }}
       onSaved={(name) => {
+        if (saveTargetId) setSavedIds(prev => ({ ...prev, [saveTargetId]: true }))
+        setSaveTargetId(null)
         setToast(`در پوشه «${name}» ذخیره شد`)
         setTimeout(() => setToast(null), 1600)
       }}

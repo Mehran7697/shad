@@ -2625,3 +2625,23 @@
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgb(17 156 120 / .12);
 }
+
+.bookmark-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 10px;
+}
+.bookmark-btn.saved {
+  color: var(--green);
+}
+.bookmark-btn.saved svg {
+  fill: var(--green);
+  stroke: var(--green);
+}
+.bookmark-btn:not(.saved) svg {
+  fill: none;
+}
