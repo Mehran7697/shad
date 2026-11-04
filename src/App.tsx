@@ -2935,7 +2935,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
       chosenStudents.forEach((name, i) => {
         const row = [
           name,
-          ...chosenCats.map((c, ci) => String(12 + ((i + ci) % 8))),
+          ...chosenCats.map((_, ci) => String(12 + ((i + ci) % 8))),
           chosenPeriods.join(' | ') || 'همه',
         ]
         lines.push(row.join(','))
