@@ -2829,6 +2829,8 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [detailTab, setDetailTab] = useState('همه')
+  const [weekIndex, setWeekIndex] = useState(0)
+  const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
 
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
@@ -2938,7 +2940,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <span>{fa(filteredStudents.length)} نفر</span>
           </div>
           {filteredStudents.map((name) => (
-            <button className="student student-row-photo" key={name} onClick={() => { setSelected(name); setDetailTab('همه') }} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
+            <button className="student student-row-photo" key={name} onClick={() => { setSelected(name); setDetailTab('همه'); setWeekIndex(0) }} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
               <img
                 className="student-photo"
                 src={`https://i.pravatar.cc/100?u=${encodeURIComponent(name)}`}
@@ -3008,6 +3010,29 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 {tab}
               </button>
             ))}
+          </div>
+
+          <div className="week-nav">
+            <button
+              type="button"
+              className="week-nav-btn prev"
+              disabled={weekIndex <= 0}
+              onClick={() => setWeekIndex(i => Math.max(0, i - 1))}
+            >
+              قبلی
+            </button>
+            <div className="week-nav-current">
+              <strong>{weekLabels[weekIndex]}</strong>
+              <small>{fa(weekIndex + 1)} از {fa(4)}</small>
+            </div>
+            <button
+              type="button"
+              className="week-nav-btn next"
+              disabled={weekIndex >= 3}
+              onClick={() => setWeekIndex(i => Math.min(3, i + 1))}
+            >
+              بعدی
+            </button>
           </div>
 
           <div className="student-detail-panel">
