@@ -2823,6 +2823,8 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 }
 
 function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
+  const [periodValue, setPeriodValue] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -2846,8 +2848,83 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     if (type === 'نمره کلاسی') return fa(15 + ((i + di) % 5))
     return ''
   }
+
+  const summerMonths = ['تیر', 'مرداد', 'شهریور']
+  const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
+  const terms = ['نوبت اول', 'نوبت دوم']
+
+  const handleBack = () => {
+    if (selected) {
+      setSelected(null)
+      return
+    }
+    if (periodValue) {
+      setPeriodValue(null)
+      return
+    }
+    goBack()
+  }
+
+  // Step 1: period picker
+  if (!periodValue) {
+    return <div className="screen inner-screen">
+      <SubHeader
+        screen="gradebook"
+        back={goBack}
+        title="انتخاب بازه گزارش"
+        subtitle="دسترسی سریع به دوره‌ها"
+      />
+      <main className="inner-content">
+        <div className="report-period-tabs">
+          <button type="button" className={periodMode === 'summer' ? 'active' : ''} onClick={() => setPeriodMode('summer')}>ترم تابستانی</button>
+          <button type="button" className={periodMode === 'months' ? 'active' : ''} onClick={() => setPeriodMode('months')}>ماه‌های تحصیلی</button>
+          <button type="button" className={periodMode === 'terms' ? 'active' : ''} onClick={() => setPeriodMode('terms')}>نوبت‌ها</button>
+        </div>
+
+        {periodMode === 'summer' && (
+          <div className="report-period-grid three">
+            {summerMonths.map(m => (
+              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
+                <strong>{m}</strong>
+                <small>ترم تابستانی</small>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {periodMode === 'months' && (
+          <div className="report-period-grid months">
+            {academicMonths.map(m => (
+              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
+                <strong>{m}</strong>
+                <small>ماه تحصیلی</small>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {periodMode === 'terms' && (
+          <div className="report-period-grid two">
+            {terms.map(m => (
+              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
+                <strong>{m}</strong>
+                <small>نوبت تحصیلی</small>
+              </button>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  }
+
+  // Step 2: existing reports list/detail for chosen period
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={() => selected ? setSelected(null) : goBack()} />
+    <SubHeader
+      screen="gradebook"
+      back={handleBack}
+      title={periodValue}
+      subtitle={periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی'}
+    />
     <main className="inner-content">
       <div className="two-fields" style={{marginBottom:10}}>
         <label className="field"><span>از تاریخ</span><select value={fromDate} onChange={e => setFromDate(e.target.value)}><option value="">همه</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select></label>
@@ -2856,7 +2933,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
       <div className="chips compact scrollable" style={{marginBottom:12}}>{types.map(t => <button key={t} className={reportType === t ? 'active' : ''} onClick={() => setReportType(t)}>{t}</button>)}</div>
       {!selected ? (
         <>
-          <div className="section-heading"><strong>گزارش‌های روزانه</strong><span>{filteredDates.length} روز</span></div>
+          <div className="section-heading"><strong>گزارش‌های روزانه</strong><span>{filteredDates.length} روز · {periodValue}</span></div>
           {students.map((name) => (
             <button className="student" key={name} onClick={() => setSelected(name)} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
               <div className="student-avatar">{name[0]}</div>
@@ -2885,9 +2962,10 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
         </div>
       )}
     </main>
-    <div className="sticky-action"><button onClick={() => selected ? setSelected(null) : goBack()}>{selected ? 'بازگشت به فهرست' : 'بازگشت به کلاس'}</button></div>
+    <div className="sticky-action"><button onClick={handleBack}>{selected ? 'بازگشت به فهرست' : 'بازگشت به بازه‌ها'}</button></div>
   </div>
 }
+
 
 function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; goBack: () => void; setRole: (r: UserRole) => void }) {
   const [leaving, setLeaving] = useState<UserRole | null>(null)

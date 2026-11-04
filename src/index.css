@@ -2645,3 +2645,63 @@
 .bookmark-btn:not(.saved) svg {
   fill: none;
 }
+
+.report-period-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.report-period-tabs button {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 11px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.report-period-tabs button.active {
+  color: white;
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 6px 14px rgb(17 156 120 / .2);
+}
+.report-period-grid {
+  display: grid;
+  gap: 10px;
+}
+.report-period-grid.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.report-period-grid.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+.report-period-grid.months {
+  grid-template-columns: repeat(3, 1fr);
+}
+.report-period-card {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 16px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  min-height: 78px;
+}
+.report-period-card strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+.report-period-card small {
+  font-size: 9px;
+  color: var(--muted);
+}
+.report-period-card:active {
+  transform: scale(.98);
+  background: var(--green-soft);
+  border-color: #b9e3d7;
+}
