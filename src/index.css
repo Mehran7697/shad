@@ -3050,3 +3050,54 @@
 .week-nav-btn:disabled {
   opacity: 0.35;
 }
+
+.week-days-list {
+  width: 100%;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+.week-day-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.week-day-row:last-child {
+  border-bottom: 0;
+}
+.week-day-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.week-day-meta strong {
+  font-size: 12px;
+}
+.week-day-meta small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.week-day-value {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 55%;
+  text-align: left;
+}
+.week-day-value.ok {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.week-day-value.bad {
+  background: #fff1f0;
+  color: #c0392b;
+}

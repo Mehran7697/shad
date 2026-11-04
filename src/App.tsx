@@ -2831,6 +2831,15 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [detailTab, setDetailTab] = useState('همه')
   const [weekIndex, setWeekIndex] = useState(0)
   const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
+  const weekDayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const day = weekIndex * 7 + i + 1
+    return {
+      day,
+      label: weekDayNames[i],
+      title: periodValue ? `${fa(day)} ${periodValue}` : fa(day),
+    }
+  })
 
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
@@ -3023,7 +3032,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             </button>
             <div className="week-nav-current">
               <strong>{weekLabels[weekIndex]}</strong>
-              <small>{fa(weekIndex + 1)} از {fa(4)}</small>
+              <small>{fa(weekIndex * 7 + 1)} تا {fa(weekIndex * 7 + 7)} {periodValue}</small>
             </div>
             <button
               type="button"
@@ -3033,6 +3042,38 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             >
               بعدی
             </button>
+          </div>
+
+          <div className="week-days-list">
+            <div className="section-heading" style={{ margin: '4px 0 8px' }}>
+              <strong>جزئیات روزانه</strong>
+              <span>{weekLabels[weekIndex]}</span>
+            </div>
+            {weekDays.map((d, idx) => {
+              const i = selected ? students.indexOf(selected) : 0
+              const seed = i * 10 + weekIndex * 7 + idx
+              const valueForTab = () => {
+                if (detailTab === 'حضور و غیاب') return seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
+                if (detailTab === 'نمره کلاسی') return fa(12 + (seed % 9))
+                if (detailTab === 'تکالیف') return seed % 3 === 0 ? 'عدم تحویل' : 'تحویل'
+                if (detailTab === 'انضباط') return seed % 5 === 0 ? 'تذکر' : 'مطلوب'
+                if (detailTab === 'نوبت اول' || detailTab === 'نوبت دوم') return fa(13 + (seed % 8))
+                // همه
+                const att = seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
+                return `${att} · نمره ${fa(12 + (seed % 9))}`
+              }
+              return (
+                <div className="week-day-row" key={d.day}>
+                  <div className="week-day-meta">
+                    <strong>{d.title}</strong>
+                    <small>{d.label}</small>
+                  </div>
+                  <span className={`week-day-value ${String(valueForTab()).includes('غایب') || String(valueForTab()).includes('عدم') || String(valueForTab()).includes('تذکر') ? 'bad' : 'ok'}`}>
+                    {valueForTab()}
+                  </span>
+                </div>
+              )
+            })}
           </div>
 
           <div className="student-detail-panel">
