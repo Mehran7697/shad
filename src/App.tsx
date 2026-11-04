@@ -207,7 +207,6 @@ type IconName =
   | 'board'
   | 'platform'
   | 'logout'
-  | 'lock'
 
 const paths: Record<IconName, React.ReactNode> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
@@ -317,9 +316,6 @@ function QuickLinks({ navigate, active }: { navigate: (screen: Screen) => void; 
 function Avatar({ item, large = false }: { item: { color: string; initials: string }; large?: boolean }) {
   return <div className={`avatar ${item.color} ${large ? 'avatar-large' : ''}`}>{item.initials}</div>
 }
-
-
-
 
 function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; active?: string }) {
   const items = [
@@ -828,7 +824,6 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
               </button>
             </div>
 
-
             <div className={`quick-reasons ${(Number(scoreValue) || 0) >= 0 ? 'positive' : 'negative'}`}>
               <small>توضیحات پیشنهادی:</small>
               <div className="chips compact">
@@ -1020,7 +1015,6 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     setCreateOpen(false)
   }
 
-  // Folders list
   if (!activeFolder) {
     return <div className="screen inner-screen">
       <SubHeader
@@ -1097,7 +1091,6 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     </div>
   }
 
-  // Folder content = current materials page
   return <div className="screen inner-screen">
     <SubHeader
       screen="materials"
@@ -1148,7 +1141,6 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     {toast && <div className="toast">{toast}</div>}
   </div>
 }
-
 
 function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
   void role
@@ -1247,9 +1239,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
       />
 
       <main className="inner-content">
-
         <div className="assignment-week-navigation">
-
           <button
             type="button"
             className="assignment-week-arrow"
@@ -1302,11 +1292,9 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
             <span>›</span>
             <small>هفته بعد</small>
           </button>
-
         </div>
 
         <div className="assignment-week-list">
-
           {weekDays.map((day, index) => {
             const items = data.filter(
               item => item.day === index
@@ -1314,7 +1302,6 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
 
             return (
               <section className="assignment-day-section" key={day}>
-
                 <div className="assignment-day-title">
                   <strong>{day}</strong>
                   <span>{formatDate(weekDates[index])}</span>
@@ -1348,13 +1335,10 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
                     تکلیفی برای این روز ثبت نشده است.
                   </div>
                 )}
-
               </section>
             )
           })}
-
         </div>
-
       </main>
 
       <button
@@ -1382,7 +1366,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [draft, setDraft] = useState(meta)
   const [toast, setToast] = useState<string | null>(null)
 
-  // student submission state
   const [textAnswer, setTextAnswer] = useState('')
   const [attachments, setAttachments] = useState<{ type: 'file' | 'image' | 'voice'; label: string }[]>([])
   const [recording, setRecording] = useState(false)
@@ -1390,9 +1373,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [editingSubmission, setEditingSubmission] = useState(false)
   const [submittedAt, setSubmittedAt] = useState<{ date: string; time: string; ts: number } | null>(null)
   const [delayLabel, setDelayLabel] = useState<string | null>(null)
-  // mock deadline: 90 minutes ago → demo late submission
   const assignmentDeadlineTs = useRef(Date.now() - 90 * 60 * 1000).current
-  // mock teacher review state (demo)
   const [teacherViewed, setTeacherViewed] = useState(false)
   const [teacherFeedback] = useState({
     text: 'پاسخ خوب بود؛ فقط بخش سوم را کامل‌تر بنویس.',
@@ -1522,7 +1503,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     setTeacherViewed(false)
     setToast(editingSubmission ? 'ارسال به‌روزرسانی شد' : 'تکلیف با موفقیت ارسال شد')
     setTimeout(() => setToast(null), 1600)
-    // simulate teacher viewing after a short delay
     setTimeout(() => setTeacherViewed(true), 3500)
   }
 
@@ -1538,7 +1518,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     setTimeout(() => setToast(null), 1400)
   }
 
-  // ---------- Student view ----------
   if (isStudent) {
     const showForm = !submitted || editingSubmission
     return <div className="screen inner-screen">
@@ -1552,7 +1531,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           </div>
         </div>
 
-        {/* status summary */}
         <section className={`sa-status-card ${submitted ? 'is-sent' : 'is-pending'}`}>
           <div className="sa-status-top">
             <div className={`sa-status-badge ${submitted ? 'ok' : 'wait'}`}>
@@ -1595,7 +1573,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           )}
         </section>
 
-        {/* teacher feedback */}
         {submitted && !editingSubmission && (
           <section className="sa-panel">
             <div className="sa-panel-head">
@@ -1624,7 +1601,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           </section>
         )}
 
-        {/* teacher description */}
         <section className="sa-panel">
           <div className="sa-panel-head">
             <strong>توضیحات معلم</strong>
@@ -1632,7 +1608,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           <p className="sa-desc">{meta.description}</p>
         </section>
 
-        {/* teacher files */}
         <section className="sa-panel">
           <div className="sa-panel-head">
             <strong>فایل‌های معلم</strong>
@@ -1660,7 +1635,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           </div>
         </section>
 
-        {/* form */}
         {showForm && (
           <section className="sa-panel">
             <div className="sa-panel-head">
@@ -1733,7 +1707,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           </section>
         )}
 
-        {/* sent answer readonly */}
         {submitted && !editingSubmission && (
           <section className="sa-panel">
             <div className="sa-panel-head">
@@ -1785,7 +1758,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     </div>
   }
 
-  // ---------- Teacher edit ----------
   if (editing) {
     return <div className="screen inner-screen">
       <header className="sub-header">
@@ -1831,7 +1803,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     </div>
   }
 
-  // ---------- Teacher review ----------
   return <div className="screen inner-screen">
     <SubHeader
       screen="assignment"
@@ -2194,7 +2165,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   </div>
 }
 
-
 function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => void }) {
   const [published, setPublished] = useState(false)
   return <div className="screen inner-screen">
@@ -2380,16 +2350,12 @@ const toEn = (s: string) => String(s).replace(/[۰-۹]/g, d => String('۰۱۲۳�
 
 function reportDateRange(): string[] {
   const out: string[] = []
-  // 1405/07/01 (Mehr 1) to 1405/08/01 (Aban 1)
   for (let d = 1; d <= 30; d++) {
     out.push(`${fa(1405)}/${fa(7).replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(d).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`)
   }
   out.push(`${fa(1405)}/${String(8).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(1).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`)
   return out
 }
-
-
-
 
 const faDays = ['ش','ی','د','س','چ','پ','ج']
 const faDayFull = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه']
@@ -2822,14 +2788,50 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   </div>
 }
 
+type StatCategory = {
+  id: string
+  label: string
+  value: string
+}
+
+const defaultCategories: StatCategory[] = [
+  { id: '1', label: 'نمره کلاسی', value: '۱۵' },
+  { id: '2', label: 'حضور و غیاب', value: '۹۰٪' },
+  { id: '3', label: 'تکالیف', value: '۱۶' },
+  { id: '4', label: 'انضباط', value: '۱۷' },
+  { id: '5', label: 'نوبت اول', value: '۱۴' },
+  { id: '6', label: 'نوبت دوم', value: '۱۵' },
+]
+
+const categoryOptions = [
+  'نمره کلاسی',
+  'حضور و غیاب',
+  'تکالیف',
+  'انضباط',
+  'نوبت اول',
+  'نوبت دوم',
+  'فعالیت گروهی',
+  'پژوهش و پروژه',
+  'آزمون شفاهی',
+  'خلاقیت',
+  'تمرینات مستمر',
+  'کوییز کلاسی'
+]
+
 function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [query, setQuery] = useState('')
   const [detailTab, setDetailTab] = useState('همه')
   const [weekIndex, setWeekIndex] = useState(0)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<StatCategory | null>(null)
+  const [newLabel, setNewLabel] = useState(categoryOptions[0])
+  const [newValue, setNewValue] = useState('')
+
   const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
   const weekDayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -2844,19 +2846,46 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
   const terms = ['نوبت اول', 'نوبت دوم']
-  const filteredStudents = students.filter(name => !query.trim() || name.includes(query.trim()))
 
-  const studentStats = (name: string) => {
-    const i = students.indexOf(name)
-    const n = (base: number, span: number) => fa(base + (i % span))
-    return [
-      { label: 'نمره کلاسی', value: n(15, 5) },
-      { label: 'حضور و غیاب', value: `${n(90, 9)}٪` },
-      { label: 'تکالیف', value: n(16, 4) },
-      { label: 'انضباط', value: n(17, 4) },
-      { label: 'نوبت اول', value: n(14, 6) },
-      { label: 'نوبت دوم', value: n(15, 5) },
-    ]
+  const handleDownloadFullReport = () => {
+    const reportText = `گزارش کامل سوابق دانش‌آموز\nنام: ${selected ?? 'همه دانش‌آموزان'}\nبازه: ${periodValue ?? 'کل سال'}\nتاریخ خروجی: ${nowShamsi().date}\n-----------------------------------\n` +
+      cardStats.map(s => `${s.label}: ${s.value}`).join('\n')
+    
+    const element = document.createElement('a')
+    const file = new Blob([reportText], { type: 'text/plain;charset=utf-8' })
+    element.href = URL.createObjectURL(file)
+    element.download = `گزارش_${selected ?? 'کلاس'}_${periodValue ?? 'سال'}.txt`
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+
+    setToast('گزارش کامل دانلود شد')
+    setTimeout(() => setToast(null), 1800)
+  }
+
+  const handleSaveCategory = () => {
+    if (!newValue.trim()) return
+    if (editingItem) {
+      setCardStats(prev => prev.map(item => item.id === editingItem.id ? { ...item, label: newLabel, value: newValue } : item))
+      setToast('آیتم به‌روزرسانی شد')
+    } else {
+      if (cardStats.length >= 6) {
+        setToast('حداکثر ۶ مورد می‌توانید ثبت کنید')
+        setTimeout(() => setToast(null), 1600)
+        return
+      }
+      setCardStats(prev => [...prev, { id: String(Date.now()), label: newLabel, value: newValue }])
+      setToast('آیتم جدید اضافه شد')
+    }
+    setEditingItem(null)
+    setNewValue('')
+    setTimeout(() => setToast(null), 1400)
+  }
+
+  const handleDeleteCategory = (id: string) => {
+    setCardStats(prev => prev.filter(item => item.id !== id))
+    setToast('آیتم حذف شد')
+    setTimeout(() => setToast(null), 1400)
   }
 
   const handleBack = () => {
@@ -2866,8 +2895,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     }
     if (periodValue) {
       setPeriodValue(null)
-      setSearchOpen(false)
-      setQuery('')
       return
     }
     goBack()
@@ -2924,31 +2951,24 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     </div>
   }
 
-  const stats = selected ? studentStats(selected) : []
-
   return <div className="screen inner-screen">
     <SubHeader
       screen="gradebook"
       back={handleBack}
       title={selected ?? periodValue}
       subtitle={selected ? periodValue : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
-      rightIcon="search"
-      rightLabel="جست‌وجو"
-      onRightClick={() => !selected && setSearchOpen(true)}
-      searchOpen={!selected && searchOpen}
-      searchValue={query}
-      onSearchChange={setQuery}
-      onSearchClose={() => { setSearchOpen(false); setQuery('') }}
-      searchPlaceholder="جست‌وجوی نام دانش‌آموز"
+      rightIcon="file"
+      rightLabel="دانلود گزارش"
+      onRightClick={handleDownloadFullReport}
     />
     <main className="inner-content">
       {!selected ? (
         <>
           <div className="section-heading">
             <strong>دانش‌آموزان</strong>
-            <span>{fa(filteredStudents.length)} نفر</span>
+            <span>{fa(students.length)} نفر</span>
           </div>
-          {filteredStudents.map((name) => (
+          {students.map((name) => (
             <button className="student student-row-photo" key={name} onClick={() => { setSelected(name); setDetailTab('همه'); setWeekIndex(0) }} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
               <img
                 className="student-photo"
@@ -2958,17 +2978,18 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               <strong>{name}</strong>
             </button>
           ))}
-          {!filteredStudents.length && (
-            <div className="empty compact-empty">
-              <Icon name="search" size={32} />
-              <strong>دانش‌آموزی پیدا نشد</strong>
-              <span>نام دیگری را جست‌وجو کنید.</span>
-            </div>
-          )}
         </>
       ) : (
         <div className="student-card-wrap">
           <div className="student-fifa-card">
+            <button
+              type="button"
+              className="fifa-edit-btn"
+              onClick={() => setEditModalOpen(true)}
+              aria-label="ویرایش موارد گزارش"
+            >
+              <Icon name="pencil" size={16} />
+            </button>
             <div className="fifa-art">
               <img
                 src={`https://i.pravatar.cc/320?u=${encodeURIComponent(selected)}`}
@@ -2977,7 +2998,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             </div>
             <div className="fifa-left">
               <div className="fifa-overall">
-                <b>{stats[0]?.value ?? '—'}</b>
+                <b>{cardStats[0]?.value ?? '۱۵'}</b>
                 <span>کلی</span>
               </div>
               <span className="fifa-flag" role="img" aria-label="ایران">🇮🇷</span>
@@ -2986,10 +3007,10 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <div className="fifa-bottom">
               <strong className="fifa-name">{selected}</strong>
               <small className="fifa-sub">علوم تجربی · {periodValue}</small>
-              <div className="fifa-stats">
+              <div className="fifa-stats" onClick={() => setEditModalOpen(true)} style={{ cursor: 'pointer' }}>
                 <div className="fifa-col">
-                  {stats.slice(0, 3).map(item => (
-                    <div key={item.label} className="fifa-stat">
+                  {cardStats.slice(0, 3).map(item => (
+                    <div key={item.id} className="fifa-stat">
                       <b>{item.value}</b>
                       <span>{item.label}</span>
                     </div>
@@ -2997,8 +3018,8 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 </div>
                 <div className="fifa-divider" />
                 <div className="fifa-col">
-                  {stats.slice(3, 6).map(item => (
-                    <div key={item.label} className="fifa-stat">
+                  {cardStats.slice(3, 6).map(item => (
+                    <div key={item.id} className="fifa-stat">
                       <b>{item.value}</b>
                       <span>{item.label}</span>
                     </div>
@@ -3009,7 +3030,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
 
           <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 14, marginBottom: 10 }}>
-            {['همه', 'حضور و غیاب', 'نمره کلاسی', 'تکالیف', 'انضباط', 'نوبت اول', 'نوبت دوم'].map(tab => (
+            {['همه', ...cardStats.map(s => s.label)].map(tab => (
               <button
                 key={tab}
                 type="button"
@@ -3063,25 +3084,15 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { key: 'حضور و غیاب', label: 'حضور و غیاب' },
-                    { key: 'نمره کلاسی', label: 'نمره کلاسی' },
-                    { key: 'تکالیف', label: 'تکالیف' },
-                    { key: 'انضباط', label: 'انضباط' },
-                    { key: 'نوبت اول', label: 'نوبت اول' },
-                    { key: 'نوبت دوم', label: 'نوبت دوم' },
-                  ].filter(metric => detailTab === 'همه' || detailTab === metric.key).map(metric => (
-                    <tr key={metric.key}>
+                  {cardStats.filter(metric => detailTab === 'همه' || detailTab === metric.label).map(metric => (
+                    <tr key={metric.id}>
                       <th className="week-matrix-item">{metric.label}</th>
                       {weekDays.map((d, idx) => {
                         const studentIndex = selected ? students.indexOf(selected) : 0
                         const seed = studentIndex * 10 + weekIndex * 7 + idx
-                        let value = ''
-                        if (metric.key === 'حضور و غیاب') value = seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
-                        else if (metric.key === 'نمره کلاسی') value = fa(12 + (seed % 9))
-                        else if (metric.key === 'تکالیف') value = seed % 3 === 0 ? 'تحویل نشده' : 'تحویل'
-                        else if (metric.key === 'انضباط') value = seed % 5 === 0 ? 'تذکر' : 'مطلوب'
-                        else value = fa(13 + (seed % 8))
+                        let value = metric.value
+                        if (metric.label === 'حضور و غیاب') value = seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
+                        else if (metric.label === 'انضباط') value = seed % 5 === 0 ? 'تذکر' : 'مطلوب'
                         const isBad = ['غایب', 'تأخیر', 'تحویل نشده', 'تذکر'].includes(value)
                         return (
                           <td key={d.day}>
@@ -3099,8 +3110,8 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           <div className="student-detail-panel">
             {detailTab === 'همه' ? (
               <div className="student-detail-all">
-                {stats.map(item => (
-                  <div className="student-detail-row" key={item.label}>
+                {cardStats.map(item => (
+                  <div className="student-detail-row" key={item.id}>
                     <span>{item.label}</span>
                     <strong>{item.value}</strong>
                   </div>
@@ -3109,10 +3120,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             ) : (
               <div className="student-detail-focus">
                 <small>{detailTab}</small>
-                <strong>
-                  {stats.find(s => s.label === detailTab)?.value
-                    ?? (detailTab === 'نمره کلاسی' ? stats.find(s => s.label === 'نمره کلاسی')?.value : '—')}
-                </strong>
+                <strong>{cardStats.find(s => s.label === detailTab)?.value ?? '—'}</strong>
                 <p>خلاصه وضعیت {selected} در بخش {detailTab} برای بازه {periodValue}.</p>
               </div>
             )}
@@ -3120,10 +3128,74 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
         </div>
       )}
     </main>
-    <div className="sticky-action"><button onClick={handleBack}>{selected ? 'بازگشت به فهرست' : 'بازگشت به بازه‌ها'}</button></div>
+
+    {editModalOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setEditModalOpen(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>مدیریت موارد گزارش کارت فیفا</strong>
+              <span>حذف، ویرایش و جایگزینی آیتم‌های گزارش</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setEditModalOpen(false)} />
+          </div>
+
+          <div className="fifa-edit-list">
+            {cardStats.map(item => (
+              <div className="fifa-edit-item" key={item.id}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <small>مقدار: {item.value}</small>
+                </div>
+                <div className="fifa-edit-actions">
+                  <button type="button" className="fifa-edit-sub-btn" onClick={() => { setEditingItem(item); setNewLabel(item.label); setNewValue(item.value) }}>
+                    <Icon name="pencil" size={14} />
+                  </button>
+                  <button type="button" className="fifa-edit-sub-btn danger" onClick={() => handleDeleteCategory(item.id)}>
+                    <Icon name="close" size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="group-grade-body" style={{ marginTop: 12 }}>
+            <label className="field">
+              <span>{editingItem ? 'تغییر دسته‌بندی' : 'انتخاب دسته‌بندی جدید'}</span>
+              <select value={newLabel} onChange={e => setNewLabel(e.target.value)}>
+                {categoryOptions.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>مقدار / نمره</span>
+              <input
+                type="text"
+                placeholder="مثلاً ۱۸ یا ۹۵٪"
+                value={newValue}
+                onChange={e => setNewValue(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setEditModalOpen(false)}>بستن</button>
+            <button type="button" className="primary" onClick={handleSaveCategory}>
+              {editingItem ? 'جایگزینی و ذخیره' : 'افزودن مورد جدید'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <div className="sticky-action">
+      <button onClick={handleBack}>{selected ? 'بازگشت به فهرست' : 'بازگشت به بازه‌ها'}</button>
+    </div>
+    {toast && <div className="toast">{toast}</div>}
   </div>
 }
-
 
 function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; goBack: () => void; setRole: (r: UserRole) => void }) {
   const [leaving, setLeaving] = useState<UserRole | null>(null)
@@ -3132,7 +3204,6 @@ function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; go
     if (leaving) return
     setLeaving(role)
     setRole(role)
-    // short transition then go to messenger for both roles
     window.setTimeout(() => {
       navigate('messenger')
     }, 280)

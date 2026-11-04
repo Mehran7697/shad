@@ -3134,3 +3134,67 @@
   background: #fff1f0;
   color: #c0392b;
 }
+.fifa-edit-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #d4af37;
+  background: rgba(11, 59, 74, 0.85);
+  color: #ffe9a8;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: .18s;
+}
+.fifa-edit-btn:hover {
+  background: #d4af37;
+  color: #0b3b4a;
+}
+.fifa-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+.fifa-edit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.fifa-edit-item strong {
+  font-size: 12px;
+}
+.fifa-edit-item small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+}
+.fifa-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+.fifa-edit-sub-btn {
+  border: 0;
+  background: #e8f7f2;
+  color: var(--green-dark);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.fifa-edit-sub-btn.danger {
+  background: #fdeaea;
+  color: #c0392b;
+}
