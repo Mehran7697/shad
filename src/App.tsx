@@ -2836,6 +2836,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [filterAllStudents, setFilterAllStudents] = useState(true)
   const [filterCategories, setFilterCategories] = useState<string[]>(['نمره کلاسی', 'حضور و غیاب'])
   const [filterPeriods, setFilterPeriods] = useState<string[]>([])
+  const [exportPage, setExportPage] = useState(false)
 
   const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
   const weekDayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
@@ -2902,10 +2903,14 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
       setPeriodValue(null)
       return
     }
+    if (exportPage) {
+      setExportPage(false)
+      return
+    }
     goBack()
   }
 
-  if (!periodValue) {
+  if (!periodValue && exportPage) {
     const allMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
     const studentMatches = students.filter(n => !filterStudentQuery.trim() || n.includes(filterStudentQuery.trim()))
     const toggleCategory = (c: string) => {
@@ -2955,9 +2960,9 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
-        back={goBack}
-        title="ساخت گزارش"
-        subtitle="فیلتر و خروجی گزارش کلاس"
+        back={() => setExportPage(false)}
+        title="دریافت خروجی"
+        subtitle="فیلتر و دانلود گزارش"
       />
       <main className="inner-content report-builder">
         <section className="report-filter-card">
@@ -3115,16 +3120,65 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               </div>
             </button>
           </div>
-          <button
-            type="button"
-            className="report-continue-btn"
-            onClick={() => setPeriodValue(filterPeriods[0] || (periodMode === 'terms' ? 'نوبت اول' : periodMode === 'summer' ? 'تیر' : 'مهر'))}
-          >
-            ادامه و مشاهده جزئیات
-          </button>
         </section>
       </main>
       {toast && <div className="toast">{toast}</div>}
+    </div>
+  }
+
+  if (!periodValue) {
+    return <div className="screen inner-screen">
+      <SubHeader
+        screen="gradebook"
+        back={goBack}
+        title="انتخاب بازه گزارش"
+        subtitle="دسترسی سریع به دوره‌ها"
+      />
+      <main className="inner-content">
+        <div className="report-period-tabs">
+          <button type="button" className={periodMode === 'summer' ? 'active' : ''} onClick={() => setPeriodMode('summer')}>ترم تابستانی</button>
+          <button type="button" className={periodMode === 'months' ? 'active' : ''} onClick={() => setPeriodMode('months')}>ماه‌های تحصیلی</button>
+          <button type="button" className={periodMode === 'terms' ? 'active' : ''} onClick={() => setPeriodMode('terms')}>نوبت‌ها</button>
+        </div>
+
+        {periodMode === 'summer' && (
+          <div className="report-period-grid three">
+            {summerMonths.map(m => (
+              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
+                <strong>{m}</strong>
+                <small>ترم تابستانی</small>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {periodMode === 'months' && (
+          <div className="report-period-grid months">
+            {academicMonths.map(m => (
+              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
+                <strong>{m}</strong>
+                <small>ماه تحصیلی</small>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {periodMode === 'terms' && (
+          <div className="report-period-grid two">
+            {terms.map(m => (
+              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
+                <strong>{m}</strong>
+                <small>نوبت تحصیلی</small>
+              </button>
+            ))}
+          </div>
+        )}
+      </main>
+      <div className="sticky-action">
+        <button type="button" className="report-continue-btn" style={{ margin: 0 }} onClick={() => setExportPage(true)}>
+          دریافت خروجی
+        </button>
+      </div>
     </div>
   }
 
