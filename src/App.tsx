@@ -2826,17 +2826,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
-  const [reportType, setReportType] = useState('همه')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const allDates = reportDateRange()
-  const filteredDates = allDates.filter(d => {
-    const afterFrom = !fromDate || d >= fromDate
-    const beforeTo = !toDate || d <= toDate
-    return afterFrom && beforeTo
-  })
-  const types = ['همه', 'حضور و غیاب', 'نمره', 'تکلیف', 'آزمون', 'نمره کلاسی']
-  const visibleTypes = reportType === 'همه' ? ['حضور و غیاب', 'نمره', 'تکلیف', 'آزمون', 'نمره کلاسی'] : [reportType]
+  const filteredDates = allDates
+  const visibleTypes = ['حضور و غیاب', 'نمره', 'تکلیف', 'آزمون', 'نمره کلاسی']
   const typeLabel: Record<string, string> = { 'حضور و غیاب': 'حضور', 'نمره': 'نمره', 'تکلیف': 'تکلیف', 'آزمون': 'آزمون', 'نمره کلاسی': 'کلاسی' }
   const valueFor = (name: string, type: string, date: string) => {
     const i = students.indexOf(name)
@@ -2852,6 +2846,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
   const terms = ['نوبت اول', 'نوبت دوم']
+  const filteredStudents = students.filter(name => !query.trim() || name.includes(query.trim()))
 
   const handleBack = () => {
     if (selected) {
@@ -2860,12 +2855,13 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     }
     if (periodValue) {
       setPeriodValue(null)
+      setSearchOpen(false)
+      setQuery('')
       return
     }
     goBack()
   }
 
-  // Step 1: period picker
   if (!periodValue) {
     return <div className="screen inner-screen">
       <SubHeader
@@ -2917,29 +2913,41 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     </div>
   }
 
-  // Step 2: existing reports list/detail for chosen period
   return <div className="screen inner-screen">
     <SubHeader
       screen="gradebook"
       back={handleBack}
-      title={periodValue}
-      subtitle={periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی'}
+      title={selected ?? periodValue}
+      subtitle={selected ? periodValue : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
+      rightIcon="search"
+      rightLabel="جست‌وجو"
+      onRightClick={() => !selected && setSearchOpen(true)}
+      searchOpen={!selected && searchOpen}
+      searchValue={query}
+      onSearchChange={setQuery}
+      onSearchClose={() => { setSearchOpen(false); setQuery('') }}
+      searchPlaceholder="جست‌وجوی نام دانش‌آموز"
     />
     <main className="inner-content">
-      <div className="two-fields" style={{marginBottom:10}}>
-        <label className="field"><span>از تاریخ</span><select value={fromDate} onChange={e => setFromDate(e.target.value)}><option value="">همه</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select></label>
-        <label className="field"><span>تا تاریخ</span><select value={toDate} onChange={e => setToDate(e.target.value)}><option value="">همه</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select></label>
-      </div>
-      <div className="chips compact scrollable" style={{marginBottom:12}}>{types.map(t => <button key={t} className={reportType === t ? 'active' : ''} onClick={() => setReportType(t)}>{t}</button>)}</div>
       {!selected ? (
         <>
-          <div className="section-heading"><strong>گزارش‌های روزانه</strong><span>{filteredDates.length} روز · {periodValue}</span></div>
-          {students.map((name) => (
+          <div className="section-heading">
+            <strong>دانش‌آموزان</strong>
+            <span>{fa(filteredStudents.length)} نفر</span>
+          </div>
+          {filteredStudents.map((name) => (
             <button className="student" key={name} onClick={() => setSelected(name)} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
               <div className="student-avatar">{name[0]}</div>
               <strong>{name}</strong>
             </button>
           ))}
+          {!filteredStudents.length && (
+            <div className="empty compact-empty">
+              <Icon name="search" size={32} />
+              <strong>دانش‌آموزی پیدا نشد</strong>
+              <span>نام دیگری را جست‌وجو کنید.</span>
+            </div>
+          )}
         </>
       ) : (
         <div style={{overflowX:'auto'}}>
