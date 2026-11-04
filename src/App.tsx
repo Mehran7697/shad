@@ -2831,6 +2831,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [editingItem, setEditingItem] = useState<StatCategory | null>(null)
   const [newLabel, setNewLabel] = useState(categoryOptions[0])
   const [newValue, setNewValue] = useState('')
+  const [filterStudentQuery, setFilterStudentQuery] = useState('')
+  const [filterStudents, setFilterStudents] = useState<string[]>([])
+  const [filterAllStudents, setFilterAllStudents] = useState(true)
+  const [filterCategories, setFilterCategories] = useState<string[]>(['نمره کلاسی', 'حضور و غیاب'])
+  const [filterPeriods, setFilterPeriods] = useState<string[]>([])
 
   const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
   const weekDayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
@@ -2901,53 +2906,225 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   }
 
   if (!periodValue) {
+    const allMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+    const studentMatches = students.filter(n => !filterStudentQuery.trim() || n.includes(filterStudentQuery.trim()))
+    const toggleCategory = (c: string) => {
+      setFilterCategories(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
+    }
+    const togglePeriod = (p: string) => {
+      setFilterPeriods(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])
+    }
+    const addStudent = (name: string) => {
+      setFilterAllStudents(false)
+      setFilterStudents(prev => prev.includes(name) ? prev : [...prev, name])
+      setFilterStudentQuery('')
+    }
+    const removeStudent = (name: string) => {
+      setFilterStudents(prev => {
+        const next = prev.filter(x => x !== name)
+        if (!next.length) setFilterAllStudents(true)
+        return next
+      })
+    }
+    const downloadReport = (type: 'csv' | 'pdf') => {
+      const chosenStudents = filterAllStudents ? students : filterStudents
+      const chosenCats = filterCategories.length ? filterCategories : categoryOptions
+      const chosenPeriods = filterPeriods.length ? filterPeriods : (periodMode === 'terms' ? terms : periodMode === 'summer' ? summerMonths : academicMonths)
+      const header = ['دانش‌آموز', ...chosenCats, 'بازه']
+      const lines = [header.join(',')]
+      chosenStudents.forEach((name, i) => {
+        const row = [
+          name,
+          ...chosenCats.map((c, ci) => String(12 + ((i + ci) % 8))),
+          chosenPeriods.join(' | ') || 'همه',
+        ]
+        lines.push(row.join(','))
+      })
+      const content = lines.join('\n')
+      const blob = new Blob(['\ufeff' + content], { type: type === 'csv' ? 'text/csv;charset=utf-8' : 'application/pdf' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = type === 'csv' ? 'گزارش-کلاس.csv' : 'گزارش-کلاس.pdf'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setToast(type === 'csv' ? 'خروجی اکسل (CSV) دانلود شد' : 'خروجی PDF دانلود شد')
+      setTimeout(() => setToast(null), 1600)
+    }
+
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
         back={goBack}
-        title="انتخاب بازه گزارش"
-        subtitle="دسترسی سریع به دوره‌ها"
+        title="ساخت گزارش"
+        subtitle="فیلتر و خروجی گزارش کلاس"
       />
-      <main className="inner-content">
-        <div className="report-period-tabs">
-          <button type="button" className={periodMode === 'summer' ? 'active' : ''} onClick={() => setPeriodMode('summer')}>ترم تابستانی</button>
-          <button type="button" className={periodMode === 'months' ? 'active' : ''} onClick={() => setPeriodMode('months')}>ماه‌های تحصیلی</button>
-          <button type="button" className={periodMode === 'terms' ? 'active' : ''} onClick={() => setPeriodMode('terms')}>نوبت‌ها</button>
-        </div>
+      <main className="inner-content report-builder">
+        <section className="report-filter-card">
+          <div className="report-filter-head">
+            <strong>انتخاب دانش‌آموز</strong>
+            <button
+              type="button"
+              className={`mini-chip ${filterAllStudents ? 'active' : ''}`}
+              onClick={() => { setFilterAllStudents(true); setFilterStudents([]) }}
+            >
+              همه
+            </button>
+          </div>
+          <div className="report-search-row">
+            <Icon name="search" size={16} />
+            <input
+              type="search"
+              placeholder="جست‌وجوی نام دانش‌آموز..."
+              value={filterStudentQuery}
+              onChange={e => setFilterStudentQuery(e.target.value)}
+            />
+          </div>
+          {!!filterStudentQuery.trim() && (
+            <div className="report-suggest-list">
+              {studentMatches.slice(0, 6).map(name => (
+                <button key={name} type="button" onClick={() => addStudent(name)}>
+                  <img className="student-photo tiny" src={`https://i.pravatar.cc/64?u=${encodeURIComponent(name)}`} alt="" />
+                  <span>{name}</span>
+                  <Icon name="plus" size={14} />
+                </button>
+              ))}
+              {!studentMatches.length && <small className="muted">موردی پیدا نشد</small>}
+            </div>
+          )}
+          <div className="report-selected-chips">
+            {filterAllStudents ? (
+              <span className="selected-chip all">همه دانش‌آموزان</span>
+            ) : filterStudents.map(name => (
+              <span className="selected-chip" key={name}>
+                {name}
+                <button type="button" aria-label="حذف" onClick={() => removeStudent(name)}><Icon name="close" size={12} /></button>
+              </span>
+            ))}
+          </div>
+        </section>
 
-        {periodMode === 'summer' && (
-          <div className="report-period-grid three">
-            {summerMonths.map(m => (
-              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
-                <strong>{m}</strong>
-                <small>ترم تابستانی</small>
+        <section className="report-filter-card">
+          <div className="report-filter-head">
+            <strong>دسته‌بندی / نمرات</strong>
+            <small>{fa(filterCategories.length)} مورد</small>
+          </div>
+          <div className="chips compact scrollable" style={{ padding: 0, margin: 0 }}>
+            {categoryOptions.map(c => (
+              <button
+                key={c}
+                type="button"
+                className={filterCategories.includes(c) ? 'active' : ''}
+                onClick={() => toggleCategory(c)}
+              >
+                {c}
               </button>
             ))}
           </div>
-        )}
+        </section>
 
-        {periodMode === 'months' && (
-          <div className="report-period-grid months">
-            {academicMonths.map(m => (
-              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
-                <strong>{m}</strong>
-                <small>ماه تحصیلی</small>
-              </button>
-            ))}
+        <section className="report-filter-card">
+          <div className="report-filter-head">
+            <strong>بازه زمانی</strong>
+            <small>ماه یا نوبت</small>
           </div>
-        )}
+          <div className="report-period-tabs">
+            <button type="button" className={periodMode === 'summer' ? 'active' : ''} onClick={() => setPeriodMode('summer')}>ترم تابستانی</button>
+            <button type="button" className={periodMode === 'months' ? 'active' : ''} onClick={() => setPeriodMode('months')}>ماه‌های تحصیلی</button>
+            <button type="button" className={periodMode === 'terms' ? 'active' : ''} onClick={() => setPeriodMode('terms')}>نوبت‌ها</button>
+          </div>
 
-        {periodMode === 'terms' && (
-          <div className="report-period-grid two">
-            {terms.map(m => (
-              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
-                <strong>{m}</strong>
-                <small>نوبت تحصیلی</small>
-              </button>
-            ))}
+          {periodMode === 'summer' && (
+            <div className="report-period-grid three">
+              {summerMonths.map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  className={`report-period-card ${filterPeriods.includes(m) ? 'selected' : ''}`}
+                  onClick={() => togglePeriod(m)}
+                >
+                  <strong>{m}</strong>
+                  <small>تابستان</small>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {periodMode === 'months' && (
+            <div className="report-period-grid months">
+              {allMonths.map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  className={`report-period-card ${filterPeriods.includes(m) ? 'selected' : ''}`}
+                  onClick={() => togglePeriod(m)}
+                >
+                  <strong>{m}</strong>
+                  <small>ماه</small>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {periodMode === 'terms' && (
+            <div className="report-period-grid two">
+              {terms.map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  className={`report-period-card ${filterPeriods.includes(m) ? 'selected' : ''}`}
+                  onClick={() => togglePeriod(m)}
+                >
+                  <strong>{m}</strong>
+                  <small>نوبت</small>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!!filterPeriods.length && (
+            <div className="report-selected-chips" style={{ marginTop: 10 }}>
+              {filterPeriods.map(p => (
+                <span className="selected-chip" key={p}>
+                  {p}
+                  <button type="button" aria-label="حذف" onClick={() => togglePeriod(p)}><Icon name="close" size={12} /></button>
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="report-filter-card download-card">
+          <div className="report-filter-head">
+            <strong>خروجی گزارش</strong>
+            <small>اکسل یا PDF</small>
           </div>
-        )}
+          <div className="report-download-actions">
+            <button type="button" className="download-btn excel" onClick={() => downloadReport('csv')}>
+              <Icon name="file" size={18} />
+              <div>
+                <strong>دانلود اکسل</strong>
+                <small>خروجی CSV</small>
+              </div>
+            </button>
+            <button type="button" className="download-btn pdf" onClick={() => downloadReport('pdf')}>
+              <Icon name="book" size={18} />
+              <div>
+                <strong>دانلود PDF</strong>
+                <small>خروجی متنی</small>
+              </div>
+            </button>
+          </div>
+          <button
+            type="button"
+            className="report-continue-btn"
+            onClick={() => setPeriodValue(filterPeriods[0] || (periodMode === 'terms' ? 'نوبت اول' : periodMode === 'summer' ? 'تیر' : 'مهر'))}
+          >
+            ادامه و مشاهده جزئیات
+          </button>
+        </section>
       </main>
+      {toast && <div className="toast">{toast}</div>}
     </div>
   }
 
