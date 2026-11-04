@@ -3042,6 +3042,21 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             ))}
           </div>
 
+          <div className="week-summary-banner">
+            <div className="week-summary-item">
+              <strong>{fa(4 + (selected ? students.indexOf(selected) % 3 : 0))}</strong>
+              <span>تعداد کلاس‌ها</span>
+            </div>
+            <div className="week-summary-item">
+              <strong>{cardStats.find(s => s.label === 'انضباط')?.value ?? '۱۷'}</strong>
+              <span>انضباط</span>
+            </div>
+            <div className="week-summary-item">
+              <strong className="danger-text">{fa(1 + (selected ? students.indexOf(selected) % 2 : 0))}</strong>
+              <span>تعداد غیبت‌ها</span>
+            </div>
+          </div>
+
           <div className="week-nav">
             <button
               type="button"
