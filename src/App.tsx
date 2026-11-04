@@ -996,7 +996,6 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [detailTab, setDetailTab] = useState('همه')
 
   const items = [
     {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf'},
@@ -2829,6 +2828,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [selected, setSelected] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [detailTab, setDetailTab] = useState('همه')
 
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
