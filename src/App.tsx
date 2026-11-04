@@ -996,6 +996,7 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [detailTab, setDetailTab] = useState('همه')
 
   const items = [
     {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf'},
@@ -2937,7 +2938,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <span>{fa(filteredStudents.length)} نفر</span>
           </div>
           {filteredStudents.map((name) => (
-            <button className="student student-row-photo" key={name} onClick={() => setSelected(name)} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
+            <button className="student student-row-photo" key={name} onClick={() => { setSelected(name); setDetailTab('همه') }} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
               <img
                 className="student-photo"
                 src={`https://i.pravatar.cc/100?u=${encodeURIComponent(name)}`}
@@ -2994,6 +2995,41 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 14, marginBottom: 10 }}>
+            {['همه', 'حضور و غیاب', 'نمره کلاسی', 'تکالیف', 'انضباط', 'نوبت اول', 'نوبت دوم'].map(tab => (
+              <button
+                key={tab}
+                type="button"
+                className={detailTab === tab ? 'active' : ''}
+                onClick={() => setDetailTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="student-detail-panel">
+            {detailTab === 'همه' ? (
+              <div className="student-detail-all">
+                {stats.map(item => (
+                  <div className="student-detail-row" key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="student-detail-focus">
+                <small>{detailTab}</small>
+                <strong>
+                  {stats.find(s => s.label === detailTab)?.value
+                    ?? (detailTab === 'نمره کلاسی' ? stats.find(s => s.label === 'نمره کلاسی')?.value : '—')}
+                </strong>
+                <p>خلاصه وضعیت {selected} در بخش {detailTab} برای بازه {periodValue}.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
