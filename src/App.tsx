@@ -3049,31 +3049,51 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               <strong>جزئیات روزانه</strong>
               <span>{weekLabels[weekIndex]}</span>
             </div>
-            {weekDays.map((d, idx) => {
-              const i = selected ? students.indexOf(selected) : 0
-              const seed = i * 10 + weekIndex * 7 + idx
-              const valueForTab = () => {
-                if (detailTab === 'حضور و غیاب') return seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
-                if (detailTab === 'نمره کلاسی') return fa(12 + (seed % 9))
-                if (detailTab === 'تکالیف') return seed % 3 === 0 ? 'عدم تحویل' : 'تحویل'
-                if (detailTab === 'انضباط') return seed % 5 === 0 ? 'تذکر' : 'مطلوب'
-                if (detailTab === 'نوبت اول' || detailTab === 'نوبت دوم') return fa(13 + (seed % 8))
-                // همه
-                const att = seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
-                return `${att} · نمره ${fa(12 + (seed % 9))}`
-              }
-              return (
-                <div className="week-day-row" key={d.day}>
-                  <div className="week-day-meta">
-                    <strong>{d.title}</strong>
-                    <small>{d.label}</small>
-                  </div>
-                  <span className={`week-day-value ${String(valueForTab()).includes('غایب') || String(valueForTab()).includes('عدم') || String(valueForTab()).includes('تذکر') ? 'bad' : 'ok'}`}>
-                    {valueForTab()}
-                  </span>
-                </div>
-              )
-            })}
+            <div className="week-matrix-wrap">
+              <table className="week-matrix" dir="rtl">
+                <thead>
+                  <tr>
+                    <th className="week-matrix-item-heading">مورد</th>
+                    {weekDays.map(d => (
+                      <th key={d.day}>
+                        <strong>{d.title}</strong>
+                        <small>{d.label}</small>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: 'حضور و غیاب', label: 'حضور و غیاب' },
+                    { key: 'نمره کلاسی', label: 'نمره کلاسی' },
+                    { key: 'تکالیف', label: 'تکالیف' },
+                    { key: 'انضباط', label: 'انضباط' },
+                    { key: 'نوبت اول', label: 'نوبت اول' },
+                    { key: 'نوبت دوم', label: 'نوبت دوم' },
+                  ].filter(metric => detailTab === 'همه' || detailTab === metric.key).map(metric => (
+                    <tr key={metric.key}>
+                      <th className="week-matrix-item">{metric.label}</th>
+                      {weekDays.map((d, idx) => {
+                        const studentIndex = selected ? students.indexOf(selected) : 0
+                        const seed = studentIndex * 10 + weekIndex * 7 + idx
+                        let value = ''
+                        if (metric.key === 'حضور و غیاب') value = seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
+                        else if (metric.key === 'نمره کلاسی') value = fa(12 + (seed % 9))
+                        else if (metric.key === 'تکالیف') value = seed % 3 === 0 ? 'تحویل نشده' : 'تحویل'
+                        else if (metric.key === 'انضباط') value = seed % 5 === 0 ? 'تذکر' : 'مطلوب'
+                        else value = fa(13 + (seed % 8))
+                        const isBad = ['غایب', 'تأخیر', 'تحویل نشده', 'تذکر'].includes(value)
+                        return (
+                          <td key={d.day}>
+                            <span className={`week-matrix-value ${isBad ? 'bad' : 'ok'}`}>{value}</span>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="student-detail-panel">

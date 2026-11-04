@@ -3058,46 +3058,79 @@
   border-radius: 16px;
   padding: 10px 12px;
 }
-.week-day-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 11px 4px;
-  border-bottom: 1px solid var(--line);
+.week-matrix-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
 }
-.week-day-row:last-child {
+.week-matrix {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  text-align: center;
+  font-size: 10px;
+}
+.week-matrix th,
+.week-matrix td {
+  padding: 9px 5px;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.week-matrix thead th {
+  background: #f3f8f7;
+  color: var(--green-dark);
+  font-weight: 800;
+}
+.week-matrix thead th strong,
+.week-matrix thead th small {
+  display: block;
+}
+.week-matrix thead th strong {
+  font-size: 10px;
+}
+.week-matrix thead th small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 500;
+}
+.week-matrix .week-matrix-item-heading,
+.week-matrix .week-matrix-item {
+  width: 92px;
+  text-align: right;
+  white-space: nowrap;
+}
+.week-matrix .week-matrix-item {
+  background: #fbfdfc;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+}
+.week-matrix tbody tr:last-child th,
+.week-matrix tbody tr:last-child td {
   border-bottom: 0;
 }
-.week-day-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.week-matrix th:last-child,
+.week-matrix td:last-child {
+  border-left: 0;
 }
-.week-day-meta strong {
-  font-size: 12px;
-}
-.week-day-meta small {
-  font-size: 10px;
-  color: var(--muted);
-}
-.week-day-value {
-  flex: none;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: var(--surface);
-  color: var(--ink);
-  max-width: 55%;
-  text-align: left;
-}
-.week-day-value.ok {
+.week-matrix-value {
+  display: inline-block;
+  max-width: 100%;
+  padding: 5px 6px;
+  border-radius: 8px;
   background: var(--green-soft);
   color: var(--green-dark);
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
 }
-.week-day-value.bad {
+.week-matrix-value.bad {
   background: #fff1f0;
   color: #c0392b;
 }
