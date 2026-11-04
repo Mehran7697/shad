@@ -2956,23 +2956,43 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
         </>
       ) : (
         <div className="student-card-wrap">
-          <div className="student-stat-card">
-            <div className="student-stat-hero">
+          <div className="student-fifa-card">
+            <div className="fifa-art">
               <img
-                className="student-stat-photo"
-                src={`https://i.pravatar.cc/180?u=${encodeURIComponent(selected)}`}
+                src={`https://i.pravatar.cc/320?u=${encodeURIComponent(selected)}`}
                 alt={selected}
               />
-              <strong>{selected}</strong>
-              <small>علوم تجربی · کلاس ۹۰۱ · {periodValue}</small>
             </div>
-            <div className="student-stat-grid">
-              {stats.map(item => (
-                <div className="student-stat-item" key={item.label}>
-                  <b>{item.value}</b>
-                  <span>{item.label}</span>
+            <div className="fifa-left">
+              <div className="fifa-overall">
+                <b>{stats[0]?.value ?? '—'}</b>
+                <span>کلی</span>
+              </div>
+              <span className="fifa-flag" role="img" aria-label="ایران">🇮🇷</span>
+              <small className="fifa-class">۹۰۱</small>
+            </div>
+            <div className="fifa-bottom">
+              <strong className="fifa-name">{selected}</strong>
+              <small className="fifa-sub">علوم تجربی · {periodValue}</small>
+              <div className="fifa-stats">
+                <div className="fifa-col">
+                  {stats.slice(0, 3).map(item => (
+                    <div key={item.label} className="fifa-stat">
+                      <b>{item.value}</b>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <div className="fifa-divider" />
+                <div className="fifa-col">
+                  {stats.slice(3, 6).map(item => (
+                    <div key={item.label} className="fifa-stat">
+                      <b>{item.value}</b>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
