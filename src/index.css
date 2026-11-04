@@ -2723,8 +2723,11 @@
 }
 .student-card-wrap {
   display: flex;
-  justify-content: center;
-  padding: 8px 0 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0 16px;
+  width: 100%;
 }
 .student-stat-card {
   width: 100%;
@@ -2791,8 +2794,11 @@
 /* FIFA-like student report card */
 .student-card-wrap {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   padding: 10px 0 16px;
+  width: 100%;
 }
 .student-fifa-card {
   position: relative;
@@ -2934,6 +2940,12 @@
 }
 
 .student-detail-tabs {
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+}
+.student-detail-panel {
+  align-self: stretch;
   width: 100%;
 }
 .student-detail-panel {
