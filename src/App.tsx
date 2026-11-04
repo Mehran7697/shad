@@ -2828,25 +2828,24 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [selected, setSelected] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const allDates = reportDateRange()
-  const filteredDates = allDates
-  const visibleTypes = ['حضور و غیاب', 'نمره', 'تکلیف', 'آزمون', 'نمره کلاسی']
-  const typeLabel: Record<string, string> = { 'حضور و غیاب': 'حضور', 'نمره': 'نمره', 'تکلیف': 'تکلیف', 'آزمون': 'آزمون', 'نمره کلاسی': 'کلاسی' }
-  const valueFor = (name: string, type: string, date: string) => {
-    const i = students.indexOf(name)
-    const di = allDates.indexOf(date)
-    if (type === 'حضور و غیاب') return (i + di) % 4 === 0 ? 'غایب' : (i + di) % 4 === 1 ? 'تأخیر' : 'حاضر'
-    if (type === 'نمره') return fa(14 + ((i + di) % 6))
-    if (type === 'تکلیف') return (i + di) % 3 === 0 ? 'تحویل' : 'انتظار'
-    if (type === 'آزمون') return fa(12 + ((i + di) % 7))
-    if (type === 'نمره کلاسی') return fa(15 + ((i + di) % 5))
-    return ''
-  }
 
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
   const terms = ['نوبت اول', 'نوبت دوم']
   const filteredStudents = students.filter(name => !query.trim() || name.includes(query.trim()))
+
+  const studentStats = (name: string) => {
+    const i = students.indexOf(name)
+    const n = (base: number, span: number) => fa(base + (i % span))
+    return [
+      { label: 'نمره کلاسی', value: n(15, 5) },
+      { label: 'حضور و غیاب', value: `${n(90, 9)}٪` },
+      { label: 'تکالیف', value: n(16, 4) },
+      { label: 'انضباط', value: n(17, 4) },
+      { label: 'نوبت اول', value: n(14, 6) },
+      { label: 'نوبت دوم', value: n(15, 5) },
+    ]
+  }
 
   const handleBack = () => {
     if (selected) {
@@ -2913,6 +2912,8 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     </div>
   }
 
+  const stats = selected ? studentStats(selected) : []
+
   return <div className="screen inner-screen">
     <SubHeader
       screen="gradebook"
@@ -2936,8 +2937,12 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <span>{fa(filteredStudents.length)} نفر</span>
           </div>
           {filteredStudents.map((name) => (
-            <button className="student" key={name} onClick={() => setSelected(name)} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
-              <div className="student-avatar">{name[0]}</div>
+            <button className="student student-row-photo" key={name} onClick={() => setSelected(name)} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
+              <img
+                className="student-photo"
+                src={`https://i.pravatar.cc/100?u=${encodeURIComponent(name)}`}
+                alt={name}
+              />
               <strong>{name}</strong>
             </button>
           ))}
@@ -2950,23 +2955,26 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           )}
         </>
       ) : (
-        <div style={{overflowX:'auto'}}>
-          <table className="report-table">
-            <thead>
-              <tr>
-                <th>عنوان</th>
-                {filteredDates.map(d => <th key={d}>{d}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleTypes.map(t => (
-                <tr key={t}>
-                  <td>{typeLabel[t]}</td>
-                  {filteredDates.map(d => <td key={d}>{valueFor(selected, t, d)}</td>)}
-                </tr>
+        <div className="student-card-wrap">
+          <div className="student-stat-card">
+            <div className="student-stat-hero">
+              <img
+                className="student-stat-photo"
+                src={`https://i.pravatar.cc/180?u=${encodeURIComponent(selected)}`}
+                alt={selected}
+              />
+              <strong>{selected}</strong>
+              <small>علوم تجربی · کلاس ۹۰۱ · {periodValue}</small>
+            </div>
+            <div className="student-stat-grid">
+              {stats.map(item => (
+                <div className="student-stat-item" key={item.label}>
+                  <b>{item.value}</b>
+                  <span>{item.label}</span>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       )}
     </main>
