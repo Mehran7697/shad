@@ -2372,6 +2372,10 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
   const [activeId, setActiveId] = useState<string | null>(null)
   const [status, setStatus] = useState<Record<number, string>>({})
   const [nowLabel, setNowLabel] = useState(() => nowShamsi())
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportFrom, setExportFrom] = useState('')
+  const [exportTo, setExportTo] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     const id = setInterval(() => setNowLabel(nowShamsi()), 1000)
@@ -2425,10 +2429,43 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
   const absent = Object.values(status).filter(x => x === 'غایب').length
   const late = Object.values(status).filter(x => x === 'تأخیر').length
 
+  const dateOptions = Array.from(new Set(history.map(h => h.dateLabel)))
+
+  const exportHistory = () => {
+    const filtered = history.filter(h => {
+      const after = !exportFrom || h.dateLabel >= exportFrom
+      const before = !exportTo || h.dateLabel <= exportTo
+      return after && before
+    })
+    const lines = ['تاریخ,روز,ساعت,حاضر,غایب,تأخیر']
+    filtered.forEach(item => {
+      const p = Object.values(item.status).filter(x => x === 'حاضر').length
+      const a = Object.values(item.status).filter(x => x === 'غایب').length
+      const l = Object.values(item.status).filter(x => x === 'تأخیر').length
+      lines.push([item.dateLabel, item.dayLabel, item.timeLabel, p, a, l].join(','))
+    })
+    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'تاریخچه-حضور-غیاب.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setExportOpen(false)
+    setToast('خروجی تاریخچه دانلود شد')
+    setTimeout(() => setToast(null), 1600)
+  }
+
   if (view === 'list') {
     return (
       <div className="screen inner-screen">
-        <SubHeader screen="attendance" back={goBack} />
+        <SubHeader
+          screen="attendance"
+          back={goBack}
+          rightIcon="clock"
+          rightLabel="تاریخچه و خروجی"
+          onRightClick={() => setExportOpen(true)}
+        />
         <div className="att-datetime-bar">
           <div>
             <Icon name="calendar" size={14} />
@@ -2471,6 +2508,47 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
         <button className="fab" aria-label="ثبت حضور و غیاب جدید" onClick={startRegister}>
           <Icon name="plus" />
         </button>
+
+        {exportOpen && (
+          <div className="overlay group-grade-overlay" onClick={() => setExportOpen(false)}>
+            <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle" />
+              <div className="sheet-title">
+                <div>
+                  <strong>خروجی تاریخچه</strong>
+                  <span>بازه تاریخ را انتخاب کنید</span>
+                </div>
+                <IconButton icon="close" label="بستن" onClick={() => setExportOpen(false)} />
+              </div>
+              <div className="group-grade-body">
+                <div className="two-fields">
+                  <label className="field">
+                    <span>از تاریخ</span>
+                    <select value={exportFrom} onChange={e => setExportFrom(e.target.value)}>
+                      <option value="">همه</option>
+                      {dateOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>تا تاریخ</span>
+                    <select value={exportTo} onChange={e => setExportTo(e.target.value)}>
+                      <option value="">همه</option>
+                      {dateOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <p className="group-grade-hint">
+                  خروجی شامل حاضر، غایب و تأخیر هر روز در بازه انتخابی است.
+                </p>
+              </div>
+              <div className="group-grade-footer">
+                <button type="button" className="secondary" onClick={() => setExportOpen(false)}>انصراف</button>
+                <button type="button" className="primary" onClick={exportHistory}>خروجی</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {toast && <div className="toast">{toast}</div>}
       </div>
     )
   }
