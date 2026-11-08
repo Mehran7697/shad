@@ -974,12 +974,12 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
   return (
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
-      <div className="sub-header-title" style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-        <strong>{title ?? meta.title}</strong>
-        <span>{subtitle ?? meta.subtitle}</span>
-      </div>
-      <div className="sub-header-actions" style={{ flex: 'none', padding: 0, marginInlineStart: 'auto', justifyContent: 'flex-start', flexDirection: 'row-reverse', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
-        {rightText && (
+      <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
+      <div className="sub-header-actions">
+        {showSearchBtn && (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        )}
+        {rightText ? (
           <button
             type="button"
             className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
@@ -988,13 +988,9 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           >
             {rightText}
           </button>
-        )}
-        {showSearchBtn && (
-          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
-        )}
-        {!rightText && !showSearchBtn && (
+        ) : !showSearchBtn ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
-        )}
+        ) : null}
       </div>
     </header>
   )
@@ -2901,15 +2897,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [, setTick] = useState(0)
   const [filterDate, setFilterDate] = useState('')
   const [selected, setSelected] = useState<GradeEntry | null>(null)
-  const [isEditingSelected, setIsEditingSelected] = useState(false)
-  const [editScores, setEditScores] = useState<Record<number, string>>({})
-  const [editType, setEditType] = useState('')
-  const [editKind, setEditKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
-  const [editScale, setEditScale] = useState('۲۰')
-  const [editDate, setEditDate] = useState('')
-  const [editTime, setEditTime] = useState('')
-  const [editGroupValue, setEditGroupValue] = useState('')
-  const [editConfirmOpen, setEditConfirmOpen] = useState(false)
+  const [editingSelected, setEditingSelected] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const history = gradeHistoryStore
@@ -2927,30 +2915,17 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     return () => clearInterval(id)
   }, [])
 
+  if (selected && editingSelected) {
+    return <GradeRegister goBack={() => setEditingSelected(false)} initialEntry={selected} onSave={(updated) => { gradeHistoryStore = gradeHistoryStore.map(item => item.id === updated.id ? updated : item); setSelected(updated); setEditingSelected(false) }} />
+  }
+
   if (selected) {
-    const saveSelectedEdits = () => {
-      const updated: GradeEntry = {
-        ...selected,
-        type: `${editType.trim() || 'نمره'} · ${editKind}`,
-        date: editDate || selected.date,
-        time: editTime || selected.time,
-        scores: { ...editScores },
-        avg: (() => {
-          const numeric = Object.values(editScores).filter(v => v !== '' && Number.isFinite(Number(v))).map(Number)
-          return numeric.length ? String(Math.round(numeric.reduce((a, b) => a + b, 0) / numeric.length * 100) / 100) : selected.avg
-        })(),
-      }
-      gradeHistoryStore = gradeHistoryStore.map(item => item.id === selected.id ? updated : item)
-      setSelected(updated)
-      setIsEditingSelected(false)
-      setTick(t => t + 1)
-    }
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
-        back={() => { if (isEditingSelected) { setIsEditingSelected(false); setEditScores({ ...selected.scores }); setEditType(selected.type.replace(/ · (توصیفی|کمی|کیفی)$/, '')); setEditDate(selected.date); setEditTime(selected.time) } else setSelected(null) }}
-        rightText={isEditingSelected ? undefined : 'ویرایش'}
-        onRightClick={() => { setEditScores({ ...selected.scores }); setEditType(selected.type.replace(/ · (توصیفی|کمی|کیفی)$/, '')); setEditKind((selected.type.match(/ · (توصیفی|کمی|کیفی)$/)?.[1] as 'توصیفی' | 'کمی' | 'کیفی') || 'کمی'); setEditDate(selected.date); setEditTime(selected.time); setIsEditingSelected(true) }}
+        back={() => setSelected(null)}
+        rightText="ویرایش"
+        onRightClick={() => setEditingSelected(true)}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
         searchOpen={searchOpen}
@@ -2970,75 +2945,16 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
           <div><strong className="green-text">{fa(selected.avg)}</strong><span>میانگین</span></div>
           <div><strong>{fa(20)}</strong><span>از نمره</span></div>
         </div>
-        {isEditingSelected ? (
-          <>
-            <div className="two-fields" style={{ marginBottom: 12 }}>
-              <label className="field"><span>تاریخ</span><input value={editDate} inputMode="numeric" onChange={e => setEditDate(fa(toEn(e.target.value).replace(/[^0-9/]/g, '')))} /></label>
-              <label className="field"><span>ساعت</span><input value={editTime} inputMode="numeric" onChange={e => setEditTime(fa(toEn(e.target.value).replace(/[^0-9:]/g, '')))} /></label>
-            </div>
-            <label className="field" style={{ marginBottom: 8 }}>
-              <span>عنوان نمره</span>
-              <input value={editType} onChange={e => setEditType(e.target.value)} />
-            </label>
-            <div className="chips compact scrollable" style={{ margin: '0 0 12px' }}>
-              {['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی'].map(t => <button key={t} type="button" className={editType === t ? 'active' : ''} onClick={() => setEditType(t)}>{t}</button>)}
-            </div>
-            <div className="score-kind-card">
-              <div className="score-kind-label">نوع نمره</div>
-              <div className="score-kind-tabs">
-                {(['توصیفی', 'کمی', 'کیفی'] as const).map(k => <button key={k} type="button" className={editKind === k ? 'active' : ''} onClick={() => setEditKind(k)}>{k}</button>)}
-              </div>
-              {editKind === 'کمی' && <div className="score-kind-scales"><span className="chips-prefix">مقیاس:</span>{['۲۰','۱۰','۵'].map(v => <button key={v} type="button" className={editScale === v ? 'active' : ''} onClick={() => setEditScale(v)}>{fa(v)}/۰</button>)}<label className="field" style={{ minWidth: 95 }}><span>بازه دلخواه</span><input inputMode="numeric" value={fa(editScale)} onChange={e => setEditScale(toEn(e.target.value).replace(/[^0-9]/g, '') || '۲۰')} /></label></div>}
-              {editKind === 'کیفی' && <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>}
-            </div>
-            <div className="section-heading" style={{ marginTop: 14 }}>
-              <strong>ویرایش نمرات دانش‌آموزان</strong>
-              <button type="button" className="group-score-btn" onClick={() => setEditGroupValue('')}>ثبت گروهی</button>
-            </div>
-            <div className="field" style={{ marginBottom: 10 }}>
-              <span>مقدار گروهی</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input value={editGroupValue} inputMode={editKind === 'کمی' ? 'decimal' : 'text'} placeholder={editKind === 'کمی' ? 'نمره مشترک' : 'مقدار مشترک'} onChange={e => setEditGroupValue(editKind === 'کمی' ? fa(toEn(e.target.value).replace(/[^0-9.]/g, '')) : e.target.value)} />
-                <button type="button" className="group-score-btn" disabled={!editGroupValue.trim()} onClick={() => setEditScores(Object.fromEntries(students.map((_, i) => [i, toEn(editGroupValue)])))}>اعمال برای همه</button>
-              </div>
-            </div>
-          </>
-        ) : null}
-        <div className="section-heading"><strong>{isEditingSelected ? 'نمرات دانش‌آموزان' : selected.type}</strong><span>نیم‌ترم اول</span></div>
+        <div className="section-heading"><strong>{selected.type}</strong><span>نیم‌ترم اول</span></div>
         {students.map((name, i) => (
           <div className="student" key={name}>
             <div className="student-avatar">{name[0]}</div>
             <strong>{name}</strong>
-            {isEditingSelected ? (
-              editKind === 'کیفی' ? (
-                <select className="score-select" value={editScores[i] ?? ''} onChange={e => setEditScores(prev => ({ ...prev, [i]: e.target.value }))}>
-                  <option value="">انتخاب</option><option>خیلی خوب</option><option>خوب</option><option>قابل قبول</option><option>نیاز به تلاش بیشتر</option>
-                </select>
-              ) : editKind === 'توصیفی' ? (
-                <input className="score-input text-score" value={editScores[i] ?? ''} placeholder="توضیح" onChange={e => setEditScores(prev => ({ ...prev, [i]: e.target.value }))} />
-              ) : (
-                <input className="score-input" inputMode="decimal" aria-label={`نمره ${name}`} value={editScores[i] !== undefined && editScores[i] !== '' ? fa(editScores[i]) : ''} onChange={e => setEditScores(prev => ({ ...prev, [i]: toEn(e.target.value).replace(/[^0-9.]/g, '') }))} placeholder={fa(editScale)} />
-              )
-            ) : (
-              <span className="score-readonly">{selected.scores[i] !== undefined && selected.scores[i] !== '' ? fa(selected.scores[i]) : '—'}</span>
-            )}
+            <span className="score-readonly">{selected.scores[i] !== undefined && selected.scores[i] !== '' ? fa(selected.scores[i]) : '—'}</span>
           </div>
         ))}
       </main>
-      <div className="sticky-action">
-        {isEditingSelected
-          ? <button type="button" onClick={() => setEditConfirmOpen(true)}>ثبت تغییرات</button>
-          : <button type="button" onClick={() => setSelected(null)}>بازگشت به فهرست</button>}
-      </div>
-      {editConfirmOpen && (
-        <div className="overlay group-grade-overlay" onClick={() => setEditConfirmOpen(false)}>
-          <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
-            <div className="sheet-handle" />
-            <div className="sheet-title"><div><strong>تأیید ثبت تغییرات</strong><span>اطلاعات و نمرات ویرایش‌شده ذخیره می‌شوند.</span></div><IconButton icon="close" label="بستن" onClick={() => setEditConfirmOpen(false)} /></div>
-            <div className="group-grade-footer"><button type="button" className="secondary" onClick={() => setEditConfirmOpen(false)}>انصراف</button><button type="button" className="primary" onClick={() => { saveSelectedEdits(); setEditConfirmOpen(false) }}>تأیید و ثبت</button></div>
-          </div>
-        </div>
-      )}
+      <div className="sticky-action"><button onClick={() => setSelected(null)}>بازگشت به فهرست</button></div>
     </div>
   }
 
@@ -3090,7 +3006,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
         <span>{fa(filteredHistory.length)} مورد</span>
       </div>
       {filteredHistory.length ? filteredHistory.map(h => (
-        <button type="button" className="history-card" key={h.id} onClick={() => { setSelected(h); setIsEditingSelected(false); setEditScores({ ...h.scores }); setEditType(h.type) }} style={{ width: '100%', cursor: 'pointer', textAlign: 'right' }}>
+        <button type="button" className="history-card" key={h.id} onClick={() => setSelected(h)} style={{ width: '100%', cursor: 'pointer', textAlign: 'right' }}>
           <span className="history-icon"><Icon name="chart" size={18} /></span>
           <div className="history-info">
             <strong>{h.type}</strong>
@@ -3110,23 +3026,23 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   </div>
 }
 
-function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen) => void; goBack: () => void; initialEntry?: GradeEntry; onSave?: (entry: GradeEntry) => void }) {
   const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
   const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
-  const [title, setTitle] = useState('')
-  const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
+  const [title, setTitle] = useState(() => initialEntry?.type.replace(/ · (توصیفی|کمی|کیفی)$/, '') || '')
+  const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>(() => (initialEntry?.type.match(/ · (توصیفی|کمی|کیفی)$/)?.[1] as 'توصیفی' | 'کمی' | 'کیفی') || 'کمی')
   const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [customMaxOpen, setCustomMaxOpen] = useState(false)
   const [customMaxInput, setCustomMaxInput] = useState('')
-  const [scores, setScores] = useState<Record<number, string>>({})
+  const [scores, setScores] = useState<Record<number, string>>(() => initialEntry ? { ...initialEntry.scores } : {})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupValue, setGroupValue] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [confirmDate, setConfirmDate] = useState(() => nowShamsi().date)
-  const [confirmTime, setConfirmTime] = useState(() => nowShamsi().time)
+  const [confirmDate, setConfirmDate] = useState(() => initialEntry?.date || nowShamsi().date)
+  const [confirmTime, setConfirmTime] = useState(() => initialEntry?.time || nowShamsi().time)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -3152,8 +3068,8 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
   const openConfirm = () => {
     if (vals.length === 0) return
-    setConfirmDate(now.date)
-    setConfirmTime(now.time)
+    setConfirmDate(initialEntry?.date || now.date)
+    setConfirmTime(initialEntry?.time || now.time)
     setConfirmOpen(true)
   }
 
@@ -3161,23 +3077,27 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     const type = title.trim() || 'نمره'
     if (vals.length === 0) return
     const entry: GradeEntry = {
-      id: `${Date.now()}`,
+      id: initialEntry?.id || `${Date.now()}`,
       type: `${type} · ${scoreKind}`,
       date: confirmDate || now.date,
       time: confirmTime || now.time,
       scores: { ...scores },
       avg: String(avg),
     }
-    gradeHistoryStore = [entry, ...gradeHistoryStore]
+    if (initialEntry && onSave) onSave(entry)
+    else gradeHistoryStore = [entry, ...gradeHistoryStore]
     setConfirmOpen(false)
     setSaved(true)
-    setTimeout(() => goBack(), 900)
+    if (!initialEntry) setTimeout(() => goBack(), 900)
+    else setTimeout(() => goBack(), 500)
   }
 
   return (
     <div className="screen inner-screen">
       <SubHeader
         screen="grade-register"
+        title={initialEntry ? 'ویرایش نمره' : 'ثبت نمره'}
+        subtitle={initialEntry ? 'اصلاح اطلاعات و نمرات ثبت‌شده' : 'علوم تجربی · کلاس ۹۰۱'}
         back={goBack}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
@@ -3187,11 +3107,11 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
         searchPlaceholder="جست‌وجوی دانش‌آموز..."
       />
-      <div className="grade-fixed-date">
+      {!initialEntry && <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{now.date}</strong>
         <span>{now.time}</span>
-      </div>
+      </div>}
       <main className="inner-content">
         <div className="attendance-summary">
           <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
@@ -3325,7 +3245,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
       <div className="sticky-action">
         <button type="button" onClick={openConfirm} disabled={vals.length === 0 || saved}>
-          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
+          {saved ? <><Icon name="check" /> ثبت شد</> : initialEntry ? 'ثبت تغییرات' : `ثبت ${title.trim() || 'نمره'}`}
         </button>
       </div>
 
@@ -3335,7 +3255,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
             <div className="sheet-handle" />
             <div className="sheet-title">
               <div>
-                <strong>تأیید ثبت نمره</strong>
+                <strong>{initialEntry ? 'تأیید ثبت تغییرات' : 'تأیید ثبت نمره'}</strong>
                 <span>تاریخ و ساعت برگزاری را مشخص کنید</span>
               </div>
               <IconButton icon="close" label="بستن" onClick={() => setConfirmOpen(false)} />
@@ -3360,7 +3280,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
             </div>
             <div className="group-grade-footer">
               <button type="button" className="secondary" onClick={() => setConfirmOpen(false)}>انصراف</button>
-              <button type="button" className="primary" onClick={handleRegister} disabled={saved}>ثبت</button>
+              <button type="button" className="primary" onClick={handleRegister} disabled={saved}>{initialEntry ? 'ثبت تغییرات' : 'ثبت'}</button>
             </div>
           </div>
         </div>
