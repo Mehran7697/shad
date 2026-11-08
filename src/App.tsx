@@ -2974,7 +2974,11 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
+  const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
+  const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
   const [title, setTitle] = useState('')
+  const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
+  const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
@@ -2984,16 +2988,25 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     return () => clearInterval(id)
   }, [])
 
+  // clear scores when kind changes
+  useEffect(() => {
+    setScores({})
+  }, [scoreKind, quantScale])
+
   const vals = Object.values(scores).filter(v => v.trim() !== '')
-  const avg = vals.length ? (vals.reduce((a, b) => a + Number(b), 0) / vals.length).toFixed(1) : '—'
+  const numericVals = vals.map(v => Number(toEn(v))).filter(n => !Number.isNaN(n))
+  const avg = scoreKind === 'کمی' && numericVals.length
+    ? (numericVals.reduce((a, b) => a + b, 0) / numericVals.length).toFixed(1)
+    : '—'
   const filled = vals.length
+  const maxScore = quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
 
   const handleRegister = () => {
     const type = title.trim() || 'نمره'
     if (vals.length === 0) return
     const entry: GradeEntry = {
       id: `${Date.now()}`,
-      type,
+      type: `${type} · ${scoreKind}`,
       date: now.date,
       time: now.time,
       scores: { ...scores },
@@ -3034,29 +3047,88 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           </button>
         ))}
       </div>
+
+      <div className="score-kind-card">
+        <div className="score-kind-label">نوع نمره</div>
+        <div className="score-kind-tabs">
+          {(['توصیفی', 'کمی', 'کیفی'] as const).map(k => (
+            <button
+              key={k}
+              type="button"
+              className={scoreKind === k ? 'active' : ''}
+              onClick={() => setScoreKind(k)}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+        <div className="score-kind-hint">
+          {scoreKind === 'توصیفی' && <span>متن آزاد برای هر دانش‌آموز</span>}
+          {scoreKind === 'کمی' && (
+            <div className="score-kind-scales">
+              {quantitativeScales.map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  className={quantScale === s ? 'active' : ''}
+                  onClick={() => setQuantScale(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+          {scoreKind === 'کیفی' && <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>}
+        </div>
+      </div>
+
       <div className="attendance-summary">
         <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
         <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
-        <div><strong className="green-text">{fa(avg)}</strong><span>میانگین</span></div>
+        <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
       </div>
       <div className="section-heading">
         <strong>{title.trim() || 'نمره'}</strong>
-        <span>از {fa(20)}</span>
+        <span>{scoreKind === 'کمی' ? `از ${fa(maxScore)}` : scoreKind}</span>
       </div>
       {students.map((name, i) => (
         <div className="student" key={name}>
           <div className="student-avatar">{name[0]}</div>
           <strong>{name}</strong>
-          <input
-            className="score-input"
-            inputMode="numeric"
-            placeholder="—"
-            value={scores[i] !== undefined && scores[i] !== '' ? fa(scores[i]) : ''}
-            onChange={e => {
-              const raw = toEn(e.target.value).replace(/[^\d]/g, '')
-              setScores(prev => ({ ...prev, [i]: raw }))
-            }}
-          />
+          {scoreKind === 'کمی' && (
+            <input
+              className="score-input"
+              inputMode="numeric"
+              placeholder={fa(maxScore)}
+              value={scores[i] !== undefined && scores[i] !== '' ? fa(scores[i]) : ''}
+              onChange={e => {
+                const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                if (raw && Number(raw) > maxScore) return
+                setScores(prev => ({ ...prev, [i]: raw }))
+              }}
+            />
+          )}
+          {scoreKind === 'توصیفی' && (
+            <input
+              className="score-input text-score"
+              type="text"
+              placeholder="توضیح..."
+              value={scores[i] || ''}
+              onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
+            />
+          )}
+          {scoreKind === 'کیفی' && (
+            <select
+              className="score-select"
+              value={scores[i] || ''}
+              onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
+            >
+              <option value="">انتخاب</option>
+              {qualitativeOptions.map(o => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          )}
         </div>
       ))}
     </main>
