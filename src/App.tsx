@@ -3174,12 +3174,12 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   }
 
   const handleBack = () => {
-    if (selected) {
-      setSelected(null)
-      return
-    }
     if (periodValue) {
       setPeriodValue(null)
+      return
+    }
+    if (selected) {
+      setSelected(null)
       return
     }
     if (exportPage) {
@@ -3405,13 +3405,52 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     </div>
   }
 
-  if (!periodValue) {
+  // 1) First: student list
+  if (!selected) {
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
         back={goBack}
-        title="انتخاب بازه گزارش"
-        subtitle="دسترسی سریع به دوره‌ها"
+        title="گزارش‌های کلاس"
+        subtitle="انتخاب دانش‌آموز"
+      />
+      <main className="inner-content">
+        <div className="section-heading">
+          <strong>دانش‌آموزان</strong>
+          <span>{fa(students.length)} نفر</span>
+        </div>
+        {students.map((name) => (
+          <button
+            className="student student-row-photo"
+            key={name}
+            onClick={() => { setSelected(name); setDetailTab('همه'); setWeekIndex(0); setPeriodValue(null) }}
+            style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}
+          >
+            <img
+              className="student-photo"
+              src={`https://i.pravatar.cc/100?u=${encodeURIComponent(name)}`}
+              alt={name}
+            />
+            <strong>{name}</strong>
+          </button>
+        ))}
+      </main>
+      <div className="sticky-action">
+        <button type="button" className="report-continue-btn" style={{ margin: 0 }} onClick={() => setExportPage(true)}>
+          دریافت خروجی
+        </button>
+      </div>
+    </div>
+  }
+
+  // 2) Then: period selection for chosen student
+  if (!periodValue) {
+    return <div className="screen inner-screen">
+      <SubHeader
+        screen="gradebook"
+        back={handleBack}
+        title={selected}
+        subtitle="انتخاب بازه گزارش"
       />
       <main className="inner-content">
         <div className="report-period-tabs">
@@ -3453,11 +3492,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
         )}
       </main>
-      <div className="sticky-action">
-        <button type="button" className="report-continue-btn" style={{ margin: 0 }} onClick={() => setExportPage(true)}>
-          دریافت خروجی
-        </button>
-      </div>
     </div>
   }
 
@@ -3472,24 +3506,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
       onRightClick={handleDownloadFullReport}
     />
     <main className="inner-content">
-      {!selected ? (
-        <>
-          <div className="section-heading">
-            <strong>دانش‌آموزان</strong>
-            <span>{fa(students.length)} نفر</span>
-          </div>
-          {students.map((name) => (
-            <button className="student student-row-photo" key={name} onClick={() => { setSelected(name); setDetailTab('همه'); setWeekIndex(0) }} style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}>
-              <img
-                className="student-photo"
-                src={`https://i.pravatar.cc/100?u=${encodeURIComponent(name)}`}
-                alt={name}
-              />
-              <strong>{name}</strong>
-            </button>
-          ))}
-        </>
-      ) : (
         <div className="student-card-wrap">
           <div className="student-fifa-card">
             <button
@@ -3677,7 +3693,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             )}
           </div>
         </div>
-      )}
     </main>
 
     {editModalOpen && (
@@ -3742,7 +3757,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     )}
 
     <div className="sticky-action">
-      <button onClick={handleBack}>{selected ? 'بازگشت به فهرست' : 'بازگشت به بازه‌ها'}</button>
+      <button onClick={handleBack}>'بازگشت به بازه'</button>
     </div>
     {toast && <div className="toast">{toast}</div>}
   </div>
