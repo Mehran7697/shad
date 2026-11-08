@@ -975,7 +975,7 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
-      <div className="sub-header-actions">
+      <div className="sub-header-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>
         {showSearchBtn && (
           <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
         )}
@@ -983,6 +983,7 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           <button
             type="button"
             className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
+            style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
             onClick={onRightClick}
             aria-label={rightText}
           >
