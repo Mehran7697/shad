@@ -2982,6 +2982,8 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
+  const [groupOpen, setGroupOpen] = useState(false)
+  const [groupValue, setGroupValue] = useState('')
 
   useEffect(() => {
     const id = setInterval(() => setNow(nowShamsi()), 1000)
@@ -2991,6 +2993,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   // clear scores when kind changes
   useEffect(() => {
     setScores({})
+    setGroupValue('')
   }, [scoreKind, quantScale])
 
   const vals = Object.values(scores).filter(v => v.trim() !== '')
@@ -3089,7 +3092,13 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
       </div>
       <div className="section-heading">
         <strong>{title.trim() || 'نمره'}</strong>
-        <span>{scoreKind === 'کمی' ? `از ${fa(maxScore)}` : scoreKind}</span>
+        <button
+          type="button"
+          className="group-score-btn"
+          onClick={() => { setGroupValue(''); setGroupOpen(true) }}
+        >
+          ثبت گروهی
+        </button>
       </div>
       {students.map((name, i) => (
         <div className="student" key={name}>
@@ -3137,6 +3146,81 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
       </button>
     </div>
+
+    {groupOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setGroupOpen(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>ثبت گروهی · {scoreKind}</strong>
+              <span>یک مقدار برای همه دانش‌آموزان</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setGroupOpen(false)} />
+          </div>
+          <div className="group-grade-body">
+            {scoreKind === 'کمی' && (
+              <label className="field">
+                <span>نمره مشترک (از {fa(maxScore)})</span>
+                <input
+                  inputMode="numeric"
+                  placeholder={`مثلاً ${fa(maxScore)}`}
+                  value={groupValue ? fa(groupValue) : ''}
+                  onChange={e => {
+                    const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                    if (raw && Number(raw) > maxScore) return
+                    setGroupValue(raw)
+                  }}
+                />
+              </label>
+            )}
+            {scoreKind === 'توصیفی' && (
+              <label className="field">
+                <span>متن مشترک</span>
+                <textarea
+                  rows={3}
+                  placeholder="توضیح یکسان برای همه..."
+                  value={groupValue}
+                  onChange={e => setGroupValue(e.target.value)}
+                />
+              </label>
+            )}
+            {scoreKind === 'کیفی' && (
+              <div className="group-qual-options">
+                {qualitativeOptions.map(o => (
+                  <button
+                    key={o}
+                    type="button"
+                    className={groupValue === o ? 'active' : ''}
+                    onClick={() => setGroupValue(o)}
+                  >
+                    {o}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="group-grade-hint">
+              این مقدار برای هر {fa(students.length)} دانش‌آموز ثبت می‌شود و مقادیر قبلی را جایگزین می‌کند.
+            </p>
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setGroupOpen(false)}>انصراف</button>
+            <button
+              type="button"
+              className="primary"
+              disabled={!groupValue.trim()}
+              onClick={() => {
+                if (!groupValue.trim()) return
+                setScores(Object.fromEntries(students.map((_, i) => [i, groupValue.trim()])))
+                setGroupOpen(false)
+              }}
+            >
+              اعمال برای همه
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 }
 
