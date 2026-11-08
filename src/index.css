@@ -3599,3 +3599,18 @@
   border-style: solid !important;
   background: var(--green-soft) !important;
 }
+
+
+.header-text-btn {
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 10px;
+  flex: none;
+}
+.header-text-btn:active {
+  background: var(--green-soft);
+}

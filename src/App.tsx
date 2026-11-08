@@ -923,12 +923,13 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
-function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
+function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
   screen: Screen
   back: () => void
   rightIcon?: IconName
   onRightClick?: () => void
   rightLabel?: string
+  rightText?: string
   title?: string
   subtitle?: string
   searchOpen?: boolean
@@ -972,7 +973,13 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
-      <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
+      {rightText ? (
+        <button type="button" className="header-text-btn" onClick={onRightClick} aria-label={rightText}>
+          {rightText}
+        </button>
+      ) : (
+        <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
+      )}
     </header>
   )
 }
@@ -2890,7 +2897,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 
   if (selected) {
     return <div className="screen inner-screen">
-      <SubHeader screen="gradebook" back={() => setSelected(null)} />
+      <SubHeader screen="gradebook" back={() => setSelected(null)} rightText="ویرایش" />
       <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{selected.date}</strong>
@@ -2916,7 +2923,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   }
 
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={goBack} />
+    <SubHeader screen="gradebook" back={goBack} rightText="ویرایش" />
     <div className="grade-fixed-date">
       <Icon name="calendar" size={16} />
       <strong>{now.date}</strong>
@@ -3036,7 +3043,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
   return (
     <div className="screen inner-screen">
-      <SubHeader screen="grade-register" back={goBack} />
+      <SubHeader screen="grade-register" back={goBack} rightText="ویرایش" />
       <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{now.date}</strong>
