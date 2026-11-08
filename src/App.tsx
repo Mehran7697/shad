@@ -978,11 +978,8 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
         <strong>{title ?? meta.title}</strong>
         <span>{subtitle ?? meta.subtitle}</span>
       </div>
-      <div className="sub-header-actions" style={{ flex: 'none', padding: 0, marginInlineStart: 'auto', justifyContent: 'flex-end' }}>
-        {showSearchBtn && (
-          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
-        )}
-        {rightText ? (
+      <div className="sub-header-actions" style={{ flex: 'none', padding: 0, marginInlineStart: 'auto', justifyContent: 'flex-start', flexDirection: 'row-reverse', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
+        {rightText && (
           <button
             type="button"
             className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
@@ -991,9 +988,13 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           >
             {rightText}
           </button>
-        ) : !showSearchBtn ? (
+        )}
+        {showSearchBtn && (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        )}
+        {!rightText && !showSearchBtn && (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
-        ) : null}
+        )}
       </div>
     </header>
   )
@@ -2900,6 +2901,9 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [, setTick] = useState(0)
   const [filterDate, setFilterDate] = useState('')
   const [selected, setSelected] = useState<GradeEntry | null>(null)
+  const [isEditingSelected, setIsEditingSelected] = useState(false)
+  const [editScores, setEditScores] = useState<Record<number, string>>({})
+  const [editType, setEditType] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const history = gradeHistoryStore
@@ -2918,11 +2922,27 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   }, [])
 
   if (selected) {
+    const saveSelectedEdits = () => {
+      const updated: GradeEntry = {
+        ...selected,
+        type: editType.trim() || selected.type,
+        scores: { ...editScores },
+        avg: (() => {
+          const numeric = Object.values(editScores).filter(v => v !== '' && Number.isFinite(Number(v))).map(Number)
+          return numeric.length ? String(Math.round(numeric.reduce((a, b) => a + b, 0) / numeric.length * 100) / 100) : selected.avg
+        })(),
+      }
+      gradeHistoryStore = gradeHistoryStore.map(item => item.id === selected.id ? updated : item)
+      setSelected(updated)
+      setIsEditingSelected(false)
+      setTick(t => t + 1)
+    }
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
-        back={() => setSelected(null)}
-        rightText="ویرایش"
+        back={() => { if (isEditingSelected) { setIsEditingSelected(false); setEditScores({ ...selected.scores }); setEditType(selected.type) } else setSelected(null) }}
+        rightText={isEditingSelected ? undefined : 'ویرایش'}
+        onRightClick={() => { setEditScores({ ...selected.scores }); setEditType(selected.type); setIsEditingSelected(true) }}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
         searchOpen={searchOpen}
@@ -2942,16 +2962,37 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
           <div><strong className="green-text">{fa(selected.avg)}</strong><span>میانگین</span></div>
           <div><strong>{fa(20)}</strong><span>از نمره</span></div>
         </div>
-        <div className="section-heading"><strong>{selected.type}</strong><span>نیم‌ترم اول</span></div>
+        {isEditingSelected ? (
+          <label className="field" style={{ marginBottom: 14 }}>
+            <span>عنوان نمره</span>
+            <input value={editType} onChange={e => setEditType(e.target.value)} />
+          </label>
+        ) : null}
+        <div className="section-heading"><strong>{isEditingSelected ? 'ویرایش نمرات دانش‌آموزان' : selected.type}</strong><span>نیم‌ترم اول</span></div>
         {students.map((name, i) => (
           <div className="student" key={name}>
             <div className="student-avatar">{name[0]}</div>
             <strong>{name}</strong>
-            <span className="score-readonly">{selected.scores[i] !== undefined && selected.scores[i] !== '' ? fa(selected.scores[i]) : '—'}</span>
+            {isEditingSelected ? (
+              <input
+                className="score-input"
+                inputMode="decimal"
+                aria-label={`نمره ${name}`}
+                value={editScores[i] ?? ''}
+                onChange={e => setEditScores(prev => ({ ...prev, [i]: toEn(e.target.value).replace(/[^0-9.]/g, '') }))}
+                placeholder="نمره"
+              />
+            ) : (
+              <span className="score-readonly">{selected.scores[i] !== undefined && selected.scores[i] !== '' ? fa(selected.scores[i]) : '—'}</span>
+            )}
           </div>
         ))}
       </main>
-      <div className="sticky-action"><button onClick={() => setSelected(null)}>بازگشت به فهرست</button></div>
+      <div className="sticky-action">
+        {isEditingSelected
+          ? <button type="button" onClick={saveSelectedEdits}>ثبت تغییرات</button>
+          : <button type="button" onClick={() => setSelected(null)}>بازگشت به فهرست</button>}
+      </div>
     </div>
   }
 
@@ -3003,7 +3044,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
         <span>{fa(filteredHistory.length)} مورد</span>
       </div>
       {filteredHistory.length ? filteredHistory.map(h => (
-        <button type="button" className="history-card" key={h.id} onClick={() => setSelected(h)} style={{ width: '100%', cursor: 'pointer', textAlign: 'right' }}>
+        <button type="button" className="history-card" key={h.id} onClick={() => { setSelected(h); setIsEditingSelected(false); setEditScores({ ...h.scores }); setEditType(h.type) }} style={{ width: '100%', cursor: 'pointer', textAlign: 'right' }}>
           <span className="history-icon"><Icon name="chart" size={18} /></span>
           <div className="history-info">
             <strong>{h.type}</strong>
