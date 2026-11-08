@@ -2972,7 +2972,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   </div>
 }
 
-function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) { /* grade-register-v2 */
   const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
   const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
