@@ -974,8 +974,11 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
   return (
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
-      <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
-      <div className="sub-header-actions">
+      <div className="sub-header-title" style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+        <strong>{title ?? meta.title}</strong>
+        <span>{subtitle ?? meta.subtitle}</span>
+      </div>
+      <div className="sub-header-actions" style={{ flex: 'none', padding: 0, marginInlineStart: 'auto', justifyContent: 'flex-end' }}>
         {showSearchBtn && (
           <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
         )}
