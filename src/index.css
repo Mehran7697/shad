@@ -3603,14 +3603,22 @@
 
 .header-text-btn {
   border: 0;
-  background: transparent;
-  color: var(--green);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 11px;
   flex: none;
 }
+.header-text-btn.is-edit {
+  background: var(--green);
+  color: white;
+  box-shadow: 0 4px 12px rgb(17 156 120 / .22);
+}
+.header-text-btn.is-export {
+  background: #172a35;
+  color: white;
+  box-shadow: 0 4px 12px rgb(23 42 53 / .22);
+}
 .header-text-btn:active {
-  background: var(--green-soft);
+  transform: scale(.97);
 }

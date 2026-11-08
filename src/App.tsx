@@ -974,7 +974,12 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
       {rightText ? (
-        <button type="button" className="header-text-btn" onClick={onRightClick} aria-label={rightText}>
+        <button
+          type="button"
+          className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
+          onClick={onRightClick}
+          aria-label={rightText}
+        >
           {rightText}
         </button>
       ) : (
@@ -2897,7 +2902,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 
   if (selected) {
     return <div className="screen inner-screen">
-      <SubHeader screen="gradebook" back={() => setSelected(null)} rightText="ویرایش" />
+      <SubHeader screen="gradebook" back={() => setSelected(null)} rightText="خروجی" />
       <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{selected.date}</strong>
@@ -2923,7 +2928,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   }
 
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={goBack} rightText="ویرایش" />
+    <SubHeader screen="gradebook" back={goBack} rightText="خروجی" />
     <div className="grade-fixed-date">
       <Icon name="calendar" size={16} />
       <strong>{now.date}</strong>
