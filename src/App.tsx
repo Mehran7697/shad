@@ -2330,13 +2330,207 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
 }
 
 const students = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
+type AttendanceRecord = {
+  id: string
+  dateLabel: string
+  dayLabel: string
+  timeLabel: string
+  createdAt: number
+  status: Record<number, string>
+}
+
+let attendanceHistoryStore: AttendanceRecord[] = [
+  {
+    id: 'a1',
+    dateLabel: '۱۴۰۵/۰۷/۱۵',
+    dayLabel: 'دوشنبه',
+    timeLabel: '۰۸:۱۵',
+    createdAt: Date.now() - 2 * 60 * 60 * 1000,
+    status: Object.fromEntries(students.map((_, i) => [i, i % 5 === 0 ? 'غایب' : i % 4 === 0 ? 'تأخیر' : 'حاضر'])),
+  },
+  {
+    id: 'a2',
+    dateLabel: '۱۴۰۵/۰۷/۱۴',
+    dayLabel: 'یکشنبه',
+    timeLabel: '۰۸:۱۰',
+    createdAt: Date.now() - 30 * 60 * 60 * 1000,
+    status: Object.fromEntries(students.map((_, i) => [i, i % 6 === 0 ? 'غایب' : 'حاضر'])),
+  },
+  {
+    id: 'a3',
+    dateLabel: '۱۴۰۵/۰۷/۱۳',
+    dayLabel: 'شنبه',
+    timeLabel: '۰۸:۲۰',
+    createdAt: Date.now() - 54 * 60 * 60 * 1000,
+    status: Object.fromEntries(students.map((_, i) => [i, i % 3 === 0 ? 'تأخیر' : 'حاضر'])),
+  },
+]
+
 function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  const [view, setView] = useState<'list' | 'register' | 'detail'>('list')
+  const [history, setHistory] = useState<AttendanceRecord[]>(attendanceHistoryStore)
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [status, setStatus] = useState<Record<number, string>>({})
-  return <div className="screen inner-screen"><SubHeader screen="attendance" back={goBack} /><main className="inner-content">
-    <div className="attendance-summary"><div><strong>۲۸</strong><span>دانش‌آموز</span></div><div><strong className="green-text">{Object.values(status).filter(x=>x==='حاضر').length}</strong><span>حاضر</span></div><div><strong className="red-text">{Object.values(status).filter(x=>x==='غایب').length}</strong><span>غایب</span></div></div>
-    <div className="section-heading"><strong>فهرست دانش‌آموزان</strong><button onClick={() => setStatus(Object.fromEntries(students.map((_, i) => [i, 'حاضر'])))}>همه حاضر</button></div>
-    {students.map((name, i) => <div className="student" key={name}><div className="student-avatar">{name[0]}</div><strong>{name}</strong><div>{['حاضر','غایب','تأخیر'].map(s => <button key={s} className={`${s} ${status[i]===s?'active':''}`} onClick={() => setStatus({...status,[i]:s})}>{s}</button>)}</div></div>)}
-  </main><div className="sticky-action"><button onClick={goBack}>ثبت حضور و غیاب</button></div></div>
+  const [nowLabel, setNowLabel] = useState(nowShamsi)
+
+  useEffect(() => {
+    const id = setInterval(() => setNowLabel(nowShamsi()), 15000)
+    return () => clearInterval(id)
+  }, [])
+
+  const active = history.find(h => h.id === activeId) || null
+  const canEdit = active ? Date.now() - active.createdAt <= 24 * 60 * 60 * 1000 : false
+
+  const openDetail = (id: string) => {
+    const rec = history.find(h => h.id === id)
+    if (!rec) return
+    setActiveId(id)
+    setStatus({ ...rec.status })
+    setView('detail')
+  }
+
+  const startRegister = () => {
+    setActiveId(null)
+    setStatus({})
+    setView('register')
+  }
+
+  const saveRegister = () => {
+    const n = nowShamsi()
+    const dayNames = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
+    const rec: AttendanceRecord = {
+      id: String(Date.now()),
+      dateLabel: n.date,
+      dayLabel: dayNames[new Date().getDay()],
+      timeLabel: n.time,
+      createdAt: Date.now(),
+      status: { ...status },
+    }
+    const next = [rec, ...history]
+    attendanceHistoryStore = next
+    setHistory(next)
+    setView('list')
+  }
+
+  const saveEdit = () => {
+    if (!activeId || !canEdit) return
+    const next = history.map(h => h.id === activeId ? { ...h, status: { ...status } } : h)
+    attendanceHistoryStore = next
+    setHistory(next)
+    setView('list')
+    setActiveId(null)
+  }
+
+  const present = Object.values(status).filter(x => x === 'حاضر').length
+  const absent = Object.values(status).filter(x => x === 'غایب').length
+  const late = Object.values(status).filter(x => x === 'تأخیر').length
+
+  if (view === 'list') {
+    return (
+      <div className="screen inner-screen">
+        <SubHeader screen="attendance" back={goBack} />
+        <div className="att-datetime-bar">
+          <div>
+            <Icon name="calendar" size={14} />
+            <strong>{nowLabel.date}</strong>
+          </div>
+          <span>{nowLabel.time}</span>
+        </div>
+        <main className="inner-content">
+          <div className="section-heading">
+            <strong>تاریخچه حضور و غیاب</strong>
+            <span>{fa(history.length)} مورد</span>
+          </div>
+          {history.map(item => {
+            const p = Object.values(item.status).filter(x => x === 'حاضر').length
+            const a = Object.values(item.status).filter(x => x === 'غایب').length
+            const editable = Date.now() - item.createdAt <= 24 * 60 * 60 * 1000
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="att-history-bar"
+                onClick={() => openDetail(item.id)}
+              >
+                <div className="att-history-main">
+                  <strong>{item.dateLabel}</strong>
+                  <small>{item.timeLabel} · {fa(p)} حاضر · {fa(a)} غایب{editable ? ' · قابل ویرایش' : ''}</small>
+                </div>
+                <span className="att-history-day">{item.dayLabel}</span>
+              </button>
+            )
+          })}
+          {!history.length && (
+            <div className="empty">
+              <Icon name="attendance" size={40} />
+              <strong>هنوز ثبت نشده</strong>
+              <span>با دکمه + پایین صفحه، حضور و غیاب ثبت کنید.</span>
+            </div>
+          )}
+        </main>
+        <button className="fab" aria-label="ثبت حضور و غیاب جدید" onClick={startRegister}>
+          <Icon name="plus" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="screen inner-screen">
+      <SubHeader
+        screen="attendance"
+        back={() => { setView('list'); setActiveId(null) }}
+        title={view === 'register' ? 'ثبت حضور و غیاب' : 'جزئیات حضور و غیاب'}
+        subtitle={view === 'detail' && active ? `${active.dateLabel} · ${active.dayLabel}` : undefined}
+      />
+      <main className="inner-content">
+        <div className="attendance-summary">
+          <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
+          <div><strong className="green-text">{fa(present)}</strong><span>حاضر</span></div>
+          <div><strong className="red-text">{fa(absent)}</strong><span>غایب</span></div>
+          <div><strong>{fa(late)}</strong><span>تأخیر</span></div>
+        </div>
+        {view === 'detail' && !canEdit && (
+          <div className="att-readonly-banner">ویرایش فقط تا ۲۴ ساعت پس از ثبت امکان‌پذیر است.</div>
+        )}
+        <div className="section-heading">
+          <strong>فهرست دانش‌آموزان</strong>
+          {(view === 'register' || canEdit) && (
+            <button type="button" onClick={() => setStatus(Object.fromEntries(students.map((_, i) => [i, 'حاضر'])))}>همه حاضر</button>
+          )}
+        </div>
+        {students.map((name, i) => (
+          <div className="student" key={name}>
+            <div className="student-avatar">{name[0]}</div>
+            <strong>{name}</strong>
+            <div>
+              {['حاضر', 'غایب', 'تأخیر'].map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`${s} ${status[i] === s ? 'active' : ''}`}
+                  disabled={view === 'detail' && !canEdit}
+                  onClick={() => {
+                    if (view === 'detail' && !canEdit) return
+                    setStatus({ ...status, [i]: s })
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </main>
+      {(view === 'register' || canEdit) && (
+        <div className="sticky-action">
+          <button type="button" onClick={view === 'register' ? saveRegister : saveEdit}>
+            {view === 'register' ? 'ثبت حضور و غیاب' : 'ذخیره تغییرات'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 const scheduleItems = [
