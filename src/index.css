@@ -3585,3 +3585,17 @@
   border-color: #b9e3d7;
   color: var(--green-dark);
 }
+
+.score-kind-scales .chips-prefix {
+  padding: 0 2px 0 4px;
+}
+.custom-range-btn {
+  flex: none;
+  border: 1px dashed #b9e3d7 !important;
+  background: #f3fbf8 !important;
+  color: var(--green-dark) !important;
+}
+.custom-range-btn.active {
+  border-style: solid !important;
+  background: var(--green-soft) !important;
+}

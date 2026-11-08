@@ -2979,6 +2979,8 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const [title, setTitle] = useState('')
   const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
   const [quantScale, setQuantScale] = useState('۲۰/۰')
+  const [customMaxOpen, setCustomMaxOpen] = useState(false)
+  const [customMaxInput, setCustomMaxInput] = useState('')
   const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
@@ -3002,7 +3004,9 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     ? (numericVals.reduce((a, b) => a + b, 0) / numericVals.length).toFixed(1)
     : '—'
   const filled = vals.length
-  const maxScore = quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
+  const maxScore = quantScale.startsWith('custom:')
+    ? Number(quantScale.slice(7)) || 20
+    : quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
 
   const handleRegister = () => {
     const type = title.trim() || 'نمره'
@@ -3069,6 +3073,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           {scoreKind === 'توصیفی' && <span>متن آزاد برای هر دانش‌آموز</span>}
           {scoreKind === 'کمی' && (
             <div className="score-kind-scales">
+              <span className="chips-prefix">پیش‌فرض:</span>
               {quantitativeScales.map(s => (
                 <button
                   key={s}
@@ -3079,6 +3084,16 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                   {s}
                 </button>
               ))}
+              <button
+                type="button"
+                className={`custom-range-btn ${quantScale.startsWith('custom:') ? 'active' : ''}`}
+                onClick={() => {
+                  setCustomMaxInput(quantScale.startsWith('custom:') ? quantScale.slice(7) : '')
+                  setCustomMaxOpen(true)
+                }}
+              >
+                بازه دلخواه
+              </button>
             </div>
           )}
           {scoreKind === 'کیفی' && <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>}
@@ -3146,6 +3161,51 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
       </button>
     </div>
+
+    {customMaxOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setCustomMaxOpen(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>بازه دلخواه</strong>
+              <span>حداکثر نمره را مشخص کنید (از ۰ تا این عدد)</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setCustomMaxOpen(false)} />
+          </div>
+          <div className="group-grade-body">
+            <label className="field">
+              <span>حداکثر نمره</span>
+              <input
+                autoFocus
+                inputMode="numeric"
+                placeholder="مثلاً ۲۵"
+                value={customMaxInput ? fa(customMaxInput) : ''}
+                onChange={e => {
+                  const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                  setCustomMaxInput(raw)
+                }}
+              />
+            </label>
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setCustomMaxOpen(false)}>انصراف</button>
+            <button
+              type="button"
+              className="primary"
+              disabled={!customMaxInput || Number(customMaxInput) <= 0}
+              onClick={() => {
+                if (!customMaxInput || Number(customMaxInput) <= 0) return
+                setQuantScale(`custom:${customMaxInput}`)
+                setCustomMaxOpen(false)
+              }}
+            >
+              تأیید
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {groupOpen && (
       <div className="overlay group-grade-overlay" onClick={() => setGroupOpen(false)}>
