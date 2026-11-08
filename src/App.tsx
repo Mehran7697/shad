@@ -2973,7 +2973,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 }
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const suggestedTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی', 'پرسش کلاسی']
+  const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
   const [title, setTitle] = useState('')
   const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
@@ -3022,6 +3022,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         />
       </label>
       <div className="chips compact scrollable" style={{ margin: '4px 0 14px' }}>
+        <span className="chips-prefix">پیش‌فرض:</span>
         {suggestedTypes.map(t => (
           <button
             key={t}
