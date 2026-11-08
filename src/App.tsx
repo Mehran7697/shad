@@ -2371,10 +2371,10 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
   const [history, setHistory] = useState<AttendanceRecord[]>(attendanceHistoryStore)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [status, setStatus] = useState<Record<number, string>>({})
-  const [nowLabel, setNowLabel] = useState(nowShamsi)
+  const [nowLabel, setNowLabel] = useState(() => nowShamsi())
 
   useEffect(() => {
-    const id = setInterval(() => setNowLabel(nowShamsi()), 15000)
+    const id = setInterval(() => setNowLabel(nowShamsi()), 1000)
     return () => clearInterval(id)
   }, [])
 
@@ -2767,24 +2767,32 @@ let gradeHistoryStore: GradeEntry[] = []
 
 function nowShamsi() {
   const d = new Date()
-  const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate()
+  // Gregorian -> Jalali (accurate civil conversion)
+  let gy = d.getFullYear()
+  let gm = d.getMonth() + 1
+  let gd = d.getDate()
   const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
-  let jy = (gm > 2) ? (gy + 1) : gy
-  let days = 355666 + (365 * gy) + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400) + gd + g_d_m[gm - 1]
-  let j_np = Math.floor(days / 12053)
+  let gy2 = (gm > 2) ? (gy + 1) : gy
+  let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1]
+  let jy = -1595 + (33 * Math.floor(days / 12053))
   days %= 12053
-  jy = 979 + (33 * j_np) + 4 * Math.floor(days / 1461)
+  jy += 4 * Math.floor(days / 1461)
   days %= 1461
-  if (days >= 366) { jy += Math.floor((days - 1) / 365); days = (days - 1) % 365 }
-  const j_d_m = [0, 31, 62, 93, 124, 155, 186, 216, 246, 276, 305, 336]
-  let jm = 1, jd = 1
-  for (let i = 11; i >= 0; i--) { if (days >= j_d_m[i]) { jm = i + 2; jd = days - j_d_m[i] + 1; break } }
-  if (jm > 12) { jm -= 12; jy += 1 }
-  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  const faTime = time.replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365)
+    days = (days - 1) % 365
+  }
+  const jm = (days < 186)
+    ? 1 + Math.floor(days / 31)
+    : 7 + Math.floor((days - 186) / 30)
+  const jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30))
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
   return {
-    date: `${fa(jy)}/${String(jm).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}/${String(jd).padStart(2, '0').replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[+x])}`,
-    time: faTime,
+    date: `${fa(jy)}/${fa(String(jm).padStart(2, '0'))}/${fa(String(jd).padStart(2, '0'))}`,
+    time: fa(`${hh}:${mm}`),
+    timeWithSec: fa(`${hh}:${mm}:${ss}`),
   }
 }
 
@@ -2890,11 +2898,11 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const suggestedTypes = ['کوییز', 'نمره کلاسی', 'نمره میان‌ترم', 'نمره پایان‌ترم', 'فعالیت کلاسی', 'پرسش کلاسی']
   const [title, setTitle] = useState('')
   const [scores, setScores] = useState<Record<number, string>>({})
-  const [now, setNow] = useState(nowShamsi)
+  const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const id = setInterval(() => setNow(nowShamsi()), 15000)
+    const id = setInterval(() => setNow(nowShamsi()), 1000)
     return () => clearInterval(id)
   }, [])
 
