@@ -2981,6 +2981,10 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [customMaxOpen, setCustomMaxOpen] = useState(false)
   const [customMaxInput, setCustomMaxInput] = useState('')
+  const [eventDate, setEventDate] = useState(() => nowShamsi().date)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmDate, setConfirmDate] = useState(() => nowShamsi().date)
+  const [confirmTime, setConfirmTime] = useState(() => nowShamsi().time)
   const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
@@ -3008,18 +3012,26 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     ? Number(quantScale.slice(7)) || 20
     : quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
 
+  const openConfirm = () => {
+    if (vals.length === 0) return
+    setConfirmDate(eventDate || now.date)
+    setConfirmTime(now.time)
+    setConfirmOpen(true)
+  }
+
   const handleRegister = () => {
     const type = title.trim() || 'نمره'
     if (vals.length === 0) return
     const entry: GradeEntry = {
       id: `${Date.now()}`,
       type: `${type} · ${scoreKind}`,
-      date: now.date,
-      time: now.time,
+      date: confirmDate || eventDate || now.date,
+      time: confirmTime || now.time,
       scores: { ...scores },
       avg: String(avg),
     }
     gradeHistoryStore = [entry, ...gradeHistoryStore]
+    setConfirmOpen(false)
     setSaved(true)
     setTimeout(() => goBack(), 900)
   }
@@ -3100,6 +3112,34 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         </div>
       </div>
 
+      <div className="score-kind-card event-date-card">
+        <div className="score-kind-label">تاریخ برگزاری</div>
+        <label className="field" style={{ margin: 0 }}>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="مثلاً ۱۴۰۵/۰۸/۱۷"
+            value={eventDate}
+            onChange={e => setEventDate(e.target.value)}
+          />
+        </label>
+        <div className="score-kind-scales" style={{ marginTop: 10 }}>
+          <button
+            type="button"
+            className={eventDate === now.date ? 'active' : ''}
+            onClick={() => setEventDate(now.date)}
+          >
+            امروز
+          </button>
+          <button
+            type="button"
+            onClick={() => setEventDate(now.date)}
+          >
+            {now.date}
+          </button>
+        </div>
+      </div>
+
       <div className="attendance-summary">
         <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
         <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
@@ -3157,10 +3197,62 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
       ))}
     </main>
     <div className="sticky-action">
-      <button onClick={handleRegister} disabled={vals.length === 0 || saved}>
+      <button onClick={openConfirm} disabled={vals.length === 0 || saved}>
         {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
       </button>
     </div>
+
+    {confirmOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setConfirmOpen(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>تأیید ثبت نمره</strong>
+              <span>تاریخ و ساعت برگزاری را مشخص کنید</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setConfirmOpen(false)} />
+          </div>
+          <div className="group-grade-body">
+            <div className="two-fields">
+              <label className="field">
+                <span>تاریخ</span>
+                <input
+                  type="text"
+                  placeholder="۱۴۰۵/۰۸/۱۷"
+                  value={confirmDate}
+                  onChange={e => setConfirmDate(e.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>ساعت</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="۱۰:۳۰"
+                  value={confirmTime}
+                  onChange={e => setConfirmTime(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="score-kind-scales" style={{ marginTop: 4 }}>
+              <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>
+                همین الان
+              </button>
+            </div>
+            <p className="group-grade-hint">
+              {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind} ثبت می‌شود.
+            </p>
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setConfirmOpen(false)}>انصراف</button>
+            <button type="button" className="primary" onClick={handleRegister} disabled={saved}>
+              ثبت
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {customMaxOpen && (
       <div className="overlay group-grade-overlay" onClick={() => setCustomMaxOpen(false)}>
