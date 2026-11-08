@@ -3040,7 +3040,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         <div><strong className="green-text">{fa(avg)}</strong><span>میانگین</span></div>
       </div>
       <div className="section-heading">
-        <strong>{title.trim() || 'نمره'} · نیم‌ترم اول</strong>
+        <strong>{title.trim() || 'نمره'}</strong>
         <span>از {fa(20)}</span>
       </div>
       {students.map((name, i) => (
