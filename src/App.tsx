@@ -2485,7 +2485,6 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
       />
       <main className="inner-content">
         <div className="attendance-summary">
-          <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
           <div><strong className="green-text">{fa(present)}</strong><span>حاضر</span></div>
           <div><strong className="red-text">{fa(absent)}</strong><span>غایب</span></div>
           <div><strong>{fa(late)}</strong><span>تأخیر</span></div>
