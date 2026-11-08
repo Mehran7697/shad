@@ -3622,3 +3622,11 @@
 .header-text-btn:active {
   transform: scale(.97);
 }
+
+
+.sub-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}

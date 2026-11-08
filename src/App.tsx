@@ -923,13 +923,15 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
-function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
+function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, showSearchBtn = false, onSearchClick, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
   screen: Screen
   back: () => void
   rightIcon?: IconName
   onRightClick?: () => void
   rightLabel?: string
   rightText?: string
+  showSearchBtn?: boolean
+  onSearchClick?: () => void
   title?: string
   subtitle?: string
   searchOpen?: boolean
@@ -973,18 +975,23 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
-      {rightText ? (
-        <button
-          type="button"
-          className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
-          onClick={onRightClick}
-          aria-label={rightText}
-        >
-          {rightText}
-        </button>
-      ) : (
-        <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
-      )}
+      <div className="sub-header-actions">
+        {showSearchBtn && (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        )}
+        {rightText ? (
+          <button
+            type="button"
+            className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
+            onClick={onRightClick}
+            aria-label={rightText}
+          >
+            {rightText}
+          </button>
+        ) : !showSearchBtn ? (
+          <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
+        ) : null}
+      </div>
     </header>
   )
 }
@@ -2890,9 +2897,16 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [, setTick] = useState(0)
   const [filterDate, setFilterDate] = useState('')
   const [selected, setSelected] = useState<GradeEntry | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const history = gradeHistoryStore
   const uniqueDates = Array.from(new Set(history.map(h => h.date)))
-  const filteredHistory = filterDate ? history.filter(h => h.date === filterDate) : history
+  const filteredHistory = history.filter(h => {
+    const byDate = !filterDate || h.date === filterDate
+    const q = searchQuery.trim()
+    const byQuery = !q || h.type.includes(q) || h.date.includes(q)
+    return byDate && byQuery
+  })
   const now = nowShamsi()
 
   useEffect(() => {
@@ -2902,7 +2916,18 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 
   if (selected) {
     return <div className="screen inner-screen">
-      <SubHeader screen="gradebook" back={() => setSelected(null)} rightText="خروجی" />
+      <SubHeader
+        screen="gradebook"
+        back={() => setSelected(null)}
+        rightText="ویرایش"
+        showSearchBtn
+        onSearchClick={() => setSearchOpen(true)}
+        searchOpen={searchOpen}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
+        searchPlaceholder="جست‌وجو در نمرات..."
+      />
       <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{selected.date}</strong>
@@ -2928,7 +2953,18 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   }
 
   return <div className="screen inner-screen">
-    <SubHeader screen="gradebook" back={goBack} rightText="خروجی" />
+    <SubHeader
+      screen="gradebook"
+      back={goBack}
+      rightText="خروجی"
+      showSearchBtn
+      onSearchClick={() => setSearchOpen(true)}
+      searchOpen={searchOpen}
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
+      searchPlaceholder="جست‌وجو در عناوین نمره..."
+    />
     <div className="grade-fixed-date">
       <Icon name="calendar" size={16} />
       <strong>{now.date}</strong>
@@ -3001,6 +3037,8 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [confirmDate, setConfirmDate] = useState(() => nowShamsi().date)
   const [confirmTime, setConfirmTime] = useState(() => nowShamsi().time)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const id = setInterval(() => setNow(nowShamsi()), 1000)
@@ -3048,7 +3086,17 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
   return (
     <div className="screen inner-screen">
-      <SubHeader screen="grade-register" back={goBack} rightText="ویرایش" />
+      <SubHeader
+        screen="grade-register"
+        back={goBack}
+        showSearchBtn
+        onSearchClick={() => setSearchOpen(true)}
+        searchOpen={searchOpen}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
+        searchPlaceholder="جست‌وجوی دانش‌آموز..."
+      />
       <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{now.date}</strong>
@@ -3143,7 +3191,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           </button>
         </div>
 
-        {students.map((name, i) => (
+        {students.map((name, i) => ({ name, i })).filter(x => !searchQuery.trim() || x.name.includes(searchQuery.trim())).map(({ name, i }) => (
           <div className="student" key={name}>
             <div className="student-avatar">{name[0]}</div>
             <strong>{name}</strong>
