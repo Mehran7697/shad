@@ -3044,6 +3044,11 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
       <span>{now.time}</span>
     </div>
     <main className="inner-content">
+      <div className="attendance-summary">
+        <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
+        <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
+        <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
+      </div>
       <label className="field">
         <span>عنوان نمره</span>
         <input
@@ -3111,37 +3116,6 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           {scoreKind === 'کیفی' && <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>}
         </div>
       </div>
-
-      <div className="score-kind-card event-date-card">
-        <div className="score-kind-label">تاریخ برگزاری</div>
-        <label className="field" style={{ margin: 0 }}>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="مثلاً ۱۴۰۵/۰۸/۱۷"
-            value={eventDate}
-            onChange={e => setEventDate(e.target.value)}
-          />
-        </label>
-        <div className="score-kind-scales" style={{ marginTop: 10 }}>
-          <button
-            type="button"
-            className={eventDate === now.date ? 'active' : ''}
-            onClick={() => setEventDate(now.date)}
-          >
-            امروز
-          </button>
-          <button
-            type="button"
-            onClick={() => setEventDate(now.date)}
-          >
-            {now.date}
-          </button>
-        </div>
-      </div>
-
-      <div className="attendance-summary">
-        <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
         <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
         <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
       </div>
