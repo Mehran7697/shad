@@ -3273,20 +3273,46 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             ))}
           </div>
 
-          <div className="week-summary-banner">
-            <div className="week-summary-item">
-              <strong>{fa(4 + (selected ? students.indexOf(selected) % 3 : 0))}</strong>
-              <span>تعداد کلاس‌ها</span>
-            </div>
-            <div className="week-summary-item">
-              <strong>{cardStats.find(s => s.label === 'انضباط')?.value ?? '۱۷'}</strong>
-              <span>انضباط</span>
-            </div>
-            <div className="week-summary-item">
-              <strong className="danger-text">{fa(1 + (selected ? students.indexOf(selected) % 2 : 0))}</strong>
-              <span>تعداد غیبت‌ها</span>
-            </div>
-          </div>
+          {(() => {
+            const si = selected ? students.indexOf(selected) : 0
+            const summaryByTab: Record<string, { value: string; label: string; danger?: boolean }[]> = {
+              'نمره کلاسی': [
+                { value: fa(12 + (si % 5)), label: 'فعالیت کلاسی' },
+                { value: fa(14 + (si % 4)), label: 'پرسش شفاهی' },
+                { value: fa(15 + (si % 3)), label: 'نمره تلاش' },
+              ],
+              'حضور و غیاب': [
+                { value: fa(18 + (si % 3)), label: 'حاضر' },
+                { value: fa(1 + (si % 2)), label: 'تأخیر' },
+                { value: fa(si % 2), label: 'غایب', danger: true },
+              ],
+              'تکالیف': [
+                { value: fa(5 + (si % 3)), label: 'تحویل داده' },
+                { value: fa(1 + (si % 2)), label: 'تحویل‌نداده', danger: true },
+                { value: fa(6 + (si % 2)), label: 'تعداد تکالیف' },
+              ],
+              'انضباط': [
+                { value: fa(si % 3), label: 'تذکر', danger: true },
+                { value: fa(16 + (si % 3)), label: 'مطلوب' },
+                { value: fa(si % 2), label: 'نامطلوب', danger: true },
+              ],
+            }
+            const items = summaryByTab[detailTab] ?? [
+              { value: fa(4 + (si % 3)), label: 'تعداد کلاس‌ها' },
+              { value: cardStats.find(s => s.label === 'انضباط')?.value ?? '۱۷', label: 'انضباط' },
+              { value: fa(1 + (si % 2)), label: 'تعداد غیبت‌ها', danger: true },
+            ]
+            return (
+              <div className="week-summary-banner">
+                {items.map(item => (
+                  <div className="week-summary-item" key={item.label}>
+                    <strong className={item.danger ? 'danger-text' : undefined}>{item.value}</strong>
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
 
           <div className="week-nav">
             <button
