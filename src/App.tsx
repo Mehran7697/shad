@@ -2972,7 +2972,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   </div>
 }
 
-function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) { /* grade-register-v2 */
+function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
   const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
@@ -2981,22 +2981,20 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [customMaxOpen, setCustomMaxOpen] = useState(false)
   const [customMaxInput, setCustomMaxInput] = useState('')
-  const [eventDate, setEventDate] = useState(() => nowShamsi().date)
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [confirmDate, setConfirmDate] = useState(() => nowShamsi().date)
-  const [confirmTime, setConfirmTime] = useState(() => nowShamsi().time)
   const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupValue, setGroupValue] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmDate, setConfirmDate] = useState(() => nowShamsi().date)
+  const [confirmTime, setConfirmTime] = useState(() => nowShamsi().time)
 
   useEffect(() => {
     const id = setInterval(() => setNow(nowShamsi()), 1000)
     return () => clearInterval(id)
   }, [])
 
-  // clear scores when kind changes
   useEffect(() => {
     setScores({})
     setGroupValue('')
@@ -3014,7 +3012,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
   const openConfirm = () => {
     if (vals.length === 0) return
-    setConfirmDate(eventDate || now.date)
+    setConfirmDate(now.date)
     setConfirmTime(now.time)
     setConfirmOpen(true)
   }
@@ -3025,7 +3023,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     const entry: GradeEntry = {
       id: `${Date.now()}`,
       type: `${type} · ${scoreKind}`,
-      date: confirmDate || eventDate || now.date,
+      date: confirmDate || now.date,
       time: confirmTime || now.time,
       scores: { ...scores },
       avg: String(avg),
@@ -3036,318 +3034,306 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     setTimeout(() => goBack(), 900)
   }
 
-  return <div className="screen inner-screen">
-    <SubHeader screen="grade-register" back={goBack} />
-    <div className="grade-fixed-date">
-      <Icon name="calendar" size={16} />
-      <strong>{now.date}</strong>
-      <span>{now.time}</span>
-    </div>
-    <main className="inner-content">
-      <div className="attendance-summary">
-        <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
-        <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
-        <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
+  return (
+    <div className="screen inner-screen">
+      <SubHeader screen="grade-register" back={goBack} />
+      <div className="grade-fixed-date">
+        <Icon name="calendar" size={16} />
+        <strong>{now.date}</strong>
+        <span>{now.time}</span>
       </div>
-      <label className="field">
-        <span>عنوان نمره</span>
-        <input
-          type="text"
-          placeholder="مثلاً کوییز فصل سوم"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-      </label>
-      <div className="chips compact scrollable" style={{ margin: '4px 0 14px' }}>
-        <span className="chips-prefix">پیش‌فرض:</span>
-        {suggestedTypes.map(t => (
-          <button
-            key={t}
-            type="button"
-            className={title === t ? 'active' : ''}
-            onClick={() => setTitle(t)}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <main className="inner-content">
+        <div className="attendance-summary">
+          <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
+          <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
+          <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
+        </div>
 
-      <div className="score-kind-card">
-        <div className="score-kind-label">نوع نمره</div>
-        <div className="score-kind-tabs">
-          {(['توصیفی', 'کمی', 'کیفی'] as const).map(k => (
+        <label className="field">
+          <span>عنوان نمره</span>
+          <input
+            type="text"
+            placeholder="مثلاً کوییز فصل سوم"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
+        </label>
+
+        <div className="chips compact scrollable" style={{ margin: '4px 0 14px' }}>
+          <span className="chips-prefix">پیش‌فرض:</span>
+          {suggestedTypes.map(t => (
             <button
-              key={k}
+              key={t}
               type="button"
-              className={scoreKind === k ? 'active' : ''}
-              onClick={() => setScoreKind(k)}
+              className={title === t ? 'active' : ''}
+              onClick={() => setTitle(t)}
             >
-              {k}
+              {t}
             </button>
           ))}
         </div>
-        <div className="score-kind-hint">
-          {scoreKind === 'توصیفی' && <span>متن آزاد برای هر دانش‌آموز</span>}
-          {scoreKind === 'کمی' && (
-            <div className="score-kind-scales">
-              <span className="chips-prefix">پیش‌فرض:</span>
-              {quantitativeScales.map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  className={quantScale === s ? 'active' : ''}
-                  onClick={() => setQuantScale(s)}
-                >
-                  {s}
-                </button>
-              ))}
+
+        <div className="score-kind-card">
+          <div className="score-kind-label">نوع نمره</div>
+          <div className="score-kind-tabs">
+            {(['توصیفی', 'کمی', 'کیفی'] as const).map(k => (
               <button
+                key={k}
                 type="button"
-                className={`custom-range-btn ${quantScale.startsWith('custom:') ? 'active' : ''}`}
-                onClick={() => {
-                  setCustomMaxInput(quantScale.startsWith('custom:') ? quantScale.slice(7) : '')
-                  setCustomMaxOpen(true)
-                }}
+                className={scoreKind === k ? 'active' : ''}
+                onClick={() => setScoreKind(k)}
               >
-                بازه دلخواه
+                {k}
               </button>
-            </div>
-          )}
-          {scoreKind === 'کیفی' && <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>}
-        </div>
-      </div>
-        <div><strong className="green-text">{fa(filled)}</strong><span>واردشده</span></div>
-        <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
-      </div>
-      <div className="section-heading">
-        <strong>{title.trim() || 'نمره'}</strong>
-        <button
-          type="button"
-          className="group-score-btn"
-          onClick={() => { setGroupValue(''); setGroupOpen(true) }}
-        >
-          ثبت گروهی
-        </button>
-      </div>
-      {students.map((name, i) => (
-        <div className="student" key={name}>
-          <div className="student-avatar">{name[0]}</div>
-          <strong>{name}</strong>
-          {scoreKind === 'کمی' && (
-            <input
-              className="score-input"
-              inputMode="numeric"
-              placeholder={fa(maxScore)}
-              value={scores[i] !== undefined && scores[i] !== '' ? fa(scores[i]) : ''}
-              onChange={e => {
-                const raw = toEn(e.target.value).replace(/[^\d]/g, '')
-                if (raw && Number(raw) > maxScore) return
-                setScores(prev => ({ ...prev, [i]: raw }))
-              }}
-            />
-          )}
-          {scoreKind === 'توصیفی' && (
-            <input
-              className="score-input text-score"
-              type="text"
-              placeholder="توضیح..."
-              value={scores[i] || ''}
-              onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
-            />
-          )}
-          {scoreKind === 'کیفی' && (
-            <select
-              className="score-select"
-              value={scores[i] || ''}
-              onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
-            >
-              <option value="">انتخاب</option>
-              {qualitativeOptions.map(o => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-          )}
-        </div>
-      ))}
-    </main>
-    <div className="sticky-action">
-      <button onClick={openConfirm} disabled={vals.length === 0 || saved}>
-        {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
-      </button>
-    </div>
-
-    {confirmOpen && (
-      <div className="overlay group-grade-overlay" onClick={() => setConfirmOpen(false)}>
-        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
-          <div className="sheet-handle" />
-          <div className="sheet-title">
-            <div>
-              <strong>تأیید ثبت نمره</strong>
-              <span>تاریخ و ساعت برگزاری را مشخص کنید</span>
-            </div>
-            <IconButton icon="close" label="بستن" onClick={() => setConfirmOpen(false)} />
+            ))}
           </div>
-          <div className="group-grade-body">
-            <div className="two-fields">
-              <label className="field">
-                <span>تاریخ</span>
-                <input
-                  type="text"
-                  placeholder="۱۴۰۵/۰۸/۱۷"
-                  value={confirmDate}
-                  onChange={e => setConfirmDate(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>ساعت</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="۱۰:۳۰"
-                  value={confirmTime}
-                  onChange={e => setConfirmTime(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="score-kind-scales" style={{ marginTop: 4 }}>
-              <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>
-                همین الان
-              </button>
-            </div>
-            <p className="group-grade-hint">
-              {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind} ثبت می‌شود.
-            </p>
-          </div>
-          <div className="group-grade-footer">
-            <button type="button" className="secondary" onClick={() => setConfirmOpen(false)}>انصراف</button>
-            <button type="button" className="primary" onClick={handleRegister} disabled={saved}>
-              ثبت
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {customMaxOpen && (
-      <div className="overlay group-grade-overlay" onClick={() => setCustomMaxOpen(false)}>
-        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
-          <div className="sheet-handle" />
-          <div className="sheet-title">
-            <div>
-              <strong>بازه دلخواه</strong>
-              <span>حداکثر نمره را مشخص کنید (از ۰ تا این عدد)</span>
-            </div>
-            <IconButton icon="close" label="بستن" onClick={() => setCustomMaxOpen(false)} />
-          </div>
-          <div className="group-grade-body">
-            <label className="field">
-              <span>حداکثر نمره</span>
-              <input
-                autoFocus
-                inputMode="numeric"
-                placeholder="مثلاً ۲۵"
-                value={customMaxInput ? fa(customMaxInput) : ''}
-                onChange={e => {
-                  const raw = toEn(e.target.value).replace(/[^\d]/g, '')
-                  setCustomMaxInput(raw)
-                }}
-              />
-            </label>
-          </div>
-          <div className="group-grade-footer">
-            <button type="button" className="secondary" onClick={() => setCustomMaxOpen(false)}>انصراف</button>
-            <button
-              type="button"
-              className="primary"
-              disabled={!customMaxInput || Number(customMaxInput) <= 0}
-              onClick={() => {
-                if (!customMaxInput || Number(customMaxInput) <= 0) return
-                setQuantScale(`custom:${customMaxInput}`)
-                setCustomMaxOpen(false)
-              }}
-            >
-              تأیید
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {groupOpen && (
-      <div className="overlay group-grade-overlay" onClick={() => setGroupOpen(false)}>
-        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
-          <div className="sheet-handle" />
-          <div className="sheet-title">
-            <div>
-              <strong>ثبت گروهی · {scoreKind}</strong>
-              <span>یک مقدار برای همه دانش‌آموزان</span>
-            </div>
-            <IconButton icon="close" label="بستن" onClick={() => setGroupOpen(false)} />
-          </div>
-          <div className="group-grade-body">
+          <div className="score-kind-hint">
+            {scoreKind === 'توصیفی' && <span>متن آزاد برای هر دانش‌آموز</span>}
             {scoreKind === 'کمی' && (
-              <label className="field">
-                <span>نمره مشترک (از {fa(maxScore)})</span>
-                <input
-                  inputMode="numeric"
-                  placeholder={`مثلاً ${fa(maxScore)}`}
-                  value={groupValue ? fa(groupValue) : ''}
-                  onChange={e => {
-                    const raw = toEn(e.target.value).replace(/[^\d]/g, '')
-                    if (raw && Number(raw) > maxScore) return
-                    setGroupValue(raw)
-                  }}
-                />
-              </label>
-            )}
-            {scoreKind === 'توصیفی' && (
-              <label className="field">
-                <span>متن مشترک</span>
-                <textarea
-                  rows={3}
-                  placeholder="توضیح یکسان برای همه..."
-                  value={groupValue}
-                  onChange={e => setGroupValue(e.target.value)}
-                />
-              </label>
-            )}
-            {scoreKind === 'کیفی' && (
-              <div className="group-qual-options">
-                {qualitativeOptions.map(o => (
+              <div className="score-kind-scales">
+                <span className="chips-prefix">پیش‌فرض:</span>
+                {quantitativeScales.map(s => (
                   <button
-                    key={o}
+                    key={s}
                     type="button"
-                    className={groupValue === o ? 'active' : ''}
-                    onClick={() => setGroupValue(o)}
+                    className={quantScale === s ? 'active' : ''}
+                    onClick={() => setQuantScale(s)}
                   >
-                    {o}
+                    {s}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className={`custom-range-btn ${quantScale.startsWith('custom:') ? 'active' : ''}`}
+                  onClick={() => {
+                    setCustomMaxInput(quantScale.startsWith('custom:') ? quantScale.slice(7) : '')
+                    setCustomMaxOpen(true)
+                  }}
+                >
+                  بازه دلخواه
+                </button>
               </div>
             )}
-            <p className="group-grade-hint">
-              این مقدار برای هر {fa(students.length)} دانش‌آموز ثبت می‌شود و مقادیر قبلی را جایگزین می‌کند.
-            </p>
-          </div>
-          <div className="group-grade-footer">
-            <button type="button" className="secondary" onClick={() => setGroupOpen(false)}>انصراف</button>
-            <button
-              type="button"
-              className="primary"
-              disabled={!groupValue.trim()}
-              onClick={() => {
-                if (!groupValue.trim()) return
-                setScores(Object.fromEntries(students.map((_, i) => [i, groupValue.trim()])))
-                setGroupOpen(false)
-              }}
-            >
-              اعمال برای همه
-            </button>
+            {scoreKind === 'کیفی' && (
+              <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>
+            )}
           </div>
         </div>
+
+        <div className="section-heading">
+          <strong>{title.trim() || 'نمره'}</strong>
+          <button
+            type="button"
+            className="group-score-btn"
+            onClick={() => { setGroupValue(''); setGroupOpen(true) }}
+          >
+            ثبت گروهی
+          </button>
+        </div>
+
+        {students.map((name, i) => (
+          <div className="student" key={name}>
+            <div className="student-avatar">{name[0]}</div>
+            <strong>{name}</strong>
+            {scoreKind === 'کمی' && (
+              <input
+                className="score-input"
+                inputMode="numeric"
+                placeholder={fa(maxScore)}
+                value={scores[i] !== undefined && scores[i] !== '' ? fa(scores[i]) : ''}
+                onChange={e => {
+                  const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                  if (raw && Number(raw) > maxScore) return
+                  setScores(prev => ({ ...prev, [i]: raw }))
+                }}
+              />
+            )}
+            {scoreKind === 'توصیفی' && (
+              <input
+                className="score-input text-score"
+                type="text"
+                placeholder="توضیح..."
+                value={scores[i] || ''}
+                onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
+              />
+            )}
+            {scoreKind === 'کیفی' && (
+              <select
+                className="score-select"
+                value={scores[i] || ''}
+                onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
+              >
+                <option value="">انتخاب</option>
+                {qualitativeOptions.map(o => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        ))}
+      </main>
+
+      <div className="sticky-action">
+        <button type="button" onClick={openConfirm} disabled={vals.length === 0 || saved}>
+          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
+        </button>
       </div>
-    )}
-  </div>
+
+      {confirmOpen && (
+        <div className="overlay group-grade-overlay" onClick={() => setConfirmOpen(false)}>
+          <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>تأیید ثبت نمره</strong>
+                <span>تاریخ و ساعت برگزاری را مشخص کنید</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setConfirmOpen(false)} />
+            </div>
+            <div className="group-grade-body">
+              <div className="two-fields">
+                <label className="field">
+                  <span>تاریخ</span>
+                  <input type="text" placeholder="۱۴۰۵/۰۸/۱۷" value={confirmDate} onChange={e => setConfirmDate(e.target.value)} />
+                </label>
+                <label className="field">
+                  <span>ساعت</span>
+                  <input type="text" inputMode="numeric" placeholder="۱۰:۳۰" value={confirmTime} onChange={e => setConfirmTime(e.target.value)} />
+                </label>
+              </div>
+              <div className="score-kind-scales" style={{ marginTop: 4 }}>
+                <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>همین الان</button>
+              </div>
+              <p className="group-grade-hint">
+                {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind} ثبت می‌شود.
+              </p>
+            </div>
+            <div className="group-grade-footer">
+              <button type="button" className="secondary" onClick={() => setConfirmOpen(false)}>انصراف</button>
+              <button type="button" className="primary" onClick={handleRegister} disabled={saved}>ثبت</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {customMaxOpen && (
+        <div className="overlay group-grade-overlay" onClick={() => setCustomMaxOpen(false)}>
+          <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>بازه دلخواه</strong>
+                <span>حداکثر نمره را مشخص کنید (از ۰ تا این عدد)</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setCustomMaxOpen(false)} />
+            </div>
+            <div className="group-grade-body">
+              <label className="field">
+                <span>حداکثر نمره</span>
+                <input
+                  autoFocus
+                  inputMode="numeric"
+                  placeholder="مثلاً ۲۵"
+                  value={customMaxInput ? fa(customMaxInput) : ''}
+                  onChange={e => setCustomMaxInput(toEn(e.target.value).replace(/[^\d]/g, ''))}
+                />
+              </label>
+            </div>
+            <div className="group-grade-footer">
+              <button type="button" className="secondary" onClick={() => setCustomMaxOpen(false)}>انصراف</button>
+              <button
+                type="button"
+                className="primary"
+                disabled={!customMaxInput || Number(customMaxInput) <= 0}
+                onClick={() => {
+                  if (!customMaxInput || Number(customMaxInput) <= 0) return
+                  setQuantScale(`custom:${customMaxInput}`)
+                  setCustomMaxOpen(false)
+                }}
+              >
+                تأیید
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {groupOpen && (
+        <div className="overlay group-grade-overlay" onClick={() => setGroupOpen(false)}>
+          <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>ثبت گروهی · {scoreKind}</strong>
+                <span>یک مقدار برای همه دانش‌آموزان</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setGroupOpen(false)} />
+            </div>
+            <div className="group-grade-body">
+              {scoreKind === 'کمی' && (
+                <label className="field">
+                  <span>نمره مشترک (از {fa(maxScore)})</span>
+                  <input
+                    inputMode="numeric"
+                    placeholder={`مثلاً ${fa(maxScore)}`}
+                    value={groupValue ? fa(groupValue) : ''}
+                    onChange={e => {
+                      const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                      if (raw && Number(raw) > maxScore) return
+                      setGroupValue(raw)
+                    }}
+                  />
+                </label>
+              )}
+              {scoreKind === 'توصیفی' && (
+                <label className="field">
+                  <span>متن مشترک</span>
+                  <textarea
+                    rows={3}
+                    placeholder="توضیح یکسان برای همه..."
+                    value={groupValue}
+                    onChange={e => setGroupValue(e.target.value)}
+                  />
+                </label>
+              )}
+              {scoreKind === 'کیفی' && (
+                <div className="group-qual-options">
+                  {qualitativeOptions.map(o => (
+                    <button
+                      key={o}
+                      type="button"
+                      className={groupValue === o ? 'active' : ''}
+                      onClick={() => setGroupValue(o)}
+                    >
+                      {o}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="group-grade-hint">
+                این مقدار برای هر {fa(students.length)} دانش‌آموز ثبت می‌شود و مقادیر قبلی را جایگزین می‌کند.
+              </p>
+            </div>
+            <div className="group-grade-footer">
+              <button type="button" className="secondary" onClick={() => setGroupOpen(false)}>انصراف</button>
+              <button
+                type="button"
+                className="primary"
+                disabled={!groupValue.trim()}
+                onClick={() => {
+                  if (!groupValue.trim()) return
+                  setScores(Object.fromEntries(students.map((_, i) => [i, groupValue.trim()])))
+                  setGroupOpen(false)
+                }}
+              >
+                اعمال برای همه
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 type StatCategory = {
