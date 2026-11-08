@@ -975,15 +975,12 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div className="sub-header-title" style={{ flex: '1 1 0%', minWidth: 0, overflow: 'hidden' }}><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
-      <div className="sub-header-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flex: '0 0 auto', width: 'auto', minWidth: 'max-content', paddingRight: 0, whiteSpace: 'nowrap' }}>
-        {showSearchBtn && (
-          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
-        )}
+      <div className="sub-header-actions" style={{ display: 'flex', flexDirection: 'row', direction: 'ltr', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flex: '0 0 auto', width: 'auto', minWidth: 'max-content', paddingRight: 0, whiteSpace: 'nowrap' }}>
         {rightText ? (
           <button
             type="button"
             className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
-            style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{ flex: '0 0 auto', whiteSpace: 'nowrap', direction: 'rtl' }}
             onClick={onRightClick}
             aria-label={rightText}
           >
@@ -992,6 +989,9 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
         ) : !showSearchBtn ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
         ) : null}
+        {showSearchBtn && (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        )}
       </div>
     </header>
   )
