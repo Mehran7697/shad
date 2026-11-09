@@ -1450,6 +1450,13 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [groupScore, setGroupScore] = useState('')
   const [feedbackIndex, setFeedbackIndex] = useState<number | null>(null)
   const [feedbackDraft, setFeedbackDraft] = useState('')
+  const [feedbackScoreKind, setFeedbackScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
+  const [feedbackQuantScale, setFeedbackQuantScale] = useState('۲۰/۰')
+  const [feedbackScoreValue, setFeedbackScoreValue] = useState('')
+  const qualitativeFeedbackOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
+  const feedbackMaxScore = feedbackQuantScale.startsWith('custom:')
+    ? Number(feedbackQuantScale.slice(7)) || 20
+    : feedbackQuantScale.startsWith('۲۰') ? 20 : feedbackQuantScale.startsWith('۱۰') ? 10 : 5
 
   const submittedCount = rows.filter(r => r.status === 'تحویل').length
   const updateRow = (index: number, patch: Partial<(typeof rows)[0]>) => {
@@ -2200,6 +2207,98 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 </span>
               </button>
             </div>
+
+            {!isStudent && (
+              <div className="sap-section">
+                <div className="score-kind-card" style={{ marginBottom: 0 }}>
+                  <div className="score-kind-label">نوع نمره</div>
+                  <div className="score-kind-tabs">
+                    {(['کمی', 'توصیفی', 'کیفی'] as const).map(k => (
+                      <button
+                        key={k}
+                        type="button"
+                        className={feedbackScoreKind === k ? 'active' : ''}
+                        onClick={() => {
+                          setFeedbackScoreKind(k)
+                          setFeedbackScoreValue('')
+                        }}
+                      >
+                        {k === 'توصیفی' ? 'کیفی' : k === 'کیفی' ? 'توصیفی' : k}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="score-kind-hint">
+                    {feedbackScoreKind === 'توصیفی' && <span>متن آزاد برای نمره توصیفی</span>}
+                    {feedbackScoreKind === 'کمی' && (
+                      <div className="score-kind-scales">
+                        <span className="chips-prefix">پیش‌فرض:</span>
+                        {['۲۰/۰', '۱۰/۰', '۵/۰'].map(s => (
+                          <button
+                            key={s}
+                            type="button"
+                            className={feedbackQuantScale === s ? 'active' : ''}
+                            onClick={() => setFeedbackQuantScale(s)}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {feedbackScoreKind === 'کیفی' && (
+                      <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>
+                    )}
+                  </div>
+
+                  {feedbackScoreKind === 'کمی' && (
+                    <label className="field" style={{ marginTop: 10, marginBottom: 0 }}>
+                      <span>نمره (از {fa(feedbackMaxScore)})</span>
+                      <input
+                        inputMode="numeric"
+                        placeholder={fa(feedbackMaxScore)}
+                        value={feedbackScoreValue ? fa(feedbackScoreValue) : (row.score ? fa(row.score) : '')}
+                        onChange={e => {
+                          const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                          if (raw && Number(raw) > feedbackMaxScore) return
+                          setFeedbackScoreValue(raw)
+                          updateRow(feedbackIndex, { score: raw })
+                        }}
+                      />
+                    </label>
+                  )}
+                  {feedbackScoreKind === 'توصیفی' && (
+                    <label className="field" style={{ marginTop: 10, marginBottom: 0 }}>
+                      <span>نمره توصیفی</span>
+                      <input
+                        type="text"
+                        placeholder="توضیح نمره..."
+                        value={feedbackScoreValue || row.score}
+                        onChange={e => {
+                          setFeedbackScoreValue(e.target.value)
+                          updateRow(feedbackIndex, { score: e.target.value })
+                        }}
+                      />
+                    </label>
+                  )}
+                  {feedbackScoreKind === 'کیفی' && (
+                    <div className="group-qual-options" style={{ marginTop: 10 }}>
+                      {qualitativeFeedbackOptions.map(o => (
+                        <button
+                          key={o}
+                          type="button"
+                          className={(feedbackScoreValue || row.score) === o ? 'active' : ''}
+                          onClick={() => {
+                            setFeedbackScoreValue(o)
+                            updateRow(feedbackIndex, { score: o })
+                          }}
+                        >
+                          {o}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="student-answer-footer">
