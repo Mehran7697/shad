@@ -976,9 +976,6 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
       <div className="sub-header-actions">
-        {showSearchBtn && (
-          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
-        )}
         {rightText ? (
           <button
             type="button"
@@ -988,7 +985,10 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           >
             {rightText}
           </button>
-        ) : !showSearchBtn ? (
+        ) : null}
+        {showSearchBtn ? (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        ) : !rightText ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
         ) : null}
       </div>
