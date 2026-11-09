@@ -3143,7 +3143,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 className={scoreKind === k ? 'active' : ''}
                 onClick={() => setScoreKind(k)}
               >
-                {k}
+                {k === 'توصیفی' ? 'کیفی' : k === 'کیفی' ? 'توصیفی' : k}
               </button>
             ))}
           </div>
@@ -3265,7 +3265,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>همین الان</button>
               </div>
               <p className="group-grade-hint">
-                {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind} ثبت می‌شود.
+                {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind === 'توصیفی' ? 'کیفی' : scoreKind === 'کیفی' ? 'توصیفی' : scoreKind} ثبت می‌شود.
               </p>
             </div>
             <div className="group-grade-footer">
@@ -3324,7 +3324,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
             <div className="sheet-handle" />
             <div className="sheet-title">
               <div>
-                <strong>ثبت گروهی · {scoreKind}</strong>
+                <strong>ثبت گروهی · {scoreKind === 'توصیفی' ? 'کیفی' : scoreKind === 'کیفی' ? 'توصیفی' : scoreKind}</strong>
                 <span>یک مقدار برای همه دانش‌آموزان</span>
               </div>
               <IconButton icon="close" label="بستن" onClick={() => setGroupOpen(false)} />
