@@ -663,7 +663,8 @@
 .schedule-table tbody tr:last-child th, .schedule-table tbody tr:last-child td { border-bottom: 0; }
 .schedule-table th:last-child, .schedule-table td:last-child { border-left: 0; }
 .schedule-day-name { width: 74px; background: #fbfdfc; color: var(--ink); font-size: 11px; font-weight: 800; white-space: nowrap; }
-.schedule-class-cell { min-height: 62px; padding: 8px 5px; border-radius: 9px; display: flex; flex-direction: column; justify-content: center; gap: 5px; text-align: right; }
+.schedule-class-cell { width: 100%; min-height: 62px; padding: 8px 5px; border: 0; border-radius: 9px; display: flex; flex-direction: column; justify-content: center; gap: 5px; text-align: right; cursor: pointer; transition: .15s; }
+.schedule-class-cell:active { transform: scale(.98); opacity: .92; }
 .schedule-class-cell strong { font-size: 10px; line-height: 1.6; }
 .schedule-class-cell span { color: var(--muted); font-size: 8px; line-height: 1.5; }
 .schedule-class-cell.green { background: #e8f7f2; color: #087a5e; }

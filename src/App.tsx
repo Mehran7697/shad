@@ -2723,10 +2723,17 @@ function MainSection({ screen, navigate, role, setRole }: { screen: Screen; navi
                 {scheduleTimes.map(time => {
                   const item = dayClasses.find(entry => entry.time === time)
                   return <td key={`${dayName}-${time}`}>
-                    {item ? <div className={`schedule-class-cell ${item.color}`}>
-                      <strong>{item.title}</strong>
-                      <span>{item.info}</span>
-                    </div> : <span className="schedule-empty-cell">—</span>}
+                    {item ? (
+                      <button
+                        type="button"
+                        className={`schedule-class-cell ${item.color}`}
+                        onClick={() => navigate('chat')}
+                        aria-label={`ورود به چت ${item.title}`}
+                      >
+                        <strong>{item.title}</strong>
+                        <span>{item.info}</span>
+                      </button>
+                    ) : <span className="schedule-empty-cell">—</span>}
                   </td>
                 })}
               </tr>
