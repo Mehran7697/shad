@@ -1019,6 +1019,9 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
       <div className="sub-header-actions">
+        {showSearchBtn && (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        )}
         {rightText ? (
           <button
             type="button"
@@ -1028,10 +1031,7 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           >
             {rightText}
           </button>
-        ) : null}
-        {showSearchBtn ? (
-          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
-        ) : !rightText ? (
+        ) : !showSearchBtn ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
         ) : null}
       </div>
@@ -1205,7 +1205,7 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
 }
 
 function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
-  void role
+  const isStudent = role === 'student'
   const weekDays = [
     'شنبه',
     'یکشنبه',
@@ -1364,7 +1364,15 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
                       <div>
                         <strong>{item.t}</strong>
                         <small>گروه درسی: {item.subject} · {item.m}</small>
-                        <span>{item.s}</span>
+                        <span>{isStudent
+                          ? (item.s.includes('منتشر')
+                              ? 'هنوز شروع نشده'
+                              : item.s.startsWith('۰') || item.s.startsWith('0')
+                                ? 'ارسال نشده'
+                                : item.s.includes('۲۶') || item.s.includes('۲۸')
+                                  ? 'ارسال شده · مشاهده بازخورد'
+                                  : 'در انتظار بازخورد')
+                          : item.s}</span>
                       </div>
 
                       <Icon name="chevron" />
@@ -1372,7 +1380,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
                   ))
                 ) : (
                   <div className="assignment-day-empty">
-                    تکلیفی برای این روز ثبت نشده است.
+                    {isStudent ? 'تکلیفی برای این روز ندارید.' : 'تکلیفی برای این روز ثبت نشده است.'}
                   </div>
                 )}
               </section>
@@ -1381,13 +1389,15 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
         </div>
       </main>
 
-      <button
-        className="fab"
-        aria-label="ایجاد تکلیف"
-        onClick={() => navigate('assignment-create')}
-      >
-        <Icon name="plus" />
-      </button>
+      {!isStudent && (
+        <button
+          className="fab"
+          aria-label="ایجاد تکلیف"
+          onClick={() => navigate('assignment-create')}
+        >
+          <Icon name="plus" />
+        </button>
+      )}
     </div>
   )
 }
@@ -2226,7 +2236,7 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
 }
 
 function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
-  void role
+  const isStudent = role === 'student'
   const weekDays = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه']
 
   const addDays = (date: Date, amount: number) => {
@@ -2312,14 +2322,20 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                 </div>
                 {items.length ? (
                   items.map(item => (
-                    <button className="resource" key={item.t} onClick={() => navigate('exam-create')}>
+                    <button className="resource" key={item.t} onClick={() => navigate(isStudent ? 'exam' : 'exam-create')}>
                       <span className={`resource-icon ${item.color}`}>
                         <Icon name="exam" />
                       </span>
                       <div>
                         <strong>{item.t}</strong>
                         <small>{item.m}</small>
-                        <span>{item.s}</span>
+                        <span>{isStudent
+                          ? (item.s.includes('منتشر')
+                              ? 'هنوز شروع نشده'
+                              : item.s.includes('۱۸')
+                                ? 'شرکت کرده‌اید'
+                                : 'آماده شرکت')
+                          : item.s}</span>
                       </div>
                       <Icon name="chevron" />
                     </button>
@@ -2406,7 +2422,8 @@ let attendanceHistoryStore: AttendanceRecord[] = [
   },
 ]
 
-function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+  const isStudent = role === 'student'
   const [view, setView] = useState<'list' | 'register' | 'detail'>('list')
   const [history, setHistory] = useState<AttendanceRecord[]>(attendanceHistoryStore)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -2423,7 +2440,7 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
   }, [])
 
   const active = history.find(h => h.id === activeId) || null
-  const canEdit = active ? Date.now() - active.createdAt <= 24 * 60 * 60 * 1000 : false
+  const canEdit = !isStudent && active ? Date.now() - active.createdAt <= 24 * 60 * 60 * 1000 : false
 
   const openDetail = (id: string) => {
     const rec = history.find(h => h.id === id)
@@ -2502,9 +2519,11 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
         <SubHeader
           screen="attendance"
           back={goBack}
-          rightIcon="clock"
-          rightLabel="تاریخچه و خروجی"
-          onRightClick={() => setExportOpen(true)}
+          rightIcon={isStudent ? 'more' : 'clock'}
+          rightLabel={isStudent ? 'بیشتر' : 'تاریخچه و خروجی'}
+          onRightClick={isStudent ? undefined : () => setExportOpen(true)}
+          title={isStudent ? 'حضور و غیاب من' : undefined}
+          subtitle={isStudent ? 'وضعیت حضور شما' : undefined}
         />
         <div className="att-datetime-bar">
           <div>
@@ -2545,9 +2564,11 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
             </div>
           )}
         </main>
+        {!isStudent && (
         <button className="fab" aria-label="ثبت حضور و غیاب جدید" onClick={startRegister}>
           <Icon name="plus" />
         </button>
+      )}
 
         {exportOpen && (
           <div className="overlay group-grade-overlay" onClick={() => setExportOpen(false)}>
@@ -2616,19 +2637,19 @@ function Attendance({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
             <button type="button" onClick={() => setStatus(Object.fromEntries(students.map((_, i) => [i, 'حاضر'])))}>همه حاضر</button>
           )}
         </div>
-        {students.map((name, i) => (
+        {(isStudent ? students.slice(0, 1) : students).map((name, i) => (
           <div className="student" key={name}>
             <div className="student-avatar">{name[0]}</div>
-            <strong>{name}</strong>
+            <strong>{isStudent ? 'شما · ' + name : name}</strong>
             <div>
               {['حاضر', 'غایب', 'تأخیر'].map(s => (
                 <button
                   key={s}
                   type="button"
                   className={`${s} ${status[i] === s ? 'active' : ''}`}
-                  disabled={view === 'detail' && !canEdit}
+                  disabled={isStudent || (view === 'detail' && !canEdit)}
                   onClick={() => {
-                    if (view === 'detail' && !canEdit) return
+                    if (isStudent || (view === 'detail' && !canEdit)) return
                     setStatus({ ...status, [i]: s })
                   }}
                 >
@@ -2765,13 +2786,18 @@ const classSections: { title: string; sub: string; icon: IconName; screen: Scree
   { title: 'تکالیف', sub: '۲ تکلیف فعال', icon: 'book', screen: 'assignments' },
   { title: 'آزمون‌ها', sub: '۱ آزمون پیش‌رو', icon: 'exam', screen: 'exam' },
   { title: 'منابع کلاسی', sub: '۴ فایل این هفته', icon: 'file', screen: 'materials' },
-  { title: 'حضور و غیاب', sub: 'ثبت امروز', icon: 'attendance', screen: 'attendance' },
-  { title: 'دفتر نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
 ]
 
 function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
-  void role
-  const visibleSections = classSections
+  const isStudent = role === 'student'
+  const visibleSections = isStudent
+    ? [
+        { title: 'تکالیف من', sub: 'ارسال و پیگیری', icon: 'book' as IconName, screen: 'assignments' as Screen },
+        { title: 'آزمون‌ها', sub: 'برنامه و نتایج', icon: 'exam' as IconName, screen: 'exam' as Screen },
+        { title: 'منابع کلاسی', sub: 'جزوه و فایل‌ها', icon: 'file' as IconName, screen: 'materials' as Screen },
+        { title: 'برنامه کلاسی', sub: 'ساعات درسی', icon: 'calendar' as IconName, screen: 'schedule' as Screen },
+      ]
+    : classSections
   const [mediaTab, setMediaTab] = useState('نمای کلی')
   const mediaTabs = ['نمای کلی', 'رسانه', 'فایل‌ها', 'لینک‌ها', 'موسیقی', 'صدا', 'گیف‌ها']
   const mediaContent: Record<string, { t: string; m: string; i: IconName }[]> = {
@@ -2845,11 +2871,13 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
                 <strong>{x.title}</strong>
                 <small>{x.sub}</small>
               </button>)}
-              <button onClick={() => navigate('reports')}>
-                <span><Icon name="chart" /></span>
-                <strong>گزارش‌های کلاس</strong>
-                <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
-              </button>
+              {!isStudent && (
+                <button onClick={() => navigate('reports')}>
+                  <span><Icon name="chart" /></span>
+                  <strong>گزارش‌های کلاس</strong>
+                  <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
+                </button>
+              )}
             </div>
           ) : mediaTab === 'رسانه' ? (
             <div className="media-overview">
@@ -2914,7 +2942,8 @@ function nowShamsi() {
   }
 }
 
-function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+  const isStudent = role === 'student'
   const [, setTick] = useState(0)
   const [filterDate, setFilterDate] = useState('')
   const [selected, setSelected] = useState<GradeEntry | null>(null)
@@ -2940,7 +2969,7 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
       <SubHeader
         screen="gradebook"
         back={() => setSelected(null)}
-        rightText="ویرایش"
+        rightText={isStudent ? undefined : 'ویرایش'}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
         searchOpen={searchOpen}
@@ -2977,14 +3006,16 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     <SubHeader
       screen="gradebook"
       back={goBack}
-      rightText="خروجی"
+      rightText={isStudent ? undefined : 'خروجی'}
       showSearchBtn
       onSearchClick={() => setSearchOpen(true)}
       searchOpen={searchOpen}
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
       onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
-      searchPlaceholder="جست‌وجو در عناوین نمره..."
+      searchPlaceholder={isStudent ? 'جست‌وجو در نمرات من...' : 'جست‌وجو در عناوین نمره...'}
+      title={isStudent ? 'نمرات من' : undefined}
+      subtitle={isStudent ? 'علوم تجربی · پایه نهم' : undefined}
     />
     <div className="grade-fixed-date">
       <Icon name="calendar" size={16} />
@@ -3033,11 +3064,13 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
         <div className="empty grade-empty">
           <Icon name="chart" size={40} />
           <strong>هنوز نمره‌ای ثبت نشده</strong>
-          <span>با دکمهٔ + پایین صفحه، عنوان نمره را انتخاب و نمرات را وارد کنید.</span>
+          <span>{isStudent ? 'وقتی معلم نمره ثبت کند اینجا نمایش داده می‌شود.' : 'با دکمهٔ + پایین صفحه، عنوان نمره را انتخاب و نمرات را وارد کنید.'}</span>
         </div>
       )}
     </main>
-    <button className="fab" aria-label="ثبت نمرهٔ جدید" onClick={() => navigate('grade-register')}><Icon name="plus" /></button>
+    {!isStudent && (
+      <button className="fab" aria-label="ثبت نمرهٔ جدید" onClick={() => navigate('grade-register')}><Icon name="plus" /></button>
+    )}
   </div>
 }
 
@@ -4196,9 +4229,9 @@ export default function App() {
     {screen === 'assignments' && <Assignments navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'exam' && <Exam navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'exam-create' && <ExamCreate goBack={goBack}/>}
-    {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack}/>}
+    {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack}/>}
+    {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
     {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
