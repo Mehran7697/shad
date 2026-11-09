@@ -958,7 +958,7 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   materials: { title: 'منابع کلاسی', subtitle: 'کلاس علوم تجربی' },
   assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   'assignment-create': { title: 'ایجاد تکلیف', subtitle: 'فعالیت جدید برای کلاس' },
-  exam: { title: 'آزمون‌ها', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
+  exam: { title: 'آزمون‌ها', subtitle: 'کلاس ۹۰۱' },
   'exam-create': { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
   assignments: { title: 'تکالیف', subtitle: 'همه دروس · این هفته' },
@@ -2267,6 +2267,8 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
     }).format(date)
 
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const weekStart = getSaturday(selectedDate)
   const weekDates = weekDays.map((_, index) => addDays(weekStart, index))
   const weekEnd = weekDates[4]
@@ -2279,9 +2281,23 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
     { t: 'کوییز آنلاین علوم', day: 1, m: 'شروع: یکشنبه، ۱۴:۰۰', s: 'مدت: ۱۰ دقیقه · ۱۸ از ۲۸ شرکت', color: 'mint' },
   ]
 
+  const filteredData = searchQuery.trim()
+    ? data.filter(item => item.t.includes(searchQuery.trim()) || item.m.includes(searchQuery.trim()))
+    : data
+
   return (
     <div className="screen inner-screen">
-      <SubHeader screen="exam" back={goBack} />
+      <SubHeader
+        screen="exam"
+        back={goBack}
+        showSearchBtn
+        onSearchClick={() => setSearchOpen(true)}
+        searchOpen={searchOpen}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
+        searchPlaceholder="جست‌وجو در آزمون‌ها..."
+      />
       <main className="inner-content">
         <div className="assignment-week-navigation">
           <button type="button" className="assignment-week-arrow" onClick={() => setSelectedDate(addDays(weekStart, -7))}>
@@ -2312,7 +2328,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
 
         <div className="assignment-week-list">
           {weekDays.map((dayName, dayIndex) => {
-            const items = data.filter(item => item.day === dayIndex)
+            const items = filteredData.filter(item => item.day === dayIndex)
             return (
               <section className="assignment-day-section" key={dayName}>
                 <div className="assignment-day-title">
