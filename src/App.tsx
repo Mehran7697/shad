@@ -974,13 +974,15 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
   return (
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
-      <div className="sub-header-title" style={{ flex: '1 1 0%', minWidth: 0, overflow: 'hidden' }}><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
-      <div className="sub-header-actions" style={{ display: 'flex', flexDirection: 'row', direction: 'ltr', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flex: '0 0 auto', width: 'auto', minWidth: 'max-content', paddingRight: 0, whiteSpace: 'nowrap' }}>
+      <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
+      <div className="sub-header-actions">
+        {showSearchBtn && (
+          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
+        )}
         {rightText ? (
           <button
             type="button"
             className={`header-text-btn ${rightText === 'خروجی' ? 'is-export' : rightText === 'ویرایش' ? 'is-edit' : ''}`}
-            style={{ flex: '0 0 auto', whiteSpace: 'nowrap', direction: 'rtl' }}
             onClick={onRightClick}
             aria-label={rightText}
           >
@@ -989,9 +991,6 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
         ) : !showSearchBtn ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
         ) : null}
-        {showSearchBtn && (
-          <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
-        )}
       </div>
     </header>
   )
@@ -2898,7 +2897,6 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [, setTick] = useState(0)
   const [filterDate, setFilterDate] = useState('')
   const [selected, setSelected] = useState<GradeEntry | null>(null)
-  const [editingSelected, setEditingSelected] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const history = gradeHistoryStore
@@ -2916,17 +2914,12 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
     return () => clearInterval(id)
   }, [])
 
-  if (selected && editingSelected) {
-    return <GradeRegister goBack={() => setEditingSelected(false)} initialEntry={selected} onSave={(updated) => { gradeHistoryStore = gradeHistoryStore.map(item => item.id === updated.id ? updated : item); setSelected(updated); setEditingSelected(false) }} />
-  }
-
   if (selected) {
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
         back={() => setSelected(null)}
         rightText="ویرایش"
-        onRightClick={() => setEditingSelected(true)}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
         searchOpen={searchOpen}
@@ -3027,23 +3020,23 @@ function Gradebook({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   </div>
 }
 
-function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen) => void; goBack: () => void; initialEntry?: GradeEntry; onSave?: (entry: GradeEntry) => void }) {
+function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
   const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
-  const [title, setTitle] = useState(() => initialEntry?.type.replace(/ · (توصیفی|کمی|کیفی)$/, '') || '')
-  const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>(() => (initialEntry?.type.match(/ · (توصیفی|کمی|کیفی)$/)?.[1] as 'توصیفی' | 'کمی' | 'کیفی') || 'کمی')
+  const [title, setTitle] = useState('')
+  const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
   const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [customMaxOpen, setCustomMaxOpen] = useState(false)
   const [customMaxInput, setCustomMaxInput] = useState('')
-  const [scores, setScores] = useState<Record<number, string>>(() => initialEntry ? { ...initialEntry.scores } : {})
+  const [scores, setScores] = useState<Record<number, string>>({})
   const [now, setNow] = useState(() => nowShamsi())
   const [saved, setSaved] = useState(false)
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupValue, setGroupValue] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [confirmDate, setConfirmDate] = useState(() => initialEntry?.date || nowShamsi().date)
-  const [confirmTime, setConfirmTime] = useState(() => initialEntry?.time || nowShamsi().time)
+  const [confirmDate, setConfirmDate] = useState(() => nowShamsi().date)
+  const [confirmTime, setConfirmTime] = useState(() => nowShamsi().time)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -3069,8 +3062,8 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
 
   const openConfirm = () => {
     if (vals.length === 0) return
-    setConfirmDate(initialEntry?.date || now.date)
-    setConfirmTime(initialEntry?.time || now.time)
+    setConfirmDate(now.date)
+    setConfirmTime(now.time)
     setConfirmOpen(true)
   }
 
@@ -3078,27 +3071,23 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
     const type = title.trim() || 'نمره'
     if (vals.length === 0) return
     const entry: GradeEntry = {
-      id: initialEntry?.id || `${Date.now()}`,
+      id: `${Date.now()}`,
       type: `${type} · ${scoreKind}`,
       date: confirmDate || now.date,
       time: confirmTime || now.time,
       scores: { ...scores },
       avg: String(avg),
     }
-    if (initialEntry && onSave) onSave(entry)
-    else gradeHistoryStore = [entry, ...gradeHistoryStore]
+    gradeHistoryStore = [entry, ...gradeHistoryStore]
     setConfirmOpen(false)
     setSaved(true)
-    if (!initialEntry) setTimeout(() => goBack(), 900)
-    else setTimeout(() => goBack(), 500)
+    setTimeout(() => goBack(), 900)
   }
 
   return (
     <div className="screen inner-screen">
       <SubHeader
         screen="grade-register"
-        title={initialEntry ? 'ویرایش نمره' : 'ثبت نمره'}
-        subtitle={initialEntry ? 'اصلاح اطلاعات و نمرات ثبت‌شده' : 'علوم تجربی · کلاس ۹۰۱'}
         back={goBack}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
@@ -3108,11 +3097,11 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
         onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
         searchPlaceholder="جست‌وجوی دانش‌آموز..."
       />
-      {!initialEntry && <div className="grade-fixed-date">
+      <div className="grade-fixed-date">
         <Icon name="calendar" size={16} />
         <strong>{now.date}</strong>
         <span>{now.time}</span>
-      </div>}
+      </div>
       <main className="inner-content">
         <div className="attendance-summary">
           <div><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
@@ -3147,7 +3136,7 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
         <div className="score-kind-card">
           <div className="score-kind-label">نوع نمره</div>
           <div className="score-kind-tabs">
-            {(['توصیفی', 'کمی', 'کیفی'] as const).map(k => (
+            {(['کمی', 'توصیفی', 'کیفی'] as const).map(k => (
               <button
                 key={k}
                 type="button"
@@ -3246,7 +3235,7 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
 
       <div className="sticky-action">
         <button type="button" onClick={openConfirm} disabled={vals.length === 0 || saved}>
-          {saved ? <><Icon name="check" /> ثبت شد</> : initialEntry ? 'ثبت تغییرات' : `ثبت ${title.trim() || 'نمره'}`}
+          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
         </button>
       </div>
 
@@ -3256,7 +3245,7 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
             <div className="sheet-handle" />
             <div className="sheet-title">
               <div>
-                <strong>{initialEntry ? 'تأیید ثبت تغییرات' : 'تأیید ثبت نمره'}</strong>
+                <strong>تأیید ثبت نمره</strong>
                 <span>تاریخ و ساعت برگزاری را مشخص کنید</span>
               </div>
               <IconButton icon="close" label="بستن" onClick={() => setConfirmOpen(false)} />
@@ -3281,7 +3270,7 @@ function GradeRegister({ goBack, initialEntry, onSave }: { navigate?: (s: Screen
             </div>
             <div className="group-grade-footer">
               <button type="button" className="secondary" onClick={() => setConfirmOpen(false)}>انصراف</button>
-              <button type="button" className="primary" onClick={handleRegister} disabled={saved}>{initialEntry ? 'ثبت تغییرات' : 'ثبت'}</button>
+              <button type="button" className="primary" onClick={handleRegister} disabled={saved}>ثبت</button>
             </div>
           </div>
         </div>
