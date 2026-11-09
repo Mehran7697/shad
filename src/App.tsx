@@ -207,6 +207,7 @@ type IconName =
   | 'board'
   | 'platform'
   | 'logout'
+  | 'bag'
 
 const paths: Record<IconName, React.ReactNode> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
@@ -250,6 +251,7 @@ const paths: Record<IconName, React.ReactNode> = {
   board: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 19h18M7 9h1M13 9h1M7 15h1M13 15h1M11 9h1" /></>,
   platform: <><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></>,
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></>,
+  bag: <><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10Z" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5" /></>,
 }
 
 function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
@@ -624,6 +626,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
   const [scoreDesc, setScoreDesc] = useState('')
   const [scoreSuccess, setScoreSuccess] = useState(false)
   const [showCallPopup, setShowCallPopup] = useState(false)
+  const [bagOpen, setBagOpen] = useState(false)
   const [activityOpen, setActivityOpen] = useState(true)
   const [saveSheetOpen, setSaveSheetOpen] = useState(false)
   const [saveTargetId, setSaveTargetId] = useState<string | null>(null)
@@ -685,7 +688,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
         <strong>کلاس تجربی<span className="verified"><Icon name="check" size={11} /></span></strong>
         <span>۲۸ عضو، ۶ نفر آنلاین</span>
       </button>
-      <IconButton icon="phone" label="تماس صوتی" onClick={() => setShowCallPopup(true)} />
+      <IconButton icon="bag" label="کیف / کوله پشتی" onClick={() => setBagOpen(true)} />
       <IconButton icon="more" label="گزینه‌های بیشتر" />
     </header>
     {started && <div className="live-banner" onClick={() => navigate('call')}>
@@ -774,6 +777,46 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
       }}
     />
     {toast && <div className="toast">{toast}</div>}
+    {bagOpen && (
+      <div className="overlay" style={{ alignItems: 'center' }} onClick={() => setBagOpen(false)}>
+        <section
+          className="bottom-sheet"
+          style={{ borderRadius: 22, margin: '0 16px', maxWidth: 360, width: '100%', paddingBottom: 20 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>کیف ابزار کلاس</strong>
+              <span>یک گزینه را انتخاب کنید</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setBagOpen(false)} />
+          </div>
+          <div className="tool-grid">
+            <button type="button" onClick={() => { setBagOpen(false); navigate('assignment-create') }}>
+              <span><Icon name="book" /></span>
+              <strong>ایجاد تکلیف</strong>
+            </button>
+            <button type="button" onClick={() => { setBagOpen(false); navigate('exam-create') }}>
+              <span><Icon name="exam" /></span>
+              <strong>ایجاد آزمون</strong>
+            </button>
+            <button type="button" onClick={() => { setBagOpen(false); navigate('gradebook') }}>
+              <span><Icon name="chart" /></span>
+              <strong>دفتر نمره</strong>
+            </button>
+            <button type="button" onClick={() => { setBagOpen(false); navigate('classroom') }}>
+              <span><Icon name="classes" /></span>
+              <strong>ورود به کلاس</strong>
+            </button>
+            <button type="button" onClick={() => { setBagOpen(false); setShowCallPopup(true) }}>
+              <span><Icon name="phone" /></span>
+              <strong>گفتگوی صوتی</strong>
+            </button>
+          </div>
+        </section>
+      </div>
+    )}
     {showCallPopup && <div className="overlay" onClick={() => setShowCallPopup(false)}>
       <section className="bottom-sheet call-popup" onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />
@@ -918,7 +961,7 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   exam: { title: 'آزمون‌ها', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   'exam-create': { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
-  assignments: { title: 'تکالیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
+  assignments: { title: 'تکالیف', subtitle: 'همه دروس · این هفته' },
   gradebook: { title: 'دفتر نمره', subtitle: 'علوم تجربی · نیم‌ترم اول' },
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
@@ -1212,42 +1255,20 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
     m: string
     s: string
     color: string
+    subject: string
   }[] = [
-    {
-      t: 'تمرین فصل سوم',
-      day: 2,
-      m: 'مهلت: دوشنبه، ۲۰:۰۰',
-      s: '۰ از ۲۸ تحویل',
-      color: 'green',
-    },
-    {
-      t: 'گزارش آزمایش فشار هوا',
-      day: 4,
-      m: 'مهلت: چهارشنبه، ۱۸:۰۰',
-      s: '۱۲ از ۲۸ تحویل',
-      color: 'blue',
-    },
-    {
-      t: 'پروژه نمودار چرخه آب',
-      day: 0,
-      m: 'شروع: شنبه، ۰۹:۰۰',
-      s: 'منتشر نشده',
-      color: 'orange',
-    },
-    {
-      t: 'تمرین فصل دوم',
-      day: 1,
-      m: 'پایان: یکشنبه، ۲۰:۰۰',
-      s: '۲۶ از ۲۸ تحویل',
-      color: 'purple',
-    },
-    {
-      t: 'تکلیف کلاسی اول',
-      day: 3,
-      m: 'مهلت: سه‌شنبه، ۱۸:۰۰',
-      s: '۱۰ از ۲۸ تحویل',
-      color: 'mint',
-    },
+    { t: 'تمرین فصل سوم', day: 2, m: 'مهلت: دوشنبه، ۲۰:۰۰', s: '۰ از ۲۸ تحویل', color: 'green', subject: 'علوم تجربی' },
+    { t: 'گزارش آزمایش فشار هوا', day: 4, m: 'مهلت: چهارشنبه، ۱۸:۰۰', s: '۱۲ از ۲۸ تحویل', color: 'blue', subject: 'علوم تجربی' },
+    { t: 'پروژه نمودار چرخه آب', day: 0, m: 'شروع: شنبه، ۰۹:۰۰', s: 'منتشر نشده', color: 'orange', subject: 'علوم تجربی' },
+    { t: 'تمرین فصل دوم', day: 1, m: 'پایان: یکشنبه، ۲۰:۰۰', s: '۲۶ از ۲۸ تحویل', color: 'purple', subject: 'علوم تجربی' },
+    { t: 'تکلیف کلاسی اول', day: 3, m: 'مهلت: سه‌شنبه، ۱۸:۰۰', s: '۱۰ از ۲۸ تحویل', color: 'mint', subject: 'علوم تجربی' },
+    { t: 'تمرین معادله درجه دوم', day: 1, m: 'مهلت: یکشنبه، ۲۱:۰۰', s: '۸ از ۲۵ تحویل', color: 'blue', subject: 'ریاضی' },
+    { t: 'مسائل هندسه فصل ۴', day: 3, m: 'مهلت: سه‌شنبه، ۱۹:۰۰', s: '۱۵ از ۲۵ تحویل', color: 'purple', subject: 'ریاضی' },
+    { t: 'کوییز جمع و تفریق اعداد صحیح', day: 0, m: 'شروع: شنبه، ۱۰:۰۰', s: 'منتشر نشده', color: 'green', subject: 'ریاضی' },
+    { t: 'انشا: توصیف یک روز بارانی', day: 2, m: 'مهلت: دوشنبه، ۱۸:۰۰', s: '۵ از ۲۸ تحویل', color: 'orange', subject: 'فارسی' },
+    { t: 'تمرین املا و دیکته', day: 4, m: 'مهلت: چهارشنبه، ۱۷:۰۰', s: '۲۰ از ۲۸ تحویل', color: 'mint', subject: 'فارسی' },
+    { t: 'ترجمه درس سوم', day: 1, m: 'مهلت: یکشنبه، ۲۰:۰۰', s: '۱۱ از ۲۲ تحویل', color: 'blue', subject: 'عربی' },
+    { t: 'تمرین صرف و نحو', day: 3, m: 'مهلت: سه‌شنبه، ۲۱:۰۰', s: '۷ از ۲۲ تحویل', color: 'purple', subject: 'عربی' },
   ]
 
   return (
@@ -1333,7 +1354,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
                   items.map(item => (
                     <button
                       className="resource"
-                      key={item.t}
+                      key={`${item.subject}-${item.t}`}
                       onClick={() => navigate('assignment')}
                     >
                       <span className={`resource-icon ${item.color}`}>
@@ -1342,7 +1363,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
 
                       <div>
                         <strong>{item.t}</strong>
-                        <small>{item.m}</small>
+                        <small>گروه درسی: {item.subject} · {item.m}</small>
                         <span>{item.s}</span>
                       </div>
 
