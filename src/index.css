@@ -3837,3 +3837,19 @@
 .storage-row:active { transform: scale(.98); }
 
 .empty.compact-empty { margin-top: 12px; }
+
+
+/* student search in assignment grade list */
+.student-search-heading { gap: 8px; }
+.student-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.student-search-input:focus { outline: 2px solid #b9e3d7; border-color: var(--green); }
