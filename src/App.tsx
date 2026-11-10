@@ -1293,7 +1293,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
     { t: 'تکلیف کلاسی اول', day: 3, m: 'مهلت: سه‌شنبه، ۱۸:۰۰', s: '۱۰ از ۲۸ تحویل', color: 'mint', subject: 'علوم تجربی' },
     { t: 'تمرین معادله درجه دوم', day: 1, m: 'مهلت: یکشنبه، ۲۱:۰۰', s: '۸ از ۲۵ تحویل', color: 'blue', subject: 'ریاضی' },
     { t: 'مسائل هندسه فصل ۴', day: 3, m: 'مهلت: سه‌شنبه، ۱۹:۰۰', s: '۱۵ از ۲۵ تحویل', color: 'purple', subject: 'ریاضی' },
-    { t: 'کوییز جمع و تفریق اعداد صحیح', day: 0, m: 'شروع: شنبه، ۱۰:۰۰', s: 'منتشر نشده', color: 'green', subject: 'ریاضی' },
+    { t: 'آزمونک جمع و تفریق اعداد صحیح', day: 0, m: 'شروع: شنبه، ۱۰:۰۰', s: 'منتشر نشده', color: 'green', subject: 'ریاضی' },
     { t: 'انشا: توصیف یک روز بارانی', day: 2, m: 'مهلت: دوشنبه، ۱۸:۰۰', s: '۵ از ۲۸ تحویل', color: 'orange', subject: 'فارسی' },
     { t: 'تمرین املا و دیکته', day: 4, m: 'مهلت: چهارشنبه، ۱۷:۰۰', s: '۲۰ از ۲۸ تحویل', color: 'mint', subject: 'فارسی' },
     { t: 'ترجمه درس سوم', day: 1, m: 'مهلت: یکشنبه، ۲۰:۰۰', s: '۱۱ از ۲۲ تحویل', color: 'blue', subject: 'عربی' },
@@ -2617,11 +2617,11 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
   const weekEnd = weekDates[4]
 
   const data: { t: string; day: number; m: string; s: string; color: string }[] = [
-    { t: 'آزمون میان‌ترم علوم تجربی', day: 2, m: 'شروع: دوشنبه، ۰۹:۰۰', s: 'مدت: ۳۰ دقیقه · ۲۸ شرکت‌کننده', color: 'orange' },
-    { t: 'کوییز فصل دوم ریاضی', day: 0, m: 'شروع: شنبه، ۱۰:۳۰', s: 'مدت: ۱۵ دقیقه · ۲۵ شرکت‌کننده', color: 'blue' },
-    { t: 'آزمونک آمادگی دفاعی', day: 3, m: 'شروع: سه‌شنبه، ۱۱:۰۰', s: 'مدت: ۲۰ دقیقه · ۲۲ شرکت‌کننده', color: 'green' },
-    { t: 'آزمون پایان فصل فارسی', day: 4, m: 'شروع: چهارشنبه، ۰۸:۳۰', s: 'مدت: ۴۵ دقیقه · منتشر نشده', color: 'purple' },
-    { t: 'کوییز آنلاین علوم', day: 1, m: 'شروع: یکشنبه، ۱۴:۰۰', s: 'مدت: ۱۰ دقیقه · ۱۸ از ۲۸ شرکت', color: 'mint' },
+    { t: 'آزمون میان‌ترم علوم تجربی', day: 2, m: 'شروع: دوشنبه، ۰۹:۰۰ · پایان: ۰۹:۳۰', s: '۳۰ دقیقه · ۲۸ شرکت‌کننده', color: 'orange' },
+    { t: 'آزمونک فصل دوم ریاضی', day: 0, m: 'شروع: شنبه، ۱۰:۳۰ · پایان: ۱۰:۴۵', s: '۱۵ دقیقه · ۲۵ شرکت‌کننده', color: 'blue' },
+    { t: 'آزمونک آمادگی دفاعی', day: 3, m: 'شروع: سه‌شنبه، ۱۱:۰۰ · پایان: ۱۱:۲۰', s: '۲۰ دقیقه · ۲۲ شرکت‌کننده', color: 'green' },
+    { t: 'آزمون پایان فصل فارسی', day: 4, m: 'شروع: چهارشنبه، ۰۸:۳۰ · پایان: ۰۹:۱۵', s: '۴۵ دقیقه · منتشر نشده', color: 'purple' },
+    { t: 'آزمونک آنلاین علوم', day: 1, m: 'شروع: یکشنبه، ۱۴:۰۰ · پایان: ۱۴:۱۰', s: '۱۰ دقیقه · ۱۸ از ۲۸ شرکت', color: 'mint' },
   ]
 
   const filteredData = searchQuery.trim()
@@ -2762,36 +2762,191 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
 
 function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => void }) {
   const [published, setPublished] = useState(false)
+  const [kind, setKind] = useState<'آزمون' | 'آزمونک'>('آزمون')
+  const [title, setTitle] = useState('')
+  const [desc, setDesc] = useState('')
+  const [fileLabel, setFileLabel] = useState<string | null>(null)
+  const [recording, setRecording] = useState(false)
+  const [recSeconds, setRecSeconds] = useState(0)
+  const [voiceNote, setVoiceNote] = useState<{ seconds: number } | null>(null)
+  const [playing, setPlaying] = useState(false)
+  const recTimerRef = useRef<number | null>(null)
+
+  const fmtTime = (s: number) => fa(`${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s)) % 60).padStart(2, '0')}`)
+
+  const startVoice = () => {
+    setPlaying(false)
+    setRecSeconds(0)
+    setRecording(true)
+    if (recTimerRef.current !== null) window.clearInterval(recTimerRef.current)
+    recTimerRef.current = window.setInterval(() => setRecSeconds(v => v + 1), 1000)
+  }
+  const stopVoice = () => {
+    if (recTimerRef.current !== null) { window.clearInterval(recTimerRef.current); recTimerRef.current = null }
+    setVoiceNote({ seconds: Math.max(1, recSeconds) })
+    setRecording(false)
+  }
+  const removeVoice = () => {
+    setVoiceNote(null)
+    setPlaying(false)
+    setRecSeconds(0)
+  }
+
   return <div className="screen inner-screen">
-    <SubHeader screen="exam-create" back={goBack} />
+    <SubHeader
+      screen="exam-create"
+      back={goBack}
+      title={kind === 'آزمونک' ? 'ساخت آزمونک' : 'ساخت آزمون'}
+      subtitle="فایل، صوت و بازه زمانی شروع تا پایان"
+    />
     <main className="inner-content form-page">
-      <FormField label="عنوان آزمون" placeholder="مثلاً آزمون میان‌ترم علوم" />
-      <div className="section-heading"><strong>پرسش‌ها</strong><span>۱ پرسش</span></div>
-      <section className="question-card">
-        <div><b>۱</b><span>چهارگزینه‌ای</span><IconButton icon="more" label="بیشتر" /></div>
-        <input placeholder="متن پرسش را بنویسید..." />
-        {['گزینه اول', 'گزینه دوم'].map((x, i) => (
-          <label className="option" key={x}>
-            <input type="radio" name="answer" defaultChecked={i === 0} />
-            <input placeholder={x} />
-          </label>
-        ))}
-        <button className="add-option"><Icon name="plus" /> افزودن گزینه</button>
-      </section>
-      <button className="outline-button"><Icon name="plus" /> افزودن پرسش</button>
-      <div className="two-fields">
-        <FormField label="مدت آزمون" placeholder="۳۰ دقیقه" />
-        <FormField label="زمان شروع" placeholder="فردا · ۹:۰۰" />
+      <div className="score-kind-card" style={{ marginBottom: 14 }}>
+        <div className="score-kind-label">نوع</div>
+        <div className="score-kind-tabs">
+          {(['آزمون', 'آزمونک'] as const).map(k => (
+            <button
+              key={k}
+              type="button"
+              className={kind === k ? 'active' : ''}
+              onClick={() => setKind(k)}
+              style={{ gridColumn: 'span 1' }}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+        <div className="score-kind-hint">
+          {kind === 'آزمونک'
+            ? 'آزمونک کوتاه‌مدت است و بازه شروع و پایان مشخص دارد.'
+            : 'آزمون با بازه شروع و پایان و امکان پیوست فایل و صوت.'}
+        </div>
+      </div>
+
+      <label className="field">
+        <span>عنوان {kind}</span>
+        <input
+          type="text"
+          placeholder={kind === 'آزمونک' ? 'مثلاً آزمونک فصل دوم' : 'مثلاً آزمون میان‌ترم علوم'}
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+        />
+      </label>
+
+      <label className="field">
+        <span>توضیحات</span>
+        <textarea
+          rows={4}
+          placeholder="راهنما، نکات مهم و دستورالعمل شرکت در آزمون..."
+          value={desc}
+          onChange={e => setDesc(e.target.value)}
+        />
+      </label>
+
+      <div className="voice-note-block">
+        {!voiceNote && !recording && (
+          <button type="button" className="upload" onClick={startVoice}>
+            <Icon name="mic" />
+            <div><strong>افزودن صوت</strong><span>توضیح صوتی برای {kind}</span></div>
+            <Icon name="plus" />
+          </button>
+        )}
+        {recording && (
+          <button type="button" className="upload upload-recording" onClick={stopVoice}>
+            <Icon name="mic" />
+            <div><strong>در حال ضبط... {fmtTime(recSeconds)}</strong><span>برای پایان و ذخیره بزنید</span></div>
+            <Icon name="check" />
+          </button>
+        )}
+        {voiceNote && (
+          <div className="voice-note-row">
+            <button
+              type="button"
+              className="voice-note-play"
+              aria-label={playing ? 'توقف' : 'پخش'}
+              onClick={() => setPlaying(p => !p)}
+            >
+              <Icon name={playing ? 'pause' : 'play'} size={15} />
+            </button>
+            <div className="voice-note-info">
+              <strong>صوت توضیحات</strong>
+              <small>{fmtTime(voiceNote.seconds)}</small>
+            </div>
+            <button type="button" className="attach-remove" aria-label="حذف صوت" onClick={removeVoice}>
+              <Icon name="close" size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="upload"
+        onClick={() => setFileLabel(kind === 'آزمونک' ? 'برگه_آزمونک.pdf' : 'برگه_آزمون.pdf')}
+      >
+        <Icon name="paperclip" />
+        <div>
+          <strong>{fileLabel ? 'تغییر فایل' : 'افزودن فایل'}</strong>
+          <span>{fileLabel || 'PDF، تصویر یا فایل متنی'}</span>
+        </div>
+        <Icon name={fileLabel ? 'check' : 'plus'} />
+      </button>
+      {fileLabel && (
+        <div className="voice-note-row" style={{ marginTop: 8 }}>
+          <span className="resource-icon green" style={{ width: 36, height: 36, display: 'grid', placeItems: 'center', borderRadius: 10 }}>
+            <Icon name="file" size={18} />
+          </span>
+          <div className="voice-note-info">
+            <strong>{fileLabel}</strong>
+            <small>پیوست {kind}</small>
+          </div>
+          <button type="button" className="attach-remove" aria-label="حذف فایل" onClick={() => setFileLabel(null)}>
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      )}
+
+      <label className="field">
+        <span>شروع {kind}</span>
+        <div className="two-fields">
+          <select defaultValue="">
+            <option value="">تاریخ شروع</option>
+            {reportDateRange().map(d => <option key={`s-${d}`} value={d}>{d}</option>)}
+          </select>
+          <input type="time" defaultValue="09:00" aria-label="ساعت شروع" />
+        </div>
+      </label>
+
+      <label className="field">
+        <span>پایان {kind}</span>
+        <div className="two-fields">
+          <select defaultValue="">
+            <option value="">تاریخ پایان</option>
+            {reportDateRange().map(d => <option key={`e-${d}`} value={d}>{d}</option>)}
+          </select>
+          <input type="time" defaultValue="09:30" aria-label="ساعت پایان" />
+        </div>
+      </label>
+
+      <div className="score-kind-hint" style={{ marginTop: 4 }}>
+        برخلاف تکلیف، {kind} حتماً بازهٔ زمانی شروع و پایان دارد.
       </div>
     </main>
     <div className="sticky-action two">
-      <button className="secondary">پیش‌نمایش</button>
-      <button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>
-        {published ? <><Icon name="check" /> منتشر شد</> : 'انتشار آزمون'}
+      <button type="button" className="secondary" onClick={goBack}>انصراف</button>
+      <button
+        type="button"
+        onClick={() => {
+          setPublished(true)
+          setTimeout(() => goBack(), 900)
+        }}
+      >
+        {published ? <><Icon name="check" /> منتشر شد</> : `انتشار ${kind}`}
       </button>
     </div>
   </div>
 }
+
+const students
 
 const students = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
 type AttendanceRecord = {
@@ -3620,7 +3775,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           <span>عنوان نمره</span>
           <input
             type="text"
-            placeholder="مثلاً کوییز فصل سوم"
+            placeholder="مثلاً آزمونک فصل سوم"
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
@@ -3912,7 +4067,7 @@ const categoryOptions = [
   'آزمون شفاهی',
   'خلاقیت',
   'تمرینات مستمر',
-  'کوییز کلاسی'
+  'آزمونک کلاسی'
 ]
 
 function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
