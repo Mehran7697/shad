@@ -2611,6 +2611,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [createMenuOpen, setCreateMenuOpen] = useState(false)
   const weekStart = getSaturday(selectedDate)
   const weekDates = weekDays.map((_, index) => addDays(weekStart, index))
   const weekEnd = weekDates[4]
@@ -2706,6 +2707,55 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
           })}
         </div>
       </main>
+
+      {!isStudent && (
+        <button
+          className="fab"
+          aria-label="ایجاد آزمون"
+          onClick={() => setCreateMenuOpen(true)}
+        >
+          <Icon name="plus" />
+        </button>
+      )}
+
+      {createMenuOpen && (
+        <div className="overlay group-grade-overlay" onClick={() => setCreateMenuOpen(false)}>
+          <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>ایجاد آزمون</strong>
+                <span>نوع ساخت را انتخاب کنید</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setCreateMenuOpen(false)} />
+            </div>
+            <div className="classroom-grid" style={{ padding: '8px 0 12px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreateMenuOpen(false)
+                  navigate('exam-create')
+                }}
+              >
+                <span><Icon name="exam" /></span>
+                <strong>آزمون‌ساز</strong>
+                <small>طراحی سریع با قالب آماده</small>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreateMenuOpen(false)
+                  navigate('exam-create')
+                }}
+              >
+                <span><Icon name="pencil" /></span>
+                <strong>ساخت کلاسیک</strong>
+                <small>تنظیم دستی پرسش‌ها و زمان</small>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -3186,7 +3236,6 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
       ]
     : classSections
   const [mediaTab, setMediaTab] = useState('نمای کلی')
-  const [examChoiceOpen, setExamChoiceOpen] = useState(false)
   const mediaTabs = ['نمای کلی', 'رسانه', 'فایل‌ها', 'لینک‌ها', 'موسیقی', 'صدا', 'گیف‌ها']
   const mediaContent: Record<string, { t: string; m: string; i: IconName }[]> = {
     'فایل‌ها': [
@@ -3255,11 +3304,6 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
           {mediaTab === 'نمای کلی' ? (
             <div className="classroom-grid" style={{padding:0}}>
               {visibleSections.map((x) => <button key={x.title} onClick={() => {
-                if (x.screen === 'exam') {
-                  if (isStudent) navigate('exam')
-                  else setExamChoiceOpen(true)
-                  return
-                }
                 if (x.title === 'تکالیف' || x.title === 'تکالیف من') {
                   assignmentContext = { subject: 'علوم تجربی', klass: 'کلاس ۹۰۱' }
                 } else {
@@ -3306,32 +3350,6 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
       </div>
     </main>
 
-    {examChoiceOpen && (
-      <div className="overlay group-grade-overlay" onClick={() => setExamChoiceOpen(false)}>
-        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
-          <div className="sheet-handle" />
-          <div className="sheet-title">
-            <div>
-              <strong>آزمون‌ها</strong>
-              <span>یک گزینه را انتخاب کنید</span>
-            </div>
-            <IconButton icon="close" label="بستن" onClick={() => setExamChoiceOpen(false)} />
-          </div>
-          <div className="classroom-grid" style={{ padding: '8px 0 12px' }}>
-            <button type="button" onClick={() => { setExamChoiceOpen(false); navigate('exam') }}>
-              <span><Icon name="exam" /></span>
-              <strong>آزمون‌ساز</strong>
-              <small>مشاهده و مدیریت آزمون‌های کلاس</small>
-            </button>
-            <button type="button" onClick={() => { setExamChoiceOpen(false); navigate('exam-create') }}>
-              <span><Icon name="plus" /></span>
-              <strong>ساخت آزمون</strong>
-              <small>ایجاد آزمون جدید برای کلاس</small>
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
   </div>
 }
 
