@@ -2614,21 +2614,297 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [createMenuOpen, setCreateMenuOpen] = useState(false)
+  type ExamItem = {
+    t: string
+    day: number
+    m: string
+    s: string
+    color: string
+    kind: 'آزمون' | 'آزمونک'
+    description: string
+    fileName: string
+    fileSize: string
+    voice: string
+    startAt: string
+    endAt: string
+  }
+  const [selected, setSelected] = useState<ExamItem | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState<ExamItem | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const weekStart = getSaturday(selectedDate)
   const weekDates = weekDays.map((_, index) => addDays(weekStart, index))
   const weekEnd = weekDates[4]
 
-  const data: { t: string; day: number; m: string; s: string; color: string }[] = [
-    { t: 'آزمون میان‌ترم علوم تجربی', day: 2, m: 'شروع: دوشنبه، ۰۹:۰۰ · پایان: ۰۹:۳۰', s: '۳۰ دقیقه · ۲۸ شرکت‌کننده', color: 'orange' },
-    { t: 'آزمونک فصل دوم ریاضی', day: 0, m: 'شروع: شنبه، ۱۰:۳۰ · پایان: ۱۰:۴۵', s: '۱۵ دقیقه · ۲۵ شرکت‌کننده', color: 'blue' },
-    { t: 'آزمونک آمادگی دفاعی', day: 3, m: 'شروع: سه‌شنبه، ۱۱:۰۰ · پایان: ۱۱:۲۰', s: '۲۰ دقیقه · ۲۲ شرکت‌کننده', color: 'green' },
-    { t: 'آزمون پایان فصل فارسی', day: 4, m: 'شروع: چهارشنبه، ۰۸:۳۰ · پایان: ۰۹:۱۵', s: '۴۵ دقیقه · منتشر نشده', color: 'purple' },
-    { t: 'آزمونک آنلاین علوم', day: 1, m: 'شروع: یکشنبه، ۱۴:۰۰ · پایان: ۱۴:۱۰', s: '۱۰ دقیقه · ۱۸ از ۲۸ شرکت', color: 'mint' },
-  ]
+  const [data, setData] = useState<ExamItem[]>([
+    {
+      t: 'آزمون میان‌ترم علوم تجربی',
+      day: 2,
+      m: 'شروع: دوشنبه، ۰۹:۰۰ · پایان: ۰۹:۳۰',
+      s: '۳۰ دقیقه · ۲۸ شرکت‌کننده',
+      color: 'orange',
+      kind: 'آزمون',
+      description: 'سوالات میان‌ترم از فصل‌های ۱ تا ۳ طرح شده است. فایل نمونه سوال و توضیح صوتی ضمیمه شده است.',
+      fileName: 'نمونه_سوال_میان‌ترم.pdf',
+      fileSize: '۱٫۸ مگابایت',
+      voice: '۰:۴۵',
+      startAt: 'دوشنبه، ۰۹:۰۰',
+      endAt: 'دوشنبه، ۰۹:۳۰',
+    },
+    {
+      t: 'آزمونک فصل دوم ریاضی',
+      day: 0,
+      m: 'شروع: شنبه، ۱۰:۳۰ · پایان: ۱۰:۴۵',
+      s: '۱۵ دقیقه · ۲۵ شرکت‌کننده',
+      color: 'blue',
+      kind: 'آزمونک',
+      description: 'آزمونک کوتاه از مبحث جمع و تفریق اعداد صحیح. فقط ۱۵ دقیقه فرصت دارید.',
+      fileName: 'آزمونک_فصل۲.pdf',
+      fileSize: '۰٫۶ مگابایت',
+      voice: '۰:۲۰',
+      startAt: 'شنبه، ۱۰:۳۰',
+      endAt: 'شنبه، ۱۰:۴۵',
+    },
+    {
+      t: 'آزمونک آمادگی دفاعی',
+      day: 3,
+      m: 'شروع: سه‌شنبه، ۱۱:۰۰ · پایان: ۱۱:۲۰',
+      s: '۲۰ دقیقه · ۲۲ شرکت‌کننده',
+      color: 'green',
+      kind: 'آزمونک',
+      description: 'آزمونک تشریحی کوتاه از درس سوم. فایل راهنما و صوت معلم را قبل از شروع ببینید.',
+      fileName: 'راهنما_آزمونک.pdf',
+      fileSize: '۰٫۹ مگابایت',
+      voice: '۰:۳۲',
+      startAt: 'سه‌شنبه، ۱۱:۰۰',
+      endAt: 'سه‌شنبه، ۱۱:۲۰',
+    },
+    {
+      t: 'آزمون پایان فصل فارسی',
+      day: 4,
+      m: 'شروع: چهارشنبه، ۰۸:۳۰ · پایان: ۰۹:۱۵',
+      s: '۴۵ دقیقه · منتشر نشده',
+      color: 'purple',
+      kind: 'آزمون',
+      description: 'آزمون پایان فصل شامل درک مطلب و املا است. هنوز منتشر نشده و قابل ویرایش است.',
+      fileName: 'آزمون_پایان_فصل.pdf',
+      fileSize: '۲٫۱ مگابایت',
+      voice: '۰:۵۵',
+      startAt: 'چهارشنبه، ۰۸:۳۰',
+      endAt: 'چهارشنبه، ۰۹:۱۵',
+    },
+    {
+      t: 'آزمونک آنلاین علوم',
+      day: 1,
+      m: 'شروع: یکشنبه، ۱۴:۰۰ · پایان: ۱۴:۱۰',
+      s: '۱۰ دقیقه · ۱۸ از ۲۸ شرکت',
+      color: 'mint',
+      kind: 'آزمونک',
+      description: 'آزمونک آنلاین ۱۰ دقیقه‌ای از آزمایش فشار هوا.',
+      fileName: 'سوالات_آنلاین.pdf',
+      fileSize: '۰٫۴ مگابایت',
+      voice: '۰:۱۵',
+      startAt: 'یکشنبه، ۱۴:۰۰',
+      endAt: 'یکشنبه، ۱۴:۱۰',
+    },
+  ])
 
   const filteredData = searchQuery.trim()
     ? data.filter(item => item.t.includes(searchQuery.trim()) || item.m.includes(searchQuery.trim()))
     : data
+
+  const openEdit = () => {
+    if (!selected) return
+    setDraft({ ...selected })
+    setEditing(true)
+  }
+  const cancelEdit = () => {
+    setDraft(selected)
+    setEditing(false)
+  }
+  const saveEdit = () => {
+    if (!selected || !draft) return
+    const next = {
+      ...draft,
+      m: `شروع: ${draft.startAt} · پایان: ${draft.endAt}`,
+    }
+    setData(prev => prev.map(x => x.t === selected.t ? next : x))
+    setSelected(next)
+    setDraft(next)
+    setEditing(false)
+    setToast('تغییرات آزمون ذخیره شد')
+    setTimeout(() => setToast(null), 1400)
+  }
+
+  if (selected) {
+    const view = editing && draft ? draft : selected
+    return (
+      <div className="screen inner-screen">
+        <SubHeader
+          screen="exam"
+          back={() => { setSelected(null); setEditing(false) }}
+          title={view.t}
+          subtitle={`${view.kind} · کلاس ۹۰۱`}
+          rightIcon={!isStudent && !editing ? 'pencil' : null}
+          rightLabel={!isStudent && !editing ? 'ویرایش' : ''}
+          onRightClick={!isStudent && !editing ? openEdit : undefined}
+        />
+        <main className="inner-content">
+          <div className="assignment-detail-head">
+            <span className={`resource-icon ${view.color}`}>
+              <Icon name="exam" />
+            </span>
+            <div>
+              <strong>{view.t}</strong>
+              <small>{view.kind} · علوم تجربی · کلاس ۹۰۱</small>
+            </div>
+          </div>
+
+          {!editing ? (
+            <>
+              <section className="sa-panel">
+                <div className="sa-panel-head"><strong>بازه زمانی</strong></div>
+                <div className="week-summary-banner" style={{ margin: 0 }}>
+                  <div className="week-summary-item">
+                    <strong style={{ fontSize: 12 }}>{view.startAt}</strong>
+                    <span>شروع</span>
+                  </div>
+                  <div className="week-summary-item">
+                    <strong style={{ fontSize: 12 }}>{view.endAt}</strong>
+                    <span>پایان</span>
+                  </div>
+                  <div className="week-summary-item">
+                    <strong style={{ fontSize: 12 }}>{view.kind}</strong>
+                    <span>نوع</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="sa-panel">
+                <div className="sa-panel-head"><strong>توضیحات</strong></div>
+                <p className="sa-desc">{view.description}</p>
+              </section>
+
+              <section className="sa-panel">
+                <div className="sa-panel-head">
+                  <strong>فایل و صوت</strong>
+                  <span>۲ مورد</span>
+                </div>
+                <div className="sa-file-list">
+                  <button type="button" className="resource" onClick={() => { setToast('دانلود شروع شد'); setTimeout(() => setToast(null), 1200) }}>
+                    <span className="resource-icon green"><Icon name="file" /></span>
+                    <div>
+                      <strong>{view.fileName}</strong>
+                      <small>فایل ضمیمه</small>
+                      <span>{view.fileSize} · دانلود</span>
+                    </div>
+                    <Icon name="chevron" />
+                  </button>
+                  <button type="button" className="resource">
+                    <span className="resource-icon blue"><Icon name="mic" /></span>
+                    <div>
+                      <strong>توضیح صوتی</strong>
+                      <small>پیام صوتی راهنما</small>
+                      <span>مدت: {view.voice}</span>
+                    </div>
+                    <Icon name="chevron" />
+                  </button>
+                </div>
+              </section>
+
+              {!isStudent && (
+                <section className="sa-panel">
+                  <div className="sa-panel-head"><strong>وضعیت کلاس</strong></div>
+                  <p className="sa-desc">{view.s}</p>
+                </section>
+              )}
+
+              {isStudent && (
+                <div className="sticky-action">
+                  <button type="button" onClick={() => { setToast('ورود به جلسه آزمون (شبیه‌سازی)'); setTimeout(() => setToast(null), 1400) }}>
+                    شروع {view.kind}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <label className="field">
+                <span>نوع</span>
+                <div className="score-kind-tabs">
+                  {(['آزمون', 'آزمونک'] as const).map(k => (
+                    <button
+                      key={k}
+                      type="button"
+                      className={draft?.kind === k ? 'active' : ''}
+                      onClick={() => setDraft(d => d ? { ...d, kind: k } : d)}
+                    >
+                      {k}
+                    </button>
+                  ))}
+                </div>
+              </label>
+              <label className="field">
+                <span>عنوان</span>
+                <input
+                  type="text"
+                  value={draft?.t || ''}
+                  onChange={e => setDraft(d => d ? { ...d, t: e.target.value } : d)}
+                />
+              </label>
+              <label className="field">
+                <span>توضیحات</span>
+                <textarea
+                  rows={4}
+                  value={draft?.description || ''}
+                  onChange={e => setDraft(d => d ? { ...d, description: e.target.value } : d)}
+                />
+              </label>
+              <label className="field">
+                <span>شروع</span>
+                <input
+                  type="text"
+                  value={draft?.startAt || ''}
+                  onChange={e => setDraft(d => d ? { ...d, startAt: e.target.value } : d)}
+                  placeholder="مثلاً دوشنبه، ۰۹:۰۰"
+                />
+              </label>
+              <label className="field">
+                <span>پایان</span>
+                <input
+                  type="text"
+                  value={draft?.endAt || ''}
+                  onChange={e => setDraft(d => d ? { ...d, endAt: e.target.value } : d)}
+                  placeholder="مثلاً دوشنبه، ۰۹:۳۰"
+                />
+              </label>
+              <label className="field">
+                <span>نام فایل</span>
+                <input
+                  type="text"
+                  value={draft?.fileName || ''}
+                  onChange={e => setDraft(d => d ? { ...d, fileName: e.target.value } : d)}
+                />
+              </label>
+              <label className="field">
+                <span>مدت صوت</span>
+                <input
+                  type="text"
+                  value={draft?.voice || ''}
+                  onChange={e => setDraft(d => d ? { ...d, voice: e.target.value } : d)}
+                />
+              </label>
+              <div className="sticky-action two">
+                <button type="button" className="secondary" onClick={cancelEdit}>انصراف</button>
+                <button type="button" onClick={saveEdit}>ذخیره تغییرات</button>
+              </div>
+            </>
+          )}
+        </main>
+        {toast && <div className="toast">{toast}</div>}
+      </div>
+    )
+  }
 
   return (
     <div className="screen inner-screen">
@@ -2683,7 +2959,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                 </div>
                 {items.length ? (
                   items.map(item => (
-                    <button className="resource" key={item.t} onClick={() => navigate(isStudent ? 'exam' : 'exam-create')}>
+                    <button className="resource" key={item.t} onClick={() => { setSelected(item); setEditing(false); setDraft(item) }}>
                       <span className={`resource-icon ${item.color}`}>
                         <Icon name="exam" />
                       </span>
