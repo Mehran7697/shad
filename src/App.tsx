@@ -2632,6 +2632,22 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<ExamItem | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [examRows, setExamRows] = useState(() => students.map((name, i) => ({
+    name,
+    status: i % 3 === 0 ? 'غایب' : 'شرکت‌کرده',
+    score: '',
+    feedback: '',
+  })))
+  const [examStudentSearch, setExamStudentSearch] = useState('')
+  const [examMaxScore, setExamMaxScore] = useState('20')
+  const [examGroupSheet, setExamGroupSheet] = useState(false)
+  const [examGroupScore, setExamGroupScore] = useState('')
+  const [examFeedbackIndex, setExamFeedbackIndex] = useState<number | null>(null)
+  const [examFeedbackDraft, setExamFeedbackDraft] = useState('')
+  const [examSaving, setExamSaving] = useState(false)
+  const updateExamRow = (index: number, patch: Partial<(typeof examRows)[0]>) => {
+    setExamRows(prev => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)))
+  }
   const weekStart = getSaturday(selectedDate)
   const weekDates = weekDays.map((_, index) => addDays(weekStart, index))
   const weekEnd = weekDates[4]
@@ -2819,6 +2835,98 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                 </section>
               )}
 
+              {!isStudent && (
+                <>
+                  <div className="section-heading student-search-heading" style={{ marginTop: 16 }}>
+                    <strong>دانش‌آموزان</strong>
+                    <span>{fa(examRows.filter(r => r.status === 'شرکت‌کرده').length)} از {fa(examRows.length)} شرکت‌کرده</span>
+                  </div>
+                  <div className="section-heading student-search-heading">
+                    <input
+                      className="student-search-input"
+                      placeholder="جست‌وجو در دانش‌آموزان..."
+                      value={examStudentSearch}
+                      onChange={e => setExamStudentSearch(e.target.value)}
+                    />
+                    <button type="button" className="heading-action-btn" onClick={() => { setExamGroupScore(''); setExamGroupSheet(true) }}>
+                      ثبت نمره گروهی
+                    </button>
+                  </div>
+                  <div className="assignment-table-wrap">
+                    <table className="assignment-table">
+                      <thead>
+                        <tr>
+                          <th>دانش‌آموز</th>
+                          <th>وضعیت</th>
+                          <th>نمره</th>
+                          <th>بازخورد</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {examRows
+                          .filter(row => !examStudentSearch.trim() || row.name.includes(examStudentSearch.trim()))
+                          .map((row, i) => {
+                            const realIndex = examRows.findIndex(r => r.name === row.name)
+                            const canGrade = row.status === 'شرکت‌کرده'
+                            return (
+                              <tr key={row.name}>
+                                <td>
+                                  <div className="assignment-student-cell">
+                                    <div className="student-avatar">{row.name[0]}</div>
+                                    <strong>{row.name}</strong>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className={`status-pill ${canGrade ? 'ok' : 'wait'}`}>{row.status}</span>
+                                </td>
+                                <td>
+                                  <input
+                                    className="score-input compact"
+                                    inputMode="numeric"
+                                    placeholder={fa(examMaxScore || '20')}
+                                    disabled={!canGrade}
+                                    value={row.score ? fa(row.score) : ''}
+                                    onChange={e => updateExamRow(realIndex, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
+                                  />
+                                </td>
+                                <td>
+                                  {canGrade ? (
+                                    <button
+                                      type="button"
+                                      className={`table-action-btn ${row.feedback ? 'view' : 'register'}`}
+                                      onClick={() => {
+                                        setExamFeedbackIndex(realIndex)
+                                        setExamFeedbackDraft(row.feedback)
+                                      }}
+                                    >
+                                      {row.feedback ? 'مشاهده' : 'بازخورد'}
+                                    </button>
+                                  ) : (
+                                    <span className="muted-dash">—</span>
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="sticky-action">
+                    <button
+                      type="button"
+                      disabled={examSaving}
+                      onClick={() => {
+                        setExamSaving(true)
+                        setToast('نمرات و بازخوردهای آزمون ثبت شد')
+                        setTimeout(() => { setExamSaving(false); setToast(null) }, 1400)
+                      }}
+                    >
+                      {examSaving ? <><Icon name="check" /> ثبت شد</> : 'ثبت تغییرات'}
+                    </button>
+                  </div>
+                </>
+              )}
+
               {isStudent && (
                 <div className="sticky-action">
                   <button type="button" onClick={() => { setToast('ورود به جلسه آزمون (شبیه‌سازی)'); setTimeout(() => setToast(null), 1400) }}>
@@ -2901,6 +3009,117 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
             </>
           )}
         </main>
+
+        {examGroupSheet && (
+          <div className="overlay group-grade-overlay" onClick={() => setExamGroupSheet(false)}>
+            <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle" />
+              <div className="sheet-title">
+                <div>
+                  <strong>ثبت نمره گروهی</strong>
+                  <span>فقط برای شرکت‌کنندگان</span>
+                </div>
+                <IconButton icon="close" label="بستن" onClick={() => setExamGroupSheet(false)} />
+              </div>
+              <div className="group-grade-body">
+                <label className="field">
+                  <span>حداکثر نمره</span>
+                  <input inputMode="numeric" value={fa(examMaxScore)} onChange={e => setExamMaxScore(toEn(e.target.value).replace(/[^\d]/g, ''))} />
+                </label>
+                <label className="field">
+                  <span>نمره مشترک</span>
+                  <input inputMode="numeric" placeholder="مثلاً ۲۰" value={examGroupScore ? fa(examGroupScore) : ''} onChange={e => setExamGroupScore(toEn(e.target.value).replace(/[^\d]/g, ''))} />
+                </label>
+                <p className="group-grade-hint">نمره فقط برای دانش‌آموزانی که وضعیت «شرکت‌کرده» دارند ثبت می‌شود.</p>
+              </div>
+              <div className="group-grade-footer">
+                <button type="button" className="secondary" onClick={() => setExamGroupSheet(false)}>انصراف</button>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => {
+                    const maxN = Number(examMaxScore) || 20
+                    const scoreN = Number(examGroupScore)
+                    const joined = examRows.filter(r => r.status === 'شرکت‌کرده')
+                    if (!joined.length) {
+                      setToast('هنوز کسی شرکت نکرده است')
+                      setTimeout(() => setToast(null), 1400)
+                      return
+                    }
+                    if (!examGroupScore.trim() || Number.isNaN(scoreN)) {
+                      setToast('نمره را وارد کنید')
+                      setTimeout(() => setToast(null), 1400)
+                      return
+                    }
+                    if (scoreN > maxN) {
+                      setToast(`نمره نمی‌تواند بیشتر از ${fa(maxN)} باشد`)
+                      setTimeout(() => setToast(null), 1600)
+                      return
+                    }
+                    const value = String(scoreN)
+                    setExamRows(prev => prev.map(r => r.status === 'شرکت‌کرده' ? { ...r, score: value } : r))
+                    setExamGroupSheet(false)
+                    setToast(`نمره ${fa(value)} برای ${fa(joined.length)} نفر ثبت شد`)
+                    setTimeout(() => setToast(null), 1600)
+                  }}
+                >
+                  ثبت
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {examFeedbackIndex !== null && examRows[examFeedbackIndex] && (
+          <div className="overlay group-grade-overlay" onClick={() => setExamFeedbackIndex(null)}>
+            <div className="bottom-sheet group-grade-sheet student-answer-sheet" onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle" />
+              <div className="sheet-title">
+                <div>
+                  <strong>{examRows[examFeedbackIndex].name}</strong>
+                  <span>بازخورد و نمره آزمون</span>
+                </div>
+                <IconButton icon="close" label="بستن" onClick={() => setExamFeedbackIndex(null)} />
+              </div>
+              <div className="group-grade-body">
+                <label className="field">
+                  <span>نمره (از {fa(examMaxScore)})</span>
+                  <input
+                    inputMode="numeric"
+                    placeholder={fa(examMaxScore)}
+                    value={examRows[examFeedbackIndex].score ? fa(examRows[examFeedbackIndex].score) : ''}
+                    onChange={e => updateExamRow(examFeedbackIndex, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
+                  />
+                </label>
+                <label className="field">
+                  <span>متن بازخورد</span>
+                  <textarea
+                    rows={4}
+                    placeholder="نظر خود را برای دانش‌آموز بنویسید..."
+                    value={examFeedbackDraft}
+                    onChange={e => setExamFeedbackDraft(e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="group-grade-footer">
+                <button type="button" className="secondary" onClick={() => setExamFeedbackIndex(null)}>بستن</button>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => {
+                    updateExamRow(examFeedbackIndex, { feedback: examFeedbackDraft })
+                    setToast(`بازخورد برای ${examRows[examFeedbackIndex].name} ثبت شد`)
+                    setExamFeedbackIndex(null)
+                    setTimeout(() => setToast(null), 1400)
+                  }}
+                >
+                  ثبت
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {toast && <div className="toast">{toast}</div>}
       </div>
     )
