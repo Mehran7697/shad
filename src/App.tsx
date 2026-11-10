@@ -2865,7 +2865,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                       <tbody>
                         {examRows
                           .filter(row => !examStudentSearch.trim() || row.name.includes(examStudentSearch.trim()))
-                          .map((row, i) => {
+                          .map((row) => {
                             const realIndex = examRows.findIndex(r => r.name === row.name)
                             const canGrade = row.status === 'شرکت‌کرده'
                             return (
