@@ -2871,10 +2871,24 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                             return (
                               <tr key={row.name}>
                                 <td>
-                                  <div className="assignment-student-cell">
-                                    <div className="student-avatar">{row.name[0]}</div>
+                                  <button
+                                    type="button"
+                                    className="assignment-student-cell student-cell-open"
+                                    disabled={!canGrade}
+                                    onClick={() => {
+                                      if (!canGrade) return
+                                      setExamFeedbackIndex(realIndex)
+                                      setExamFeedbackDraft(examRows[realIndex].feedback)
+                                    }}
+                                    aria-label={`مشاهده پاسخ ${row.name}`}
+                                  >
+                                    <img
+                                      className="student-photo"
+                                      alt={row.name}
+                                      src={`https://i.pravatar.cc/100?u=${encodeURIComponent(row.name)}`}
+                                    />
                                     <strong>{row.name}</strong>
-                                  </div>
+                                  </button>
                                 </td>
                                 <td>
                                   <span className={`status-pill ${canGrade ? 'ok' : 'wait'}`}>{row.status}</span>
@@ -3070,55 +3084,134 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
           </div>
         )}
 
-        {examFeedbackIndex !== null && examRows[examFeedbackIndex] && (
-          <div className="overlay group-grade-overlay" onClick={() => setExamFeedbackIndex(null)}>
-            <div className="bottom-sheet group-grade-sheet student-answer-sheet" onClick={e => e.stopPropagation()}>
-              <div className="sheet-handle" />
-              <div className="sheet-title">
-                <div>
-                  <strong>{examRows[examFeedbackIndex].name}</strong>
-                  <span>بازخورد و نمره آزمون</span>
+        {examFeedbackIndex !== null && examRows[examFeedbackIndex] && (() => {
+          const row = examRows[examFeedbackIndex]
+          const joinedIndexes = examRows
+            .map((r, i) => (r.status === 'شرکت‌کرده' ? i : -1))
+            .filter(i => i >= 0)
+          const pos = joinedIndexes.indexOf(examFeedbackIndex)
+          const prevIdx = pos > 0 ? joinedIndexes[pos - 1] : null
+          const nextIdx = pos >= 0 && pos < joinedIndexes.length - 1 ? joinedIndexes[pos + 1] : null
+          const firstName = row.name.split(' ')[0]
+
+          const goToStudent = (idx: number | null, opts?: { savedName?: string }) => {
+            if (opts?.savedName) {
+              setToast(`بازخوردی برای ${opts.savedName} ثبت شد`)
+              setTimeout(() => setToast(null), 1800)
+            }
+            if (idx === null) {
+              setExamFeedbackIndex(null)
+              return
+            }
+            setExamFeedbackIndex(idx)
+            setExamFeedbackDraft(examRows[idx].feedback)
+          }
+
+          const saveAndNext = () => {
+            updateExamRow(examFeedbackIndex, { feedback: examFeedbackDraft })
+            if (nextIdx !== null) goToStudent(nextIdx, { savedName: firstName })
+            else {
+              setToast(`بازخوردی برای ${firstName} ثبت شد`)
+              setTimeout(() => setToast(null), 1800)
+              setExamFeedbackIndex(null)
+            }
+          }
+
+          return (
+            <div className="overlay group-grade-overlay" onClick={() => setExamFeedbackIndex(null)}>
+              <div className="bottom-sheet student-answer-sheet" onClick={e => e.stopPropagation()}>
+                <div className="sheet-handle" />
+                <div className="student-answer-scroll">
+                  <div className="sap-hero">
+                    <button
+                      type="button"
+                      className="sap-nav-btn prev"
+                      aria-label="قبلی"
+                      disabled={prevIdx === null}
+                      onClick={() => goToStudent(prevIdx)}
+                    >
+                      قبلی
+                    </button>
+                    <div className="sap-hero-main">
+                      <div className="sap-avatar-wrap">
+                        <img
+                          className="sap-avatar-img"
+                          src={`https://i.pravatar.cc/150?u=${encodeURIComponent(row.name)}`}
+                          alt={row.name}
+                        />
+                      </div>
+                      <div className="sap-hero-text">
+                        <strong>{row.name}</strong>
+                        <small>علوم تجربی · کلاس ۹۰۱ · {fa(pos + 1)} از {fa(joinedIndexes.length)}</small>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="sap-nav-btn next"
+                      aria-label="بعدی"
+                      disabled={nextIdx === null}
+                      onClick={() => goToStudent(nextIdx)}
+                    >
+                      بعدی
+                    </button>
+                  </div>
+
+                  <div className="sap-section">
+                    <div className="sap-section-title">
+                      <Icon name="exam" size={16} />
+                      <strong>پاسخ دانش‌آموز</strong>
+                    </div>
+                    <p className="sa-desc">
+                      {row.status === 'شرکت‌کرده'
+                        ? `پاسخ ${firstName} در این آزمون ثبت شده است.`
+                        : 'این دانش‌آموز هنوز در آزمون شرکت نکرده است.'}
+                    </p>
+                    <div className="sa-file-list">
+                      <button type="button" className="resource">
+                        <span className="resource-icon green"><Icon name="file" /></span>
+                        <div>
+                          <strong>پاسخ_{firstName}.pdf</strong>
+                          <small>فایل ارسالی</small>
+                          <span>برای مشاهده لمس کنید</span>
+                        </div>
+                        <Icon name="chevron" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="sap-section">
+                    <div className="sap-section-title">
+                      <Icon name="chat" size={16} />
+                      <strong>بازخورد معلم</strong>
+                    </div>
+                    <label className="field">
+                      <span>نمره (از {fa(examMaxScore)})</span>
+                      <input
+                        inputMode="numeric"
+                        placeholder={fa(examMaxScore)}
+                        value={row.score ? fa(row.score) : ''}
+                        onChange={e => updateExamRow(examFeedbackIndex, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>متن بازخورد</span>
+                      <textarea
+                        rows={3}
+                        placeholder="نظر خود را برای دانش‌آموز بنویسید..."
+                        value={examFeedbackDraft}
+                        onChange={e => setExamFeedbackDraft(e.target.value)}
+                      />
+                    </label>
+                  </div>
                 </div>
-                <IconButton icon="close" label="بستن" onClick={() => setExamFeedbackIndex(null)} />
-              </div>
-              <div className="group-grade-body">
-                <label className="field">
-                  <span>نمره (از {fa(examMaxScore)})</span>
-                  <input
-                    inputMode="numeric"
-                    placeholder={fa(examMaxScore)}
-                    value={examRows[examFeedbackIndex].score ? fa(examRows[examFeedbackIndex].score) : ''}
-                    onChange={e => updateExamRow(examFeedbackIndex, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
-                  />
-                </label>
-                <label className="field">
-                  <span>متن بازخورد</span>
-                  <textarea
-                    rows={4}
-                    placeholder="نظر خود را برای دانش‌آموز بنویسید..."
-                    value={examFeedbackDraft}
-                    onChange={e => setExamFeedbackDraft(e.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="group-grade-footer">
-                <button type="button" className="secondary" onClick={() => setExamFeedbackIndex(null)}>بستن</button>
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={() => {
-                    updateExamRow(examFeedbackIndex, { feedback: examFeedbackDraft })
-                    setToast(`بازخورد برای ${examRows[examFeedbackIndex].name} ثبت شد`)
-                    setExamFeedbackIndex(null)
-                    setTimeout(() => setToast(null), 1400)
-                  }}
-                >
-                  ثبت
-                </button>
+                <div className="group-grade-footer">
+                  <button type="button" className="secondary" onClick={() => setExamFeedbackIndex(null)}>بستن</button>
+                  <button type="button" className="primary" onClick={saveAndNext}>ثبت</button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {toast && <div className="toast">{toast}</div>}
       </div>
