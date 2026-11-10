@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useId } from 'react'
 
 /** when set, Chat scrolls to this message id after return */
 let chatFocusTarget: string | null = null
@@ -161,6 +161,7 @@ type Screen =
   | 'call'
   | 'classroom'
   | 'gradebook'
+  | 'storage'
   | 'grade-register'
   | 'reports'
   | 'auth'
@@ -189,6 +190,8 @@ type IconName =
   | 'clock'
   | 'image'
   | 'mic'
+  | 'play'
+  | 'pause'
   | 'speaker'
   | 'camera'
   | 'users'
@@ -208,6 +211,7 @@ type IconName =
   | 'platform'
   | 'logout'
   | 'bag'
+  | 'download'
 
 const paths: Record<IconName, React.ReactNode> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
@@ -233,6 +237,8 @@ const paths: Record<IconName, React.ReactNode> = {
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   image: <><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" /></>,
   mic: <><rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></>,
+  play: <path d="M8 5.4v13.2a.6.6 0 0 0 .93.51l10.2-6.6a.6.6 0 0 0 0-1L8.93 4.89A.6.6 0 0 0 8 5.4Z" />,
+  pause: <><rect x="7" y="5" width="3.4" height="14" rx="1.4" /><rect x="13.6" y="5" width="3.4" height="14" rx="1.4" /></>,
   speaker: <><path d="M11 5 6 9H3v6h3l5 4Z" /><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12" /></>,
   camera: <><path d="M14 5 12.5 3h-5L6 5H3v15h18V5Z" /><circle cx="12" cy="12" r="4" /></>,
   users: <><circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M17 15a6 6 0 0 1 5 6" /></>,
@@ -252,6 +258,7 @@ const paths: Record<IconName, React.ReactNode> = {
   platform: <><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></>,
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></>,
   bag: <><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10Z" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5" /></>,
+  download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></>,
 }
 
 function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
@@ -962,14 +969,15 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'exam-create': { title: 'ساخت آزمون', subtitle: 'تنظیمات و پرسش‌ها' },
   attendance: { title: 'حضور و غیاب', subtitle: 'علوم تجربی · امروز' },
   assignments: { title: 'تکالیف', subtitle: 'همه دروس · این هفته' },
-  gradebook: { title: 'دفتر نمره', subtitle: 'علوم تجربی · نیم‌ترم اول' },
+  gradebook: { title: 'ثبت نمره', subtitle: 'علوم تجربی · نیم‌ترم اول' },
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
+  storage: { title: 'مدیریت حافظه', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
 function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, showSearchBtn = false, onSearchClick, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
   screen: Screen
   back: () => void
-  rightIcon?: IconName
+  rightIcon?: IconName | null
   onRightClick?: () => void
   rightLabel?: string
   rightText?: string
@@ -1031,7 +1039,7 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           >
             {rightText}
           </button>
-        ) : !showSearchBtn ? (
+        ) : !showSearchBtn && rightIcon ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
         ) : null}
       </div>
@@ -1084,20 +1092,25 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
         back={goBack}
         title="پوشه‌ها"
         subtitle="منابع کلاسی"
-        rightIcon="more"
-        rightLabel="بیشتر"
+        showSearchBtn
+        onSearchClick={() => setSearchOpen(true)}
+        searchOpen={searchOpen}
+        searchValue={query}
+        onSearchChange={setQuery}
+        onSearchClose={() => { setSearchOpen(false); setQuery('') }}
+        searchPlaceholder="جست‌وجو در پوشه‌ها..."
       />
       <main className="inner-content">
         <div className="section-heading">
           <strong>پوشه‌های کلاس</strong>
-          <span>{fa(folders.length)} پوشه</span>
+          <span>{fa(folders.filter(f => !query.trim() || f.name.includes(query.trim())).length)} پوشه</span>
         </div>
-        {folders.map(f => (
+        {folders.filter(f => !query.trim() || f.name.includes(query.trim())).map(f => (
           <button
             key={f.id}
             type="button"
             className="resource folder-card"
-            onClick={() => setActiveFolder({ id: f.id, name: f.name })}
+            onClick={() => { setSearchOpen(false); setQuery(''); setActiveFolder({ id: f.id, name: f.name }) }}
           >
             <span className="resource-icon mint"><Icon name="file" /></span>
             <div>
@@ -1113,6 +1126,13 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
             <Icon name="file" size={40} />
             <strong>پوشه‌ای نیست</strong>
             <span>با دکمه + پایین صفحه پوشه بسازید.</span>
+          </div>
+        )}
+        {folders.length > 0 && !folders.some(f => !query.trim() || f.name.includes(query.trim())) && (
+          <div className="empty">
+            <Icon name="search" size={40} />
+            <strong>موردی پیدا نشد</strong>
+            <span>عبارت دیگری را جست‌وجو کنید.</span>
           </div>
         )}
       </main>
@@ -1242,6 +1262,14 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
     }).format(date)
 
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
+
+  const searchQuery = query.trim()
+  const closeSearch = () => {
+    setSearchOpen(false)
+    setQuery('')
+  }
 
   const weekStart = getSaturday(selectedDate)
   const weekDates = weekDays.map((_, index) =>
@@ -1271,11 +1299,26 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
     { t: 'تمرین صرف و نحو', day: 3, m: 'مهلت: سه‌شنبه، ۲۱:۰۰', s: '۷ از ۲۲ تحویل', color: 'purple', subject: 'عربی' },
   ]
 
+  const filteredData = searchQuery
+    ? data.filter(item =>
+        item.t.includes(searchQuery) ||
+        item.subject.includes(searchQuery) ||
+        item.m.includes(searchQuery)
+      )
+    : data
+
   return (
    <div className="screen inner-screen">
       <SubHeader
         screen="assignments"
         back={goBack}
+        showSearchBtn
+        onSearchClick={() => setSearchOpen(true)}
+        searchOpen={searchOpen}
+        searchValue={query}
+        onSearchChange={setQuery}
+        onSearchClose={closeSearch}
+        searchPlaceholder="جست‌وجو در تکالیف..."
       />
 
       <main className="inner-content">
@@ -1336,9 +1379,11 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
 
         <div className="assignment-week-list">
           {weekDays.map((day, index) => {
-            const items = data.filter(
+            const items = filteredData.filter(
               item => item.day === index
             )
+
+            if (searchQuery && !items.length) return null
 
             return (
               <section className="assignment-day-section" key={day}>
@@ -1387,6 +1432,14 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
             )
           })}
         </div>
+
+        {searchQuery && !filteredData.length && (
+          <div className="empty compact-empty">
+            <Icon name="search" size={32} />
+            <strong>موردی پیدا نشد</strong>
+            <span>عبارت دیگری را جست‌وجو کنید.</span>
+          </div>
+        )}
       </main>
 
       {!isStudent && (
@@ -1578,7 +1631,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   if (isStudent) {
     const showForm = !submitted || editingSubmission
     return <div className="screen inner-screen">
-      <SubHeader screen="assignment" back={goBack} title={meta.title} subtitle="علوم تجربی · کلاس ۹۰۱" />
+      <SubHeader screen="assignment" back={goBack} title={meta.title} subtitle="علوم تجربی · کلاس ۹۰۱" rightIcon="download" rightLabel="دانلود تکلیف" onRightClick={() => setToast('دانلود تکلیف شروع شد')} />
       <main className="inner-content form-page">
         <div className="display-banner">
           <span className="display-banner-icon"><Icon name="book" /></span>
@@ -1715,14 +1768,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 <div>
                   <strong>افزودن فایل</strong>
                   <span>PDF، ورد یا فایل متنی</span>
-                </div>
-                <Icon name="plus" />
-              </button>
-              <button type="button" className="upload" onClick={() => addAttachment('image')}>
-                <Icon name="image" />
-                <div>
-                  <strong>افزودن عکس</strong>
-                  <span>تصویر از گالری یا دوربین</span>
                 </div>
                 <Icon name="plus" />
               </button>
@@ -2314,17 +2359,221 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   </div>
 }
 
+const VOICE_WAVE_BARS = [7, 14, 20, 11, 17, 9, 22, 13, 18, 8, 15, 21, 10, 16, 12, 19]
+const MAX_VOICE_SECONDS = 60
+const TEACHER_SUBJECTS = ['علوم تجربی', 'ریاضی', 'ادبیات فارسی', 'عربی', 'مطالعات اجتماعی', 'زبان انگلیسی']
+const TEACHER_CLASSES = ['کلاس ۹۰۱', 'کلاس ۹۰۲', 'کلاس ۹۰۳', 'کلاس ۸۰۱', 'کلاس ۸۰۲']
+
 function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => void }) {
   const [published, setPublished] = useState(false)
+  const [subject, setSubject] = useState('')
+  const [klass, setKlass] = useState('')
+  const [recording, setRecording] = useState(false)
+  const [recSeconds, setRecSeconds] = useState(0)
+  const [voiceNote, setVoiceNote] = useState<{ url: string | null; seconds: number } | null>(null)
+  const [playing, setPlaying] = useState(false)
+
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const voiceUrlRef = useRef<string | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const wantRecRef = useRef(false)
+  const pendingSecondsRef = useRef(0)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const recTimerRef = useRef<number | null>(null)
+  const playTimerRef = useRef<number | null>(null)
+
+  const fmtTime = (s: number) => fa(`${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s)) % 60).padStart(2, '0')}`)
+
+  const stopRecTimer = () => {
+    if (recTimerRef.current !== null) { window.clearInterval(recTimerRef.current); recTimerRef.current = null }
+  }
+  const stopPlayTimer = () => {
+    if (playTimerRef.current !== null) { window.clearTimeout(playTimerRef.current); playTimerRef.current = null }
+  }
+  const releaseStream = () => {
+    const stream = streamRef.current
+    if (stream) { stream.getTracks().forEach(t => t.stop()); streamRef.current = null }
+  }
+  const finishVoice = (seconds: number, url: string | null) => {
+    if (voiceUrlRef.current && voiceUrlRef.current !== url) URL.revokeObjectURL(voiceUrlRef.current)
+    voiceUrlRef.current = url
+    pendingSecondsRef.current = 0
+    setVoiceNote({ url, seconds: Math.max(1, Math.round(seconds)) })
+    setRecording(false)
+    setPlaying(false)
+  }
+
+  const startVoice = () => {
+    stopPlayTimer()
+    setPlaying(false)
+    setRecSeconds(0)
+    setRecording(true)
+    chunksRef.current = []
+    wantRecRef.current = true
+    pendingSecondsRef.current = 0
+    recTimerRef.current = window.setInterval(() => setRecSeconds(v => v + 1), 1000)
+
+    try {
+      if (navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined') {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+          if (!wantRecRef.current) { stream.getTracks().forEach(t => t.stop()); return }
+          streamRef.current = stream
+          try {
+            const recorder = new MediaRecorder(stream)
+            recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data) }
+            recorder.onstop = () => {
+              releaseStream()
+              let url: string | null = null
+              try {
+                if (chunksRef.current.length) {
+                  url = URL.createObjectURL(new Blob(chunksRef.current, { type: chunksRef.current[0].type || 'audio/webm' }))
+                }
+              } catch { url = null }
+              finishVoice(pendingSecondsRef.current || 1, url)
+            }
+            recorder.start()
+            recorderRef.current = recorder
+          } catch {
+            releaseStream()
+            finishVoice(pendingSecondsRef.current || 1, null)
+          }
+        }).catch(() => { /* میکروفون در دسترس نیست؛ ضبط به‌صورت شبیه‌سازی ادامه پیدا می‌کند */ })
+      }
+    } catch { /* ignore */ }
+  }
+
+  const stopVoice = () => {
+    stopRecTimer()
+    if (!wantRecRef.current) return
+    wantRecRef.current = false
+    const seconds = Math.max(1, recSeconds)
+    pendingSecondsRef.current = seconds
+    setRecording(false)
+    const recorder = recorderRef.current
+    recorderRef.current = null
+    if (recorder && recorder.state !== 'inactive') {
+      try { recorder.stop() } catch { releaseStream(); finishVoice(seconds, null) }
+    } else {
+      releaseStream()
+      finishVoice(seconds, null)
+    }
+  }
+
+  useEffect(() => {
+    if (recording && recSeconds >= MAX_VOICE_SECONDS) stopVoice()
+  }, [recording, recSeconds])
+
+  useEffect(() => () => {
+    stopRecTimer()
+    stopPlayTimer()
+    wantRecRef.current = false
+    const recorder = recorderRef.current
+    if (recorder && recorder.state !== 'inactive') { try { recorder.stop() } catch { /* ignore */ } }
+    releaseStream()
+    if (voiceUrlRef.current) { URL.revokeObjectURL(voiceUrlRef.current); voiceUrlRef.current = null }
+    const el = audioRef.current
+    if (el) { try { el.pause() } catch { /* ignore */ } }
+  }, [])
+
+  const toggleVoicePlay = () => {
+    if (!voiceNote) return
+    const el = audioRef.current
+    if (playing) {
+      stopPlayTimer()
+      if (el) { try { el.pause() } catch { /* ignore */ } }
+      setPlaying(false)
+      return
+    }
+    setPlaying(true)
+    if (voiceNote.url && el) {
+      try { el.currentTime = 0 } catch { /* ignore */ }
+      const promise = el.play()
+      if (promise && typeof promise.catch === 'function') promise.catch(() => { stopPlayTimer(); setPlaying(false) })
+    } else {
+      playTimerRef.current = window.setTimeout(() => setPlaying(false), voiceNote.seconds * 1000)
+    }
+  }
+
+  const removeVoice = () => {
+    stopPlayTimer()
+    const el = audioRef.current
+    if (el) { try { el.pause() } catch { /* ignore */ } }
+    if (voiceUrlRef.current) { URL.revokeObjectURL(voiceUrlRef.current); voiceUrlRef.current = null }
+    setVoiceNote(null)
+    setPlaying(false)
+  }
+
   return <div className="screen inner-screen">
-    <SubHeader screen="assignment-create" back={goBack} />
+    <SubHeader
+      screen="assignment-create"
+      back={goBack}
+      rightIcon={null}
+      subtitle={([subject, klass].filter(Boolean).join(' · ')) || undefined}
+    />
     <main className="inner-content form-page">
       <FormField label="عنوان تکلیف" placeholder="مثلاً تمرین فصل سوم" />
       <label className="field"><span>توضیحات</span><textarea rows={4} placeholder="توضیحات و راهنمای انجام تکلیف..." /></label>
+
+      <div className="voice-note-block">
+        {!voiceNote && !recording && (
+          <button type="button" className="upload" onClick={startVoice}>
+            <Icon name="mic" />
+            <div><strong>افزودن ویس</strong><span>توضیحات تکلیف را با صدا بگویید</span></div>
+            <Icon name="plus" />
+          </button>
+        )}
+
+        {recording && (
+          <button type="button" className="upload upload-recording" onClick={stopVoice}>
+            <Icon name="mic" />
+            <div><strong>در حال ضبط... {fmtTime(recSeconds)}</strong><span>برای پایان و ذخیره بزنید</span></div>
+            <Icon name="check" />
+          </button>
+        )}
+
+        {voiceNote && (
+          <div className="voice-note-row">
+            <button type="button" className="voice-note-play" aria-label={playing ? 'توقف پخش ویس' : 'پخش ویس'} onClick={toggleVoicePlay}>
+              <Icon name={playing ? 'pause' : 'play'} size={15} />
+            </button>
+            <div className="voice-note-info">
+              <strong>ویس توضیحات</strong>
+              <small>{fmtTime(voiceNote.seconds)}</small>
+            </div>
+            <div className={`voice-wave ${playing ? 'playing' : ''}`}>
+              {VOICE_WAVE_BARS.map((h, i) => <i key={i} style={{ height: h, animationDelay: `${(i % 7) * 0.08}s` }} />)}
+            </div>
+            <button type="button" className="attach-remove" aria-label="حذف ویس" onClick={removeVoice}>
+              <Icon name="close" size={16} />
+            </button>
+            {voiceNote.url && (
+              <audio
+                ref={audioRef}
+                src={voiceNote.url}
+                style={{ display: 'none' }}
+                onEnded={() => { stopPlayTimer(); setPlaying(false) }}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
       <button className="upload"><Icon name="paperclip" /><div><strong>افزودن فایل</strong><span>PDF، تصویر یا فایل متنی</span></div><Icon name="plus" /></button>
       <label className="field"><span>مهلت تحویل</span><div className="two-fields"><select><option value="">تاریخ</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select><input type="time" /></div></label>
-      <div className="switch-row"><div><strong>نمایش وضعیت تحویل</strong><span>پیشرفت دانش‌آموزان را دنبال کنید</span></div><button className="switch active" aria-label="نمایش وضعیت تحویل"><i /></button></div>
-      <div className="progress-preview"><div><span>وضعیت کلاس</span><strong>۰ از ۲۸</strong></div><div className="progress"><i /></div><small>پس از انتشار، وضعیت تحویل اینجا نمایش داده می‌شود.</small></div>
+      <label className="field">
+        <span>درس و کلاس</span>
+        <div className="two-fields">
+          <select value={subject} onChange={e => setSubject(e.target.value)} aria-label="درس">
+            <option value="">درس را انتخاب کنید</option>
+            {TEACHER_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select value={klass} onChange={e => setKlass(e.target.value)} aria-label="کلاس">
+            <option value="">کلاس را انتخاب کنید</option>
+            {TEACHER_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </label>
     </main>
     <div className="sticky-action">
       <button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>
@@ -2548,6 +2797,8 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [exportFrom, setExportFrom] = useState('')
   const [exportTo, setExportTo] = useState('')
   const [toast, setToast] = useState<string | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const id = setInterval(() => setNowLabel(nowShamsi()), 1000)
@@ -2602,6 +2853,10 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const late = Object.values(status).filter(x => x === 'تأخیر').length
 
   const dateOptions = Array.from(new Set(history.map(h => h.dateLabel)))
+  const searchQ = searchQuery.trim()
+  const filteredHistory = searchQ
+    ? history.filter(h => h.dateLabel.includes(searchQ) || h.dayLabel.includes(searchQ) || h.timeLabel.includes(searchQ))
+    : history
 
   const exportHistory = () => {
     const filtered = history.filter(h => {
@@ -2634,9 +2889,16 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
         <SubHeader
           screen="attendance"
           back={goBack}
-          rightIcon={isStudent ? 'more' : 'clock'}
-          rightLabel={isStudent ? 'بیشتر' : 'تاریخچه و خروجی'}
+          rightIcon={isStudent ? null : 'clock'}
+          rightLabel={isStudent ? '' : 'تاریخچه و خروجی'}
           onRightClick={isStudent ? undefined : () => setExportOpen(true)}
+          showSearchBtn={isStudent}
+          onSearchClick={isStudent ? () => setSearchOpen(true) : undefined}
+          searchOpen={isStudent ? searchOpen : false}
+          searchValue={isStudent ? searchQuery : ''}
+          onSearchChange={isStudent ? setSearchQuery : undefined}
+          onSearchClose={isStudent ? () => { setSearchOpen(false); setSearchQuery('') } : undefined}
+          searchPlaceholder="جست‌وجو در حضور و غیاب..."
           title={isStudent ? 'حضور و غیاب من' : undefined}
           subtitle={isStudent ? 'وضعیت حضور شما' : undefined}
         />
@@ -2650,9 +2912,9 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
         <main className="inner-content">
           <div className="section-heading">
             <strong>تاریخچه حضور و غیاب</strong>
-            <span>{fa(history.length)} مورد</span>
+            <span>{fa(filteredHistory.length)} مورد</span>
           </div>
-          {history.map(item => {
+          {filteredHistory.map(item => {
             const p = Object.values(item.status).filter(x => x === 'حاضر').length
             const a = Object.values(item.status).filter(x => x === 'غایب').length
             const editable = Date.now() - item.createdAt <= 24 * 60 * 60 * 1000
@@ -2676,6 +2938,13 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               <Icon name="attendance" size={40} />
               <strong>هنوز ثبت نشده</strong>
               <span>با دکمه + پایین صفحه، حضور و غیاب ثبت کنید.</span>
+            </div>
+          )}
+          {history.length > 0 && !filteredHistory.length && (
+            <div className="empty">
+              <Icon name="search" size={40} />
+              <strong>موردی پیدا نشد</strong>
+              <span>عبارت دیگری را جست‌وجو کنید.</span>
             </div>
           )}
         </main>
@@ -2909,7 +3178,7 @@ const classSections: { title: string; sub: string; icon: IconName; screen: Scree
   { title: 'آزمون‌ها', sub: '۱ آزمون پیش‌رو', icon: 'exam', screen: 'exam' },
   { title: 'منابع کلاسی', sub: '۴ فایل این هفته', icon: 'file', screen: 'materials' },
   { title: 'حضور و غیاب', sub: 'ثبت امروز', icon: 'attendance', screen: 'attendance' },
-  { title: 'دفتر نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
+  { title: 'ثبت نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
 ]
 
 function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
@@ -3002,6 +3271,14 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
                   <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
                 </button>
               )}
+              <button className="storage-tile" onClick={() => navigate('storage')}>
+                <span className="storage-cyl"><StorageGauge used={6} total={10} mini /></span>
+                <div>
+                  <strong>مدیریت حافظه</strong>
+                  <small>۶ از ۱۰ گیگ اشغال شده</small>
+                </div>
+                <Icon name="chevron" />
+              </button>
             </div>
           ) : mediaTab === 'رسانه' ? (
             <div className="media-overview">
@@ -3203,7 +3480,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
   const [title, setTitle] = useState('')
-  const [scoreKind, setScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
+  const [scoreKind, setScoreKind] = useState<'کمی' | 'کیفی'>('کمی')
   const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [customMaxOpen, setCustomMaxOpen] = useState(false)
   const [customMaxInput, setCustomMaxInput] = useState('')
@@ -3314,19 +3591,21 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         <div className="score-kind-card">
           <div className="score-kind-label">نوع نمره</div>
           <div className="score-kind-tabs">
-            {(['کمی', 'توصیفی', 'کیفی'] as const).map(k => (
+            {(['کمی', 'کیفی'] as const).map(k => (
               <button
                 key={k}
                 type="button"
                 className={scoreKind === k ? 'active' : ''}
                 onClick={() => setScoreKind(k)}
               >
-                {k === 'توصیفی' ? 'کیفی' : k === 'کیفی' ? 'توصیفی' : k}
+                {k === 'کمی' ? 'عددی' : 'توصیفی'}
               </button>
             ))}
           </div>
           <div className="score-kind-hint">
-            {scoreKind === 'توصیفی' && <span>متن آزاد برای هر دانش‌آموز</span>}
+            {scoreKind === 'کیفی' && (
+              <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>
+            )}
             {scoreKind === 'کمی' && (
               <div className="score-kind-scales">
                 <span className="chips-prefix">پیش‌فرض:</span>
@@ -3386,15 +3665,6 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 }}
               />
             )}
-            {scoreKind === 'توصیفی' && (
-              <input
-                className="score-input text-score"
-                type="text"
-                placeholder="توضیح..."
-                value={scores[i] || ''}
-                onChange={e => setScores(prev => ({ ...prev, [i]: e.target.value }))}
-              />
-            )}
             {scoreKind === 'کیفی' && (
               <select
                 className="score-select"
@@ -3443,7 +3713,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>همین الان</button>
               </div>
               <p className="group-grade-hint">
-                {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind === 'توصیفی' ? 'کیفی' : scoreKind === 'کیفی' ? 'توصیفی' : scoreKind} ثبت می‌شود.
+                {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind === 'کمی' ? 'عددی' : 'توصیفی'} ثبت می‌شود.
               </p>
             </div>
             <div className="group-grade-footer">
@@ -3502,7 +3772,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
             <div className="sheet-handle" />
             <div className="sheet-title">
               <div>
-                <strong>ثبت گروهی · {scoreKind === 'توصیفی' ? 'کیفی' : scoreKind === 'کیفی' ? 'توصیفی' : scoreKind}</strong>
+                <strong>ثبت گروهی · {scoreKind === 'کمی' ? 'عددی' : 'توصیفی'}</strong>
                 <span>یک مقدار برای همه دانش‌آموزان</span>
               </div>
               <IconButton icon="close" label="بستن" onClick={() => setGroupOpen(false)} />
@@ -3520,17 +3790,6 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                       if (raw && Number(raw) > maxScore) return
                       setGroupValue(raw)
                     }}
-                  />
-                </label>
-              )}
-              {scoreKind === 'توصیفی' && (
-                <label className="field">
-                  <span>متن مشترک</span>
-                  <textarea
-                    rows={3}
-                    placeholder="توضیح یکسان برای همه..."
-                    value={groupValue}
-                    onChange={e => setGroupValue(e.target.value)}
                   />
                 </label>
               )}
@@ -4325,6 +4584,141 @@ function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; go
   </div>
 }
 
+function StorageGauge({ used, total, mini = false }: { used: number; total: number; mini?: boolean }) {
+  const uid = useId()
+  const ratio = Math.max(0, Math.min(1, used / total))
+  const usedLabel = used % 1 === 0 ? String(used) : used.toFixed(1)
+  const topY = 14
+  const botY = 62
+  const cx = 48
+  const rx = 36
+  const ry = 10
+  const wall = 7
+  const innerRx = rx - wall
+  const innerRy = ry - 2.5
+  const fillTop = botY - (botY - topY) * ratio
+  const width = mini ? 80 : 136
+  const height = mini ? 64 : 110
+  return (
+    <span className={`storage-gauge ${mini ? 'mini' : ''}`} style={{ width, height, position: 'relative', display: 'inline-block' }}>
+      <svg viewBox="0 0 96 84" width={width} height={height} aria-hidden="true">
+        <defs>
+          <clipPath id={`tube-${uid}`}>
+            <path d={`M${cx - innerRx} ${topY} A${innerRx} ${innerRy} 0 0 1 ${cx + innerRx} ${topY} V${botY} A${innerRx} ${innerRy} 0 0 1 ${cx - innerRx} ${botY} Z`} />
+          </clipPath>
+        </defs>
+        <rect
+          x={cx - innerRx}
+          y={fillTop}
+          width={innerRx * 2}
+          height={botY + innerRy - fillTop}
+          fill="rgba(17,156,120,.22)"
+          clipPath={`url(#tube-${uid})`}
+        />
+        <ellipse cx={cx} cy={fillTop} rx={innerRx} ry={innerRy} fill="rgba(17,156,120,.42)" />
+        <path
+          d={`M${cx - rx} ${topY} V${botY} A${rx} ${ry} 0 0 0 ${cx + rx} ${botY} V${topY}`}
+          fill="none"
+          stroke="var(--green)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+        />
+        <ellipse cx={cx} cy={topY} rx={rx} ry={ry} fill="none" stroke="var(--green)" strokeWidth="3.5" />
+        <ellipse cx={cx} cy={topY} rx={innerRx} ry={innerRy} fill="white" stroke="var(--green)" strokeWidth="2.5" />
+        <ellipse cx={cx} cy={botY} rx={rx} ry={ry} fill="none" stroke="var(--green)" strokeWidth="3.5" />
+      </svg>
+      <em className="storage-gauge-label">{usedLabel}/10 گیگ</em>
+    </span>
+  )
+}
+
+function StorageManage({ goBack }: { goBack: () => void }) {
+  const [items, setItems] = useState([
+    { id: 'assignments', title: 'تکالیف', sub: '۴۲ فایل ارسالی', icon: 'book' as IconName, size: 2.4 },
+    { id: 'exams', title: 'آزمون‌ها', sub: '۱۸ فایل و پاسخ', icon: 'exam' as IconName, size: 1.2 },
+    { id: 'materials', title: 'منابع کلاسی', sub: '۲۶ فایل و جزوه', icon: 'file' as IconName, size: 1.5 },
+    { id: 'media', title: 'رسانه‌های گفتگو', sub: 'تصاویر و صداها', icon: 'image' as IconName, size: 0.9 },
+  ])
+  const [selected, setSelected] = useState<string[]>([])
+  const [toast, setToast] = useState<string | null>(null)
+  const used = items.reduce((s, i) => s + i.size, 0)
+  const total = 10
+  const toggle = (id: string) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
+  const toggleAll = () => {
+    if (selected.length === items.length) setSelected([])
+    else setSelected(items.map(i => i.id))
+  }
+  const removeSelected = () => {
+    if (!selected.length) return
+    const count = selected.length
+    setItems(list => list.filter(i => !selected.includes(i.id)))
+    setSelected([])
+    setToast(`${fa(count)} مورد حذف شد`)
+    setTimeout(() => setToast(null), 1600)
+  }
+  const fmt = (n: number) => {
+    const s = n % 1 === 0 ? String(n) : n.toFixed(1)
+    return fa(s).replace(/\./g, '٫')
+  }
+  return (
+    <div className="screen inner-screen">
+      <SubHeader screen="storage" back={goBack} title="مدیریت حافظه" subtitle={`${fmt(used)} از ${fa(total)} گیگ استفاده شده`} />
+      <main className="inner-content form-page">
+        <div className="storage-hero">
+          <StorageGauge used={used} total={total} />
+          <div className="storage-summary">
+            <strong>{fmt(used)} گیگ استفاده شده</strong>
+            <span>{fmt(total - used)} گیگ آزاد</span>
+          </div>
+        </div>
+        <div className="storage-section-head">
+          <strong>موارد ذخیره‌شده</strong>
+          <button type="button" className="storage-select-all" onClick={toggleAll}>
+            {selected.length === items.length && items.length ? 'لغو انتخاب همه' : 'انتخاب همه'}
+          </button>
+        </div>
+        {items.length === 0 ? (
+          <div className="empty compact-empty">
+            <Icon name="check" size={32} />
+            <strong>حافظه آزاد است</strong>
+            <span>موردی برای حذف باقی نمانده.</span>
+          </div>
+        ) : (
+          <div className="storage-list">
+            {items.map(item => {
+              const checked = selected.includes(item.id)
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`storage-row ${checked ? 'checked' : ''}`}
+                  onClick={() => toggle(item.id)}
+                >
+                  <span className="storage-check">{checked && <Icon name="check" size={14} />}</span>
+                  <span className="storage-row-icon"><Icon name={item.icon} /></span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{item.sub}</small>
+                  </div>
+                  <span className="storage-row-size">{fmt(item.size)} گیگ</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </main>
+      {items.length > 0 && (
+        <div className="sticky-action">
+          <button disabled={!selected.length} onClick={removeSelected}>
+            {selected.length ? `حذف ${fa(selected.length)} مورد انتخاب‌شده` : 'حذف انتخاب‌شده‌ها'}
+          </button>
+        </div>
+      )}
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  )
+}
+
 export default function App() {
   const [history, setHistory] = useState<Screen[]>(['messenger'])
   const [role, setRole] = useState<UserRole>('teacher')
@@ -4355,6 +4749,7 @@ export default function App() {
     {screen === 'exam-create' && <ExamCreate goBack={goBack}/>}
     {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'storage' && <StorageManage goBack={goBack}/>}
     {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
     {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}

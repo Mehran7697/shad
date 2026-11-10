@@ -237,6 +237,22 @@
 .field { display: flex; flex-direction: column; gap: 7px; font-size: 11px; font-weight: 600; }
 .field input, .field textarea, .question-card > input, .option input:last-child { border: 1px solid var(--line); background: white; border-radius: 13px; padding: 12px; outline: 0; font-size: 11px; resize: none; }
 .field input:focus, .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgb(17 156 120 / .08); }
+.field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2372808a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 12px center;
+  background-size: 12px 12px;
+  border-radius: 13px;
+  padding: 12px 34px 12px 12px;
+  outline: 0;
+  font-size: 11px;
+  color: var(--ink);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.field select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgb(17 156 120 / .08); }
+.field select:has(option[value=""]:checked) { color: var(--muted); }
 .upload { margin: 0; border-color: var(--line); background: white; }.upload > svg:last-child { margin-right: auto; color: var(--green); }
 .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-radius: 14px; }
 .switch-row div { display: flex; flex-direction: column; }.switch-row strong { font-size: 11px; }.switch-row span { color: var(--muted); font-size: 8px; }
@@ -1730,6 +1746,82 @@
 }
 .upload.upload-recording strong {
   color: #c0392b;
+}
+.upload.upload-recording > svg:last-child {
+  color: #c0392b;
+}
+
+/* Assignment voice note (under description) */
+.voice-note-block {
+  display: flex;
+  flex-direction: column;
+}
+.voice-note-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.voice-note-play {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--green);
+  color: white;
+  transition: .15s;
+}
+.voice-note-play:active {
+  transform: scale(.92);
+}
+.voice-note-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: none;
+}
+.voice-note-info strong {
+  font-size: 11px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.voice-note-info small {
+  font-size: 8px;
+  color: var(--muted);
+  direction: ltr;
+  text-align: right;
+}
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  overflow: hidden;
+  direction: ltr;
+}
+.voice-wave i {
+  display: block;
+  flex: none;
+  width: 3px;
+  border-radius: 3px;
+  background: #cfe7e0;
+  transform-origin: center;
+}
+.voice-wave.playing i {
+  background: var(--green);
+  animation: voice-wave .8s ease-in-out infinite alternate;
+}
+@keyframes voice-wave {
+  from { transform: scaleY(.45); }
+  to { transform: scaleY(1); }
 }
 
 /* Teacher assignment ring + deadline */
@@ -3625,9 +3717,123 @@
 }
 
 
-.sub-header-actions {
+.sub-header > .sub-header-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   flex: none;
+  margin-inline-start: auto;
 }
+
+/* ---- Storage management ---- */
+.classroom-grid .storage-tile {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-height: 84px;
+}
+.classroom-grid .storage-tile > span.storage-cyl {
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0;
+  flex: none;
+}
+.classroom-grid .storage-tile > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  text-align: right;
+}
+.classroom-grid .storage-tile strong { font-size: 13px; }
+.classroom-grid .storage-tile small { font-size: 10px; color: var(--muted); }
+.classroom-grid .storage-tile > svg { flex: none; }
+
+.storage-gauge { position: relative; }
+.storage-gauge-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--green-dark);
+  font-style: normal;
+  pointer-events: none;
+  text-shadow: 0 1px 0 rgba(255,255,255,.7);
+}
+.storage-gauge.mini .storage-gauge-label { font-size: 9px; }
+
+.storage-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0 8px;
+}
+.storage-summary { text-align: center; }
+.storage-summary strong { font-size: 14px; color: var(--ink); }
+.storage-summary span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.storage-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 8px;
+}
+.storage-section-head strong { font-size: 13px; }
+.storage-select-all {
+  border: 0;
+  background: transparent;
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 6px;
+}
+
+.storage-list { display: flex; flex-direction: column; gap: 8px; }
+.storage-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 14px;
+  padding: 10px 12px;
+  text-align: right;
+  transition: .15s;
+}
+.storage-row.checked { border-color: var(--green); background: var(--green-soft); }
+.storage-check {
+  width: 22px; height: 22px;
+  border: 2px solid var(--line);
+  border-radius: 7px;
+  display: grid; place-items: center;
+  color: white;
+  background: white;
+  flex: none;
+}
+.storage-row.checked .storage-check { background: var(--green); border-color: var(--green); }
+.storage-row-icon {
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  display: grid; place-items: center;
+  color: var(--green-dark);
+  background: var(--green-soft);
+  flex: none;
+}
+.storage-row > div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.storage-row strong { font-size: 12px; }
+.storage-row small { font-size: 9px; color: var(--muted); }
+.storage-row-size { font-size: 11px; font-weight: 700; color: var(--green-dark); flex: none; }
+
+.storage-row:active { transform: scale(.98); }
+
+.empty.compact-empty { margin-top: 12px; }
