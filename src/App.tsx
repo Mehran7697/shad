@@ -815,7 +815,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
             </button>
             <button type="button" onClick={() => { setBagOpen(false); navigate('classroom') }}>
               <span><Icon name="classes" /></span>
-              <strong>ورود به کلاس</strong>
+              <strong>ورود به کلاسا</strong>
             </button>
             <button type="button" onClick={() => { setBagOpen(false); setShowCallPopup(true) }}>
               <span><Icon name="phone" /></span>
@@ -3220,7 +3220,7 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
             onClick={() => navigate('call')}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('call') } }}
           >
-            ورود به کلاس
+            ورود به کلاسا
           </span>
           <span
             className="start-cta secondary-cta"
