@@ -1460,6 +1460,8 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
   )
 }
 
+const students: string[] = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
+
 function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
   const isStudent = role === 'student'
   const [meta, setMeta] = useState({
@@ -2946,9 +2948,6 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
   </div>
 }
 
-const students
-
-const students = ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری']
 type AttendanceRecord = {
   id: string
   dateLabel: string
