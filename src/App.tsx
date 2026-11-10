@@ -574,7 +574,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
           </div>
           <div className="section-heading" style={{ marginTop: 14 }}>
             <strong>تکالیف این هفته</strong>
-            <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => navigate('assignments')}>مشاهده همه</button>
+            <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => { assignmentContext = null; navigate('assignments') }}>مشاهده همه</button>
           </div>
           <button className="resource" onClick={() => navigate('assignment')}>
             <span className="resource-icon green"><Icon name="book" /></span>
@@ -616,6 +616,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
 }
 
 let classStarted = false
+let assignmentContext: { subject: string; klass: string } | null = null
 
 function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
   const [sheet, setSheet] = useState<'tools' | 'attach' | null>(null)
@@ -1299,19 +1300,23 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
     { t: 'تمرین صرف و نحو', day: 3, m: 'مهلت: سه‌شنبه، ۲۱:۰۰', s: '۷ از ۲۲ تحویل', color: 'purple', subject: 'عربی' },
   ]
 
+  const ctxSubject = assignmentContext?.subject || ''
+  const baseData = ctxSubject ? data.filter(item => item.subject === ctxSubject) : data
   const filteredData = searchQuery
-    ? data.filter(item =>
+    ? baseData.filter(item =>
         item.t.includes(searchQuery) ||
         item.subject.includes(searchQuery) ||
         item.m.includes(searchQuery)
       )
-    : data
+    : baseData
 
   return (
    <div className="screen inner-screen">
       <SubHeader
         screen="assignments"
         back={goBack}
+        title={ctxSubject ? `تکالیف ${ctxSubject}` : undefined}
+        subtitle={ctxSubject ? `${ctxSubject} · این هفته` : undefined}
         showSearchBtn
         onSearchClick={() => setSearchOpen(true)}
         searchOpen={searchOpen}
@@ -1503,7 +1508,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [groupScore, setGroupScore] = useState('')
   const [feedbackIndex, setFeedbackIndex] = useState<number | null>(null)
   const [feedbackDraft, setFeedbackDraft] = useState('')
-  const [feedbackScoreKind, setFeedbackScoreKind] = useState<'توصیفی' | 'کمی' | 'کیفی'>('کمی')
+  const [feedbackScoreKind, setFeedbackScoreKind] = useState<'کمی' | 'کیفی'>('کمی')
   const [feedbackQuantScale, setFeedbackQuantScale] = useState('۲۰/۰')
   const [feedbackScoreValue, setFeedbackScoreValue] = useState('')
   const qualitativeFeedbackOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
@@ -1782,7 +1787,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 <Icon name="mic" />
                 <div>
                   <strong>{recording ? 'در حال ضبط... توقف و ذخیره' : 'افزودن پیام صوتی'}</strong>
-                  <span>{recording ? 'برای ذخیره دوباره لمس کنید' : 'ویس کوتاه به‌عنوان پاسخ'}</span>
+                  <span>{recording ? 'برای ذخیره دوباره لمس کنید' : 'صوت کوتاه به‌عنوان پاسخ'}</span>
                 </div>
                 <Icon name={recording ? 'check' : 'plus'} />
               </button>
@@ -1875,16 +1880,13 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           <textarea rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} />
         </label>
         <label className="field"><span>مهلت تحویل</span>
-          <input type="text" value={draft.deadline} onChange={e => setDraft({ ...draft, deadline: e.target.value })} placeholder="مثلاً دوشنبه، ساعت ۲۰:۰۰" />
-        </label>
-        <label className="field"><span>نام فایل ضمیمه</span>
-          <input type="text" value={draft.fileName} onChange={e => setDraft({ ...draft, fileName: e.target.value })} />
-        </label>
-        <label className="field"><span>حجم فایل</span>
-          <input type="text" value={draft.fileSize} onChange={e => setDraft({ ...draft, fileSize: e.target.value })} />
-        </label>
-        <label className="field"><span>مدت پیام صوتی</span>
-          <input type="text" value={draft.voice} onChange={e => setDraft({ ...draft, voice: e.target.value })} />
+          <div className="two-fields">
+            <select aria-label="تاریخ" onChange={e => setDraft(d => ({ ...d, deadline: e.target.value }))}>
+              <option value="">تاریخ</option>
+              {reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <input type="time" onChange={e => setDraft(d => ({ ...d, deadline: (d.deadline || '') + ' ' + e.target.value }))} />
+          </div>
         </label>
         <button type="button" className="upload">
           <Icon name="paperclip" />
@@ -2258,7 +2260,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 <div className="score-kind-card" style={{ marginBottom: 0 }}>
                   <div className="score-kind-label">نوع نمره</div>
                   <div className="score-kind-tabs">
-                    {(['کمی', 'توصیفی', 'کیفی'] as const).map(k => (
+                    {(['کمی', 'کیفی'] as const).map(k => (
                       <button
                         key={k}
                         type="button"
@@ -2268,12 +2270,11 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                           setFeedbackScoreValue('')
                         }}
                       >
-                        {k === 'توصیفی' ? 'کیفی' : k === 'کیفی' ? 'توصیفی' : k}
+                        {k === 'کمی' ? 'عددی' : 'توصیفی'}
                       </button>
                     ))}
                   </div>
                   <div className="score-kind-hint">
-                    {feedbackScoreKind === 'توصیفی' && <span>متن آزاد برای نمره توصیفی</span>}
                     {feedbackScoreKind === 'کمی' && (
                       <div className="score-kind-scales">
                         <span className="chips-prefix">پیش‌فرض:</span>
@@ -2306,20 +2307,6 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                           if (raw && Number(raw) > feedbackMaxScore) return
                           setFeedbackScoreValue(raw)
                           updateRow(feedbackIndex, { score: raw })
-                        }}
-                      />
-                    </label>
-                  )}
-                  {feedbackScoreKind === 'توصیفی' && (
-                    <label className="field" style={{ marginTop: 10, marginBottom: 0 }}>
-                      <span>نمره توصیفی</span>
-                      <input
-                        type="text"
-                        placeholder="توضیح نمره..."
-                        value={feedbackScoreValue || row.score}
-                        onChange={e => {
-                          setFeedbackScoreValue(e.target.value)
-                          updateRow(feedbackIndex, { score: e.target.value })
                         }}
                       />
                     </label>
@@ -2366,8 +2353,8 @@ const TEACHER_CLASSES = ['کلاس ۹۰۱', 'کلاس ۹۰۲', 'کلاس ۹۰۳'
 
 function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => void }) {
   const [published, setPublished] = useState(false)
-  const [subject, setSubject] = useState('')
-  const [klass, setKlass] = useState('')
+  const [subject, setSubject] = useState(assignmentContext?.subject || '')
+  const [klass, setKlass] = useState(assignmentContext?.klass || '')
   const [recording, setRecording] = useState(false)
   const [recSeconds, setRecSeconds] = useState(0)
   const [voiceNote, setVoiceNote] = useState<{ url: string | null; seconds: number } | null>(null)
@@ -2512,6 +2499,19 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
       subtitle={([subject, klass].filter(Boolean).join(' · ')) || undefined}
     />
     <main className="inner-content form-page">
+      {!assignmentContext && (<label className="field">
+        <span>درس و کلاس</span>
+        <div className="two-fields">
+          <select value={subject} onChange={e => setSubject(e.target.value)} aria-label="درس">
+            <option value="">درس را انتخاب کنید</option>
+            {TEACHER_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select value={klass} onChange={e => setKlass(e.target.value)} aria-label="کلاس">
+            <option value="">کلاس را انتخاب کنید</option>
+            {TEACHER_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </label>)}
       <FormField label="عنوان تکلیف" placeholder="مثلاً تمرین فصل سوم" />
       <label className="field"><span>توضیحات</span><textarea rows={4} placeholder="توضیحات و راهنمای انجام تکلیف..." /></label>
 
@@ -2519,7 +2519,7 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
         {!voiceNote && !recording && (
           <button type="button" className="upload" onClick={startVoice}>
             <Icon name="mic" />
-            <div><strong>افزودن ویس</strong><span>توضیحات تکلیف را با صدا بگویید</span></div>
+            <div><strong>افزودن صوت</strong><span>توضیحات تکلیف را با صدا بگویید</span></div>
             <Icon name="plus" />
           </button>
         )}
@@ -2534,17 +2534,17 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
 
         {voiceNote && (
           <div className="voice-note-row">
-            <button type="button" className="voice-note-play" aria-label={playing ? 'توقف پخش ویس' : 'پخش ویس'} onClick={toggleVoicePlay}>
+            <button type="button" className="voice-note-play" aria-label={playing ? 'توقف پخش صوت' : 'پخش صوت'} onClick={toggleVoicePlay}>
               <Icon name={playing ? 'pause' : 'play'} size={15} />
             </button>
             <div className="voice-note-info">
-              <strong>ویس توضیحات</strong>
+              <strong>صوت توضیحات</strong>
               <small>{fmtTime(voiceNote.seconds)}</small>
             </div>
             <div className={`voice-wave ${playing ? 'playing' : ''}`}>
               {VOICE_WAVE_BARS.map((h, i) => <i key={i} style={{ height: h, animationDelay: `${(i % 7) * 0.08}s` }} />)}
             </div>
-            <button type="button" className="attach-remove" aria-label="حذف ویس" onClick={removeVoice}>
+            <button type="button" className="attach-remove" aria-label="حذف صوت" onClick={removeVoice}>
               <Icon name="close" size={16} />
             </button>
             {voiceNote.url && (
@@ -2561,19 +2561,6 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
 
       <button className="upload"><Icon name="paperclip" /><div><strong>افزودن فایل</strong><span>PDF، تصویر یا فایل متنی</span></div><Icon name="plus" /></button>
       <label className="field"><span>مهلت تحویل</span><div className="two-fields"><select><option value="">تاریخ</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select><input type="time" /></div></label>
-      <label className="field">
-        <span>درس و کلاس</span>
-        <div className="two-fields">
-          <select value={subject} onChange={e => setSubject(e.target.value)} aria-label="درس">
-            <option value="">درس را انتخاب کنید</option>
-            {TEACHER_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select value={klass} onChange={e => setKlass(e.target.value)} aria-label="کلاس">
-            <option value="">کلاس را انتخاب کنید</option>
-            {TEACHER_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-      </label>
     </main>
     <div className="sticky-action">
       <button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>
@@ -3259,7 +3246,7 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
         <div className="media-tab-content">
           {mediaTab === 'نمای کلی' ? (
             <div className="classroom-grid" style={{padding:0}}>
-              {visibleSections.map((x) => <button key={x.title} onClick={() => navigate(x.screen)}>
+              {visibleSections.map((x) => <button key={x.title} onClick={() => { if (x.title === 'تکالیف' || x.title === 'تکالیف من') { assignmentContext = { subject: 'علوم تجربی', klass: 'کلاس ۹۰۱' } } else { assignmentContext = null }; navigate(x.screen) }}>
                 <span><Icon name={x.icon} /></span>
                 <strong>{x.title}</strong>
                 <small>{x.sub}</small>
