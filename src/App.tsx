@@ -5006,9 +5006,9 @@ const categoryOptions = [
 
 function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
-  const [periodValue, setPeriodValue] = useState<string | null>(null)
+  const [periodValue, setPeriodValue] = useState<string | null>('مهر')
   const [selected, setSelected] = useState<string | null>(null)
-  const [detailTab, setDetailTab] = useState('همه')
+  const [detailTab, setDetailTab] = useState('آزمونک')
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -5025,16 +5025,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [exportPage, setExportPage] = useState(false)
 
   const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
-  const weekDayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const day = weekIndex * 7 + i + 1
-    return {
-      day,
-      label: weekDayNames[i],
-      title: periodValue ? `${fa(day)} ${periodValue}` : fa(day),
-    }
-  })
-
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
   const terms = ['نوبت اول', 'نوبت دوم']
@@ -5330,7 +5320,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           <button
             className="student student-row-photo"
             key={name}
-            onClick={() => { setSelected(name); setDetailTab('همه'); setWeekIndex(0); setPeriodValue(null) }}
+            onClick={() => { setSelected(name); setDetailTab('آزمونک'); setWeekIndex(0); setPeriodValue(null) }}
             style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}
           >
             <img
@@ -5350,64 +5340,14 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     </div>
   }
 
-  // 2) Then: period selection for chosen student
-  if (!periodValue) {
-    return <div className="screen inner-screen">
-      <SubHeader
-        screen="gradebook"
-        back={handleBack}
-        title={selected}
-        subtitle="انتخاب بازه گزارش"
-      />
-      <main className="inner-content">
-        <div className="report-period-tabs">
-          <button type="button" className={periodMode === 'summer' ? 'active' : ''} onClick={() => setPeriodMode('summer')}>ترم تابستانی</button>
-          <button type="button" className={periodMode === 'months' ? 'active' : ''} onClick={() => setPeriodMode('months')}>ماه‌های تحصیلی</button>
-          <button type="button" className={periodMode === 'terms' ? 'active' : ''} onClick={() => setPeriodMode('terms')}>نوبت‌ها</button>
-        </div>
-
-        {periodMode === 'summer' && (
-          <div className="report-period-grid three">
-            {summerMonths.map(m => (
-              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
-                <strong>{m}</strong>
-                <small>ترم تابستانی</small>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {periodMode === 'months' && (
-          <div className="report-period-grid months">
-            {academicMonths.map(m => (
-              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
-                <strong>{m}</strong>
-                <small>ماه تحصیلی</small>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {periodMode === 'terms' && (
-          <div className="report-period-grid two">
-            {terms.map(m => (
-              <button key={m} type="button" className="report-period-card" onClick={() => setPeriodValue(m)}>
-                <strong>{m}</strong>
-                <small>نوبت تحصیلی</small>
-              </button>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
-  }
+  // period selection removed: go straight to detail view
 
   return <div className="screen inner-screen">
     <SubHeader
       screen="gradebook"
       back={handleBack}
       title={selected ?? periodValue}
-      subtitle={selected ? periodValue : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
+      subtitle={selected ? (periodValue ?? undefined) : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
       rightIcon="file"
       rightLabel="دانلود گزارش"
       onRightClick={handleDownloadFullReport}
@@ -5463,7 +5403,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
 
           <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 14, marginBottom: 10 }}>
-            {['همه', ...cardStats.map(s => s.label)].map(tab => (
+            {['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون'].map(tab => (
               <button
                 key={tab}
                 type="button"
@@ -5516,64 +5456,44 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             )
           })()}
 
-          <div className="week-nav">
-            <button
-              type="button"
-              className="week-nav-btn prev"
-              disabled={weekIndex <= 0}
-              onClick={() => setWeekIndex(i => Math.max(0, i - 1))}
-            >
-              قبلی
-            </button>
-            <div className="week-nav-current">
-              <strong>{weekLabels[weekIndex]}</strong>
-              <small>{fa(weekIndex * 7 + 1)} تا {fa(weekIndex * 7 + 7)} {periodValue}</small>
-            </div>
-            <button
-              type="button"
-              className="week-nav-btn next"
-              disabled={weekIndex >= 3}
-              onClick={() => setWeekIndex(i => Math.min(3, i + 1))}
-            >
-              بعدی
-            </button>
-          </div>
+          {/* week-nav removed */}
 
           <div className="week-days-list">
             <div className="section-heading" style={{ margin: '4px 0 8px' }}>
-              <strong>جزئیات روزانه</strong>
+              <strong>رویدادهای این کلاس</strong>
               <span>{weekLabels[weekIndex]}</span>
             </div>
-            <div className="week-matrix-wrap">
-              <table className="week-matrix" dir="rtl">
+            <div className="assignment-table-wrap">
+              <table className="report-detail-table" dir="rtl">
                 <thead>
                   <tr>
-                    <th className="week-matrix-item-heading">مورد</th>
-                    {weekDays.map(d => (
-                      <th key={d.day}>
-                        <strong>{d.title}</strong>
-                        <small>{d.label}</small>
-                      </th>
-                    ))}
+                    <th>#</th>
+                    <th>تاریخ</th>
+                    <th>عنوان</th>
+                    <th>نمره</th>
+                    <th>توضیح</th>
+                    <th>صوت</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {cardStats.filter(metric => detailTab === 'همه' || detailTab === metric.label).map(metric => (
-                    <tr key={metric.id}>
-                      <th className="week-matrix-item">{metric.label}</th>
-                      {weekDays.map((d, idx) => {
-                        const studentIndex = selected ? students.indexOf(selected) : 0
-                        const seed = studentIndex * 10 + weekIndex * 7 + idx
-                        let value = metric.value
-                        if (metric.label === 'حضور و غیاب') value = seed % 4 === 0 ? 'غایب' : seed % 4 === 1 ? 'تأخیر' : 'حاضر'
-                        else if (metric.label === 'انضباط') value = seed % 5 === 0 ? 'تذکر' : 'مطلوب'
-                        const isBad = ['غایب', 'تأخیر', 'تحویل نشده', 'تذکر'].includes(value)
-                        return (
-                          <td key={d.day}>
-                            <span className={`week-matrix-value ${isBad ? 'bad' : 'ok'}`}>{value}</span>
-                          </td>
-                        )
-                      })}
+                  {[
+                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 2).padStart(2, '۰')}`, name: 'آزمون فصل سوم', type: 'آزمون', score: '۱۸/۲۰', desc: 'پاسخ کامل و مرتب' },
+                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 3).padStart(2, '۰')}`, name: 'پرسش شفاهی فصل سوم', type: 'پرسش شفاهی', score: '۱۷/۲۰', desc: 'پاسخ شفاهی خوب' },
+                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 4).padStart(2, '۰')}`, name: 'آزمونک فصل سوم', type: 'آزمونک', score: 'خیلی خوب', desc: 'فعال در کلاس' },
+                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 5).padStart(2, '۰')}`, name: 'تکلیف فصل سوم', type: 'تکالیف', score: '۱۶/۲۰', desc: 'تحویل به موقع' },
+                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 6).padStart(2, '۰')}`, name: 'فعالیت کلاسی', type: 'فعالیت کلاسی', score: '۱۶/۲۰', desc: 'مشارکت خوب' },
+                  ].filter(e => detailTab === e.type).map((e, i) => (
+                    <tr key={i}>
+                      <td>{fa(i + 1)}</td>
+                      <td>{e.date}</td>
+                      <td>{e.name}</td>
+                      <td>{e.score}</td>
+                      <td>{e.desc}</td>
+                      <td>
+                        <button type="button" className="table-action-btn view" onClick={() => setToast('پخش صوت')}>
+                          <Icon name="play" size={14} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -5581,24 +5501,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             </div>
           </div>
 
-          <div className="student-detail-panel">
-            {detailTab === 'همه' ? (
-              <div className="student-detail-all">
-                {cardStats.map(item => (
-                  <div className="student-detail-row" key={item.id}>
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="student-detail-focus">
-                <small>{detailTab}</small>
-                <strong>{cardStats.find(s => s.label === detailTab)?.value ?? '—'}</strong>
-                <p>خلاصه وضعیت {selected} در بخش {detailTab} برای بازه {periodValue}.</p>
-              </div>
-            )}
-          </div>
+          {/* student-detail-panel removed */}
         </div>
     </main>
 
