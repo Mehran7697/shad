@@ -5402,7 +5402,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
 
           <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 14, marginBottom: 10 }}>
-            {['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون'].map(tab => (
+            {['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب'].map(tab => (
               <button
                 key={tab}
                 type="button"
@@ -5417,6 +5417,92 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           {(() => {
             const si = selected ? students.indexOf(selected) : 0
             const d = (offset: number) => `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + offset).padStart(2, '۰')}`
+
+            if (detailTab === 'حضور و غیاب') {
+              const totalSessions = 14
+              const absences = [
+                { date: d(2), kind: 'غایب' as const, note: 'بدون اطلاع' },
+                { date: d(5), kind: 'تأخیر' as const, note: '۱۲ دقیقه' },
+                { date: d(8), kind: 'غایب' as const, note: 'موجه' },
+                { date: d(11), kind: 'تأخیر' as const, note: '۸ دقیقه' },
+              ].slice(0, 2 + (si % 3))
+              const delayCount = absences.filter(a => a.kind === 'تأخیر').length
+              const absentCount = absences.filter(a => a.kind === 'غایب').length
+              const presentCount = totalSessions - absentCount - delayCount
+              const pct = Math.round((presentCount / totalSessions) * 100)
+
+              return (
+                <>
+                  <div className="week-summary-banner">
+                    <div className="week-summary-item">
+                      <strong>{fa(delayCount)}</strong>
+                      <span>تأخیر</span>
+                    </div>
+                    <div className="week-summary-item">
+                      <strong className={absentCount ? 'danger-text' : undefined}>{fa(absentCount)}</strong>
+                      <span>غیبت</span>
+                    </div>
+                    <div className="week-summary-item">
+                      <strong>{fa(pct)}٪</strong>
+                      <span>درصد حضور</span>
+                    </div>
+                  </div>
+
+                  <div className="week-days-list">
+                    <div className="section-heading" style={{ margin: '4px 0 8px' }}>
+                      <strong>تأخیر و غیبت‌ها</strong>
+                      <span>از {fa(totalSessions)} جلسه</span>
+                    </div>
+                    <div className="assignment-table-wrap">
+                      <table className="report-detail-table" dir="rtl">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>تاریخ</th>
+                            <th>وضعیت</th>
+                            <th>توضیح</th>
+                            <th>پیام</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {absences.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} style={{ textAlign: 'center', padding: 16, color: 'var(--muted)' }}>
+                                تأخیر یا غیبتی ثبت نشده است.
+                              </td>
+                            </tr>
+                          ) : absences.map((a, i) => (
+                            <tr key={i}>
+                              <td>{fa(i + 1)}</td>
+                              <td>{a.date}</td>
+                              <td>
+                                <span className={`status-pill ${a.kind === 'غایب' ? 'wait' : 'ok'}`}>
+                                  {a.kind}
+                                </span>
+                              </td>
+                              <td>{a.note}</td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="table-action-btn register"
+                                  onClick={() => {
+                                    setToast(`پیام برای والدین ${selected || ''} ارسال شد`)
+                                    setTimeout(() => setToast(null), 1600)
+                                  }}
+                                >
+                                  پیام به والدین
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )
+            }
+
             type Ev = { date: string; name: string; type: string; score: number | null; max: number; desc: string }
             const byTab: Record<string, Ev[]> = {
               'آزمونک': [
