@@ -5024,7 +5024,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [filterPeriods, setFilterPeriods] = useState<string[]>([])
   const [exportPage, setExportPage] = useState(false)
 
-  const weekLabels = ['هفته اول', 'هفته دوم', 'هفته سوم', 'هفته چهارم']
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
   const terms = ['نوبت اول', 'نوبت دوم']
@@ -5417,89 +5416,116 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
 
           {(() => {
             const si = selected ? students.indexOf(selected) : 0
-            const summaryByTab: Record<string, { value: string; label: string; danger?: boolean }[]> = {
-              'نمره کلاسی': [
-                { value: fa(12 + (si % 5)), label: 'فعالیت کلاسی' },
-                { value: fa(14 + (si % 4)), label: 'پرسش شفاهی' },
-                { value: fa(15 + (si % 3)), label: 'نمره تلاش' },
+            const d = (offset: number) => `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + offset).padStart(2, '۰')}`
+            type Ev = { date: string; name: string; type: string; score: number | null; max: number; weight: number; desc: string }
+            const byTab: Record<string, Ev[]> = {
+              'آزمونک': [
+                { date: d(1), name: 'آزمونک فصل ۱', type: 'آزمونک', score: 2.5, max: 3, weight: 3, desc: 'کوتاه' },
+                { date: d(2), name: 'آزمونک فصل ۲', type: 'آزمونک', score: 4, max: 5, weight: 5, desc: 'مبحث جمع' },
+                { date: d(3), name: 'آزمونک فصل ۳', type: 'آزمونک', score: null, max: 3, weight: 3, desc: 'غایب' },
+                { date: d(4), name: 'آزمونک مرور', type: 'آزمونک', score: 4.5, max: 5, weight: 5, desc: 'خوب' },
+                { date: d(5), name: 'آزمونک پایانی', type: 'آزمونک', score: 3, max: 4, weight: 4, desc: 'متوسط' },
               ],
-              'حضور و غیاب': [
-                { value: fa(18 + (si % 3)), label: 'حاضر' },
-                { value: fa(1 + (si % 2)), label: 'تأخیر' },
-                { value: fa(si % 2), label: 'غایب', danger: true },
+              'پرسش شفاهی': [
+                { date: d(1), name: 'پرسش شفاهی ۱', type: 'پرسش شفاهی', score: 18, max: 20, weight: 2, desc: 'پاسخ کامل' },
+                { date: d(2), name: 'پرسش شفاهی ۲', type: 'پرسش شفاهی', score: null, max: 20, weight: 2, desc: 'غایب' },
+                { date: d(3), name: 'پرسش شفاهی ۳', type: 'پرسش شفاهی', score: 16, max: 20, weight: 2, desc: 'قابل قبول' },
+                { date: d(4), name: 'پرسش شفاهی ۴', type: 'پرسش شفاهی', score: 19, max: 20, weight: 3, desc: 'عالی' },
+                { date: d(5), name: 'پرسش شفاهی ۵', type: 'پرسش شفاهی', score: 15, max: 20, weight: 2, desc: 'نیاز به تمرین' },
               ],
               'تکالیف': [
-                { value: fa(5 + (si % 3)), label: 'تحویل داده' },
-                { value: fa(1 + (si % 2)), label: 'تحویل‌نداده', danger: true },
-                { value: fa(6 + (si % 2)), label: 'تعداد تکالیف' },
+                { date: d(1), name: 'تکلیف فصل ۱', type: 'تکالیف', score: 17, max: 20, weight: 2, desc: 'تحویل به موقع' },
+                { date: d(2), name: 'تکلیف فصل ۲', type: 'تکالیف', score: 14, max: 20, weight: 2, desc: 'ناقص' },
+                { date: d(3), name: 'تکلیف فصل ۳', type: 'تکالیف', score: null, max: 20, weight: 3, desc: 'غایب' },
+                { date: d(4), name: 'تکلیف مرور', type: 'تکالیف', score: 18, max: 20, weight: 2, desc: 'مرتب' },
+                { date: d(5), name: 'تکلیف پروژه', type: 'تکالیف', score: 16, max: 20, weight: 4, desc: 'پروژه گروهی' },
               ],
-              'انضباط': [
-                { value: fa(si % 3), label: 'تذکر', danger: true },
-                { value: fa(16 + (si % 3)), label: 'مطلوب' },
-                { value: fa(si % 2), label: 'نامطلوب', danger: true },
+              'فعالیت کلاسی': [
+                { date: d(1), name: 'فعالیت ۱', type: 'فعالیت کلاسی', score: 5, max: 5, weight: 1, desc: 'مشارکت' },
+                { date: d(2), name: 'فعالیت ۲', type: 'فعالیت کلاسی', score: 4, max: 5, weight: 1, desc: 'گروهی' },
+                { date: d(3), name: 'فعالیت ۳', type: 'فعالیت کلاسی', score: null, max: 5, weight: 1, desc: 'غایب' },
+                { date: d(4), name: 'فعالیت ۴', type: 'فعالیت کلاسی', score: 5, max: 5, weight: 2, desc: 'ارائه' },
+                { date: d(5), name: 'فعالیت ۵', type: 'فعالیت کلاسی', score: 3, max: 5, weight: 1, desc: 'تمرین کلاسی' },
+              ],
+              'آزمون': [
+                { date: d(1), name: 'آزمون میان‌ترم', type: 'آزمون', score: 16, max: 20, weight: 5, desc: 'فصل ۱–۳' },
+                { date: d(2), name: 'آزمون فصلی', type: 'آزمون', score: 14, max: 20, weight: 3, desc: 'فصل ۲' },
+                { date: d(3), name: 'آزمون عملی', type: 'آزمون', score: null, max: 20, weight: 4, desc: 'غایب' },
+                { date: d(4), name: 'آزمون کتبی', type: 'آزمون', score: 18, max: 20, weight: 5, desc: 'خوب' },
+                { date: d(5), name: 'آزمون پایانی', type: 'آزمون', score: 15, max: 20, weight: 6, desc: 'نهایی' },
               ],
             }
-            const items = summaryByTab[detailTab] ?? [
-              { value: fa(4 + (si % 3)), label: 'تعداد کلاس‌ها' },
-              { value: cardStats.find(s => s.label === 'انضباط')?.value ?? '۱۷', label: 'انضباط' },
-              { value: fa(1 + (si % 2)), label: 'تعداد غیبت‌ها', danger: true },
-            ]
+            const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
+              // vary absent pattern a bit per student
+              if (idx === 2 && si % 2 === 1) return { ...e, score: e.max - 1, desc: 'شرکت کرده' }
+              return e
+            })
+            const attended = events.filter(e => e.score !== null)
+            const totalW = attended.reduce((s, e) => s + e.weight, 0)
+            const weighted = totalW
+              ? attended.reduce((s, e) => s + ((e.score as number) / e.max) * 20 * e.weight, 0) / totalW
+              : 0
+            const avgLabel = totalW ? fa(weighted.toFixed(1)) : '—'
+            const partLabel = `${fa(attended.length)} از ${fa(events.length)}`
+
             return (
-              <div className="week-summary-banner">
-                {items.map(item => (
-                  <div className="week-summary-item" key={item.label}>
-                    <strong className={item.danger ? 'danger-text' : undefined}>{item.value}</strong>
-                    <span>{item.label}</span>
+              <>
+                <div className="week-summary-banner">
+                  <div className="week-summary-item">
+                    <strong>{avgLabel}</strong>
+                    <span>میانگین وزنی</span>
                   </div>
-                ))}
-              </div>
+                  <div className="week-summary-item">
+                    <strong>{partLabel}</strong>
+                    <span>شرکت‌کرده</span>
+                  </div>
+                  <div className="week-summary-item">
+                    <strong className={events.length - attended.length ? 'danger-text' : undefined}>
+                      {fa(events.length - attended.length)}
+                    </strong>
+                    <span>غایب</span>
+                  </div>
+                </div>
+
+                <div className="week-days-list">
+                  <div className="section-heading" style={{ margin: '4px 0 8px' }}>
+                    <strong>رویدادهای این کلاس</strong>
+                    <span>{partLabel} شرکت کرده</span>
+                  </div>
+                  <div className="assignment-table-wrap">
+                    <table className="report-detail-table" dir="rtl">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>تاریخ</th>
+                          <th>عنوان</th>
+                          <th>وزن</th>
+                          <th>نمره</th>
+                          <th>توضیح</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {events.map((e, i) => (
+                          <tr key={i}>
+                            <td>{fa(i + 1)}</td>
+                            <td>{e.date}</td>
+                            <td>{e.name}</td>
+                            <td>{fa(e.weight)}</td>
+                            <td>
+                              {e.score === null
+                                ? <span className="status-pill wait">غایب</span>
+                                : `${fa(e.score)}/${fa(e.max)}`}
+                            </td>
+                            <td>{e.desc}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
             )
           })()}
-
-          {/* week-nav removed */}
-
-          <div className="week-days-list">
-            <div className="section-heading" style={{ margin: '4px 0 8px' }}>
-              <strong>رویدادهای این کلاس</strong>
-              <span>{weekLabels[weekIndex]}</span>
-            </div>
-            <div className="assignment-table-wrap">
-              <table className="report-detail-table" dir="rtl">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>تاریخ</th>
-                    <th>عنوان</th>
-                    <th>نمره</th>
-                    <th>توضیح</th>
-                    <th>صوت</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 2).padStart(2, '۰')}`, name: 'آزمون فصل سوم', type: 'آزمون', score: '۱۸/۲۰', desc: 'پاسخ کامل و مرتب' },
-                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 3).padStart(2, '۰')}`, name: 'پرسش شفاهی فصل سوم', type: 'پرسش شفاهی', score: '۱۷/۲۰', desc: 'پاسخ شفاهی خوب' },
-                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 4).padStart(2, '۰')}`, name: 'آزمونک فصل سوم', type: 'آزمونک', score: 'خیلی خوب', desc: 'فعال در کلاس' },
-                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 5).padStart(2, '۰')}`, name: 'تکلیف فصل سوم', type: 'تکالیف', score: '۱۶/۲۰', desc: 'تحویل به موقع' },
-                    { date: `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + 6).padStart(2, '۰')}`, name: 'فعالیت کلاسی', type: 'فعالیت کلاسی', score: '۱۶/۲۰', desc: 'مشارکت خوب' },
-                  ].filter(e => detailTab === e.type).map((e, i) => (
-                    <tr key={i}>
-                      <td>{fa(i + 1)}</td>
-                      <td>{e.date}</td>
-                      <td>{e.name}</td>
-                      <td>{e.score}</td>
-                      <td>{e.desc}</td>
-                      <td>
-                        <button type="button" className="table-action-btn view" onClick={() => setToast('پخش صوت')}>
-                          <Icon name="play" size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
 
           {/* student-detail-panel removed */}
         </div>
