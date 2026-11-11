@@ -1514,7 +1514,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const [feedbackScoreKind, setFeedbackScoreKind] = useState<'کمی' | 'کیفی'>('کمی')
   const [feedbackQuantScale, setFeedbackQuantScale] = useState('۲۰/۰')
   const [feedbackScoreValue, setFeedbackScoreValue] = useState('')
-  const qualitativeFeedbackOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
+  const qualitativeFeedbackOptions = ['خیلی خوب', 'نیاز به تلاش بیشتر']
   const feedbackMaxScore = feedbackQuantScale.startsWith('custom:')
     ? Number(feedbackQuantScale.slice(7)) || 20
     : feedbackQuantScale.startsWith('۲۰') ? 20 : feedbackQuantScale.startsWith('۱۰') ? 10 : 5
@@ -2300,7 +2300,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                       </div>
                     )}
                     {feedbackScoreKind === 'کیفی' && (
-                      <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>
+                      <span>خیلی خوب / نیاز به تلاش بیشتر</span>
                     )}
                   </div>
 
@@ -2637,6 +2637,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
     status: i % 3 === 0 ? 'غایب' : 'شرکت‌کرده',
     score: '',
     feedback: '',
+    hasVoiceFeedback: false,
   })))
   const [examStudentSearch, setExamStudentSearch] = useState('')
   const [examMaxScore, setExamMaxScore] = useState('20')
@@ -2645,6 +2646,14 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
   const [examFeedbackIndex, setExamFeedbackIndex] = useState<number | null>(null)
   const [examFeedbackDraft, setExamFeedbackDraft] = useState('')
   const [examSaving, setExamSaving] = useState(false)
+  const [examScoreKind, setExamScoreKind] = useState<'کمی' | 'کیفی'>('کمی')
+  const [examQuantScale, setExamQuantScale] = useState('۲۰/۰')
+  const [examScoreValue, setExamScoreValue] = useState('')
+  const [examActiveVoice, setExamActiveVoice] = useState<number | null>(null)
+  const examQualitativeOptions = ['خیلی خوب', 'نیاز به تلاش بیشتر']
+  const examFeedbackMaxScore = examQuantScale.startsWith('custom:')
+    ? Number(examQuantScale.slice(7)) || 20
+    : examQuantScale.startsWith('۲۰') ? 20 : examQuantScale.startsWith('۱۰') ? 10 : 5
   const updateExamRow = (index: number, patch: Partial<(typeof examRows)[0]>) => {
     setExamRows(prev => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)))
   }
@@ -3105,6 +3114,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
             }
             setExamFeedbackIndex(idx)
             setExamFeedbackDraft(examRows[idx].feedback)
+            setExamActiveVoice(null)
           }
 
           const saveAndNext = () => {
@@ -3185,15 +3195,6 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                       <strong>بازخورد معلم</strong>
                     </div>
                     <label className="field">
-                      <span>نمره (از {fa(examMaxScore)})</span>
-                      <input
-                        inputMode="numeric"
-                        placeholder={fa(examMaxScore)}
-                        value={row.score ? fa(row.score) : ''}
-                        onChange={e => updateExamRow(examFeedbackIndex, { score: toEn(e.target.value).replace(/[^\d]/g, '') })}
-                      />
-                    </label>
-                    <label className="field">
                       <span>متن بازخورد</span>
                       <textarea
                         rows={3}
@@ -3202,6 +3203,104 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                         onChange={e => setExamFeedbackDraft(e.target.value)}
                       />
                     </label>
+                    <button
+                      type="button"
+                      className={`sap-voice-btn ${row.hasVoiceFeedback || examActiveVoice === examFeedbackIndex ? 'active' : ''}`}
+                      onClick={() => {
+                        if (examActiveVoice === examFeedbackIndex) {
+                          setExamActiveVoice(null)
+                          updateExamRow(examFeedbackIndex, { hasVoiceFeedback: true })
+                          setToast('بازخورد صوتی ذخیره شد')
+                          setTimeout(() => setToast(null), 1200)
+                        } else {
+                          setExamActiveVoice(examFeedbackIndex)
+                        }
+                      }}
+                    >
+                      <Icon name="mic" size={18} />
+                      <span>
+                        {examActiveVoice === examFeedbackIndex
+                          ? 'در حال ضبط... برای توقف بزنید'
+                          : row.hasVoiceFeedback
+                            ? 'بازخورد صوتی ثبت شده'
+                            : 'ضبط بازخورد صوتی'}
+                      </span>
+                    </button>
+                  </div>
+
+                  <div className="sap-section">
+                    <div className="score-kind-card" style={{ marginBottom: 0 }}>
+                      <div className="score-kind-label">نوع نمره</div>
+                      <div className="score-kind-tabs">
+                        {(['کمی', 'کیفی'] as const).map(k => (
+                          <button
+                            key={k}
+                            type="button"
+                            className={examScoreKind === k ? 'active' : ''}
+                            onClick={() => {
+                              setExamScoreKind(k)
+                              setExamScoreValue('')
+                            }}
+                          >
+                            {k === 'کمی' ? 'عددی' : 'توصیفی'}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="score-kind-hint">
+                        {examScoreKind === 'کمی' && (
+                          <div className="score-kind-scales">
+                            <span className="chips-prefix">پیش‌فرض:</span>
+                            {['۲۰/۰', '۱۰/۰', '۵/۰'].map(s => (
+                              <button
+                                key={s}
+                                type="button"
+                                className={examQuantScale === s ? 'active' : ''}
+                                onClick={() => setExamQuantScale(s)}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {examScoreKind === 'کیفی' && (
+                          <span>خیلی خوب / نیاز به تلاش بیشتر</span>
+                        )}
+                      </div>
+
+                      {examScoreKind === 'کمی' && (
+                        <label className="field" style={{ marginTop: 10, marginBottom: 0 }}>
+                          <span>نمره (از {fa(examFeedbackMaxScore)})</span>
+                          <input
+                            inputMode="numeric"
+                            placeholder={fa(examFeedbackMaxScore)}
+                            value={examScoreValue ? fa(examScoreValue) : (row.score ? fa(row.score) : '')}
+                            onChange={e => {
+                              const raw = toEn(e.target.value).replace(/[^\d]/g, '')
+                              if (raw && Number(raw) > examFeedbackMaxScore) return
+                              setExamScoreValue(raw)
+                              updateExamRow(examFeedbackIndex, { score: raw })
+                            }}
+                          />
+                        </label>
+                      )}
+                      {examScoreKind === 'کیفی' && (
+                        <div className="group-qual-options" style={{ marginTop: 10 }}>
+                          {examQualitativeOptions.map(o => (
+                            <button
+                              key={o}
+                              type="button"
+                              className={(examScoreValue || row.score) === o ? 'active' : ''}
+                              onClick={() => {
+                                setExamScoreValue(o)
+                                updateExamRow(examFeedbackIndex, { score: o })
+                              }}
+                            >
+                              {o}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="group-grade-footer">
@@ -4271,9 +4370,11 @@ function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
-  const qualitativeOptions = ['خیلی خوب', 'خوب', 'قابل قبول', 'نیاز به تلاش بیشتر']
+  const qualitativeOptions = ['خیلی خوب', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
   const [title, setTitle] = useState('')
+  const [category, setCategory] = useState('')
+  const [pickDate, setPickDate] = useState(() => nowShamsi().date)
   const [scoreKind, setScoreKind] = useState<'کمی' | 'کیفی'>('کمی')
   const [quantScale, setQuantScale] = useState('۲۰/۰')
   const [customMaxOpen, setCustomMaxOpen] = useState(false)
@@ -4310,19 +4411,19 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     : quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
 
   const openConfirm = () => {
-    if (vals.length === 0) return
-    setConfirmDate(now.date)
+    if (!category || vals.length === 0) return
+    setConfirmDate(pickDate.trim() || now.date)
     setConfirmTime(now.time)
     setConfirmOpen(true)
   }
 
   const handleRegister = () => {
-    const type = title.trim() || 'نمره'
+    const type = [category, title.trim()].filter(Boolean).join(' · ') || 'نمره'
     if (vals.length === 0) return
     const entry: GradeEntry = {
       id: `${Date.now()}`,
-      type: `${type} · ${scoreKind}`,
-      date: confirmDate || now.date,
+      type: `${type} · ${scoreKind === 'کمی' ? 'عددی' : 'توصیفی'}`,
+      date: confirmDate || pickDate || now.date,
       time: confirmTime || now.time,
       scores: { ...scores },
       avg: String(avg),
@@ -4358,29 +4459,35 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
         </div>
 
-        <label className="field">
-          <span>عنوان نمره</span>
-          <input
-            type="text"
-            placeholder="مثلاً آزمونک فصل سوم"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-          />
-        </label>
-
-        <div className="chips compact scrollable" style={{ margin: '4px 0 14px' }}>
-          <span className="chips-prefix">پیش‌فرض:</span>
-          {suggestedTypes.map(t => (
-            <button
-              key={t}
-              type="button"
-              className={title === t ? 'active' : ''}
-              onClick={() => setTitle(t)}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="two-fields">
+          <label className="field">
+            <span>نوع دسته‌بندی</span>
+            <select value={category} onChange={e => setCategory(e.target.value)}>
+              <option value="">انتخاب کنید</option>
+              {suggestedTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label className="field">
+            <span>تاریخ</span>
+            <input
+              type="text"
+              placeholder="۱۴۰۵/۰۸/۱۷"
+              value={pickDate}
+              onChange={e => setPickDate(e.target.value)}
+            />
+          </label>
         </div>
+
+        <div className={category ? '' : 'grade-form-locked'} aria-disabled={!category}>
+          <label className="field">
+            <span>عنوان نمره</span>
+            <input
+              type="text"
+              placeholder="مثلاً آزمونک فصل سوم"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+            />
+          </label>
 
         <div className="score-kind-card">
           <div className="score-kind-label">نوع نمره</div>
@@ -4398,7 +4505,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           </div>
           <div className="score-kind-hint">
             {scoreKind === 'کیفی' && (
-              <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>
+              <span>خیلی خوب / نیاز به تلاش بیشتر</span>
             )}
             {scoreKind === 'کمی' && (
               <div className="score-kind-scales">
@@ -4425,14 +4532,11 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 </button>
               </div>
             )}
-            {scoreKind === 'کیفی' && (
-              <span>خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر</span>
-            )}
           </div>
         </div>
 
         <div className="section-heading">
-          <strong>{title.trim() || 'نمره'}</strong>
+          <strong>{[category, title.trim()].filter(Boolean).join(' · ') || 'نمره'}</strong>
           <button
             type="button"
             className="group-score-btn"
@@ -4473,11 +4577,12 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
             )}
           </div>
         ))}
+        </div>
       </main>
 
       <div className="sticky-action">
-        <button type="button" onClick={openConfirm} disabled={vals.length === 0 || saved}>
-          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${title.trim() || 'نمره'}`}
+        <button type="button" onClick={openConfirm} disabled={!category || vals.length === 0 || saved}>
+          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${[category, title.trim()].filter(Boolean).join(' · ') || 'نمره'}`}
         </button>
       </div>
 
@@ -4507,7 +4612,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>همین الان</button>
               </div>
               <p className="group-grade-hint">
-                {fa(filled)} نمره برای «{title.trim() || 'نمره'}» با نوع {scoreKind === 'کمی' ? 'عددی' : 'توصیفی'} ثبت می‌شود.
+                {fa(filled)} نمره برای «{[category, title.trim()].filter(Boolean).join(' · ') || 'نمره'}» با نوع {scoreKind === 'کمی' ? 'عددی' : 'توصیفی'} ثبت می‌شود.
               </p>
             </div>
             <div className="group-grade-footer">
