@@ -4981,27 +4981,21 @@ type StatCategory = {
 }
 
 const defaultCategories: StatCategory[] = [
-  { id: '1', label: 'نمره کلاسی', value: '۱۵' },
-  { id: '2', label: 'حضور و غیاب', value: '۹۰٪' },
-  { id: '3', label: 'تکالیف', value: '۱۶' },
-  { id: '4', label: 'انضباط', value: '۱۷' },
-  { id: '5', label: 'نوبت اول', value: '۱۴' },
-  { id: '6', label: 'نوبت دوم', value: '۱۵' },
+  { id: '1', label: 'آزمونک', value: '۱۶' },
+  { id: '2', label: 'پرسش شفاهی', value: '۱۷' },
+  { id: '3', label: 'تکالیف', value: '۸۰٪' },
+  { id: '4', label: 'فعالیت کلاسی', value: '۱۵' },
+  { id: '5', label: 'آزمون', value: '۱۴' },
+  { id: '6', label: 'حضور و غیاب', value: '۹۰٪' },
 ]
 
 const categoryOptions = [
-  'نمره کلاسی',
-  'حضور و غیاب',
+  'آزمونک',
+  'پرسش شفاهی',
   'تکالیف',
-  'انضباط',
-  'نوبت اول',
-  'نوبت دوم',
-  'فعالیت گروهی',
-  'پژوهش و پروژه',
-  'آزمون شفاهی',
-  'خلاقیت',
-  'تمرینات مستمر',
-  'آزمونک کلاسی'
+  'فعالیت کلاسی',
+  'آزمون',
+  'حضور و غیاب',
 ]
 
 function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
@@ -5020,7 +5014,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [filterStudentQuery, setFilterStudentQuery] = useState('')
   const [filterStudents, setFilterStudents] = useState<string[]>([])
   const [filterAllStudents, setFilterAllStudents] = useState(true)
-  const [filterCategories, setFilterCategories] = useState<string[]>(['نمره کلاسی', 'حضور و غیاب'])
+  const [filterCategories, setFilterCategories] = useState<string[]>(['آزمونک', 'حضور و غیاب'])
   const [filterPeriods, setFilterPeriods] = useState<string[]>([])
   const [exportPage, setExportPage] = useState(false)
 
