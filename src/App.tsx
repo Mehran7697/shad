@@ -2221,7 +2221,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 <div className="sap-avatar-wrap">
                   <img
                     className="sap-avatar-img"
-                    src={`https://i.pravatar.cc/150?u=${encodeURIComponent(row.name)}`}
+                    src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
                     alt={row.name}
                   />
                 </div>
@@ -2952,7 +2952,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                                     <img
                                       className="student-photo"
                                       alt={row.name}
-                                      src={`https://i.pravatar.cc/100?u=${encodeURIComponent(row.name)}`}
+                                      src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
                                     />
                                     <strong>{row.name}</strong>
                                   </button>
@@ -3316,7 +3316,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                       <div className="sap-avatar-wrap">
                         <img
                           className="sap-avatar-img"
-                          src={`https://i.pravatar.cc/150?u=${encodeURIComponent(row.name)}`}
+                          src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
                           alt={row.name}
                         />
                       </div>
@@ -5165,7 +5165,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <div className="report-suggest-list">
               {studentMatches.slice(0, 6).map(name => (
                 <button key={name} type="button" onClick={() => addStudent(name)}>
-                  <img className="student-photo tiny" src={`https://i.pravatar.cc/64?u=${encodeURIComponent(name)}`} alt="" />
+                  <img className="student-photo tiny" src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`} alt="" />
                   <span>{name}</span>
                   <Icon name="plus" size={14} />
                 </button>
@@ -5325,7 +5325,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           >
             <img
               className="student-photo"
-              src={`https://i.pravatar.cc/100?u=${encodeURIComponent(name)}`}
+              src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
               alt={name}
             />
             <strong>{name}</strong>
@@ -5365,7 +5365,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             </button>
             <div className="fifa-art">
               <img
-                src={`https://i.pravatar.cc/320?u=${encodeURIComponent(selected)}`}
+                src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
                 alt={selected}
               />
             </div>
