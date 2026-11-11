@@ -2146,6 +2146,7 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
               <th>وضعیت</th>
               <th>نمره</th>
               <th>مشاهده پاسخ</th>
+              <th>دانلود سریع</th>
             </tr>
           </thead>
           <tbody>
@@ -2192,6 +2193,23 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                       }}
                     >
                       مشاهده
+                    </button>
+                  ) : (
+                    <span className="muted-dash">—</span>
+                  )}
+                </td>
+                <td>
+                  {canFeedback ? (
+                    <button
+                      type="button"
+                      className="table-action-btn view"
+                      aria-label={`دانلود پاسخ ${row.name}`}
+                      onClick={() => {
+                        setToast(`دانلود پاسخ ${row.name} شروع شد`)
+                        setTimeout(() => setToast(null), 1400)
+                      }}
+                    >
+                      <Icon name="download" size={14} />
                     </button>
                   ) : (
                     <span className="muted-dash">—</span>
@@ -3022,6 +3040,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                           <th>وضعیت</th>
                           <th>نمره</th>
                           <th>بازخورد</th>
+                          <th>دانلود سریع</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3076,6 +3095,23 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                                       }}
                                     >
                                       {row.feedback ? 'مشاهده' : 'بازخورد'}
+                                    </button>
+                                  ) : (
+                                    <span className="muted-dash">—</span>
+                                  )}
+                                </td>
+                                <td>
+                                  {canGrade ? (
+                                    <button
+                                      type="button"
+                                      className="table-action-btn view"
+                                      aria-label={`دانلود پاسخ ${row.name}`}
+                                      onClick={() => {
+                                        setToast(`دانلود پاسخ ${row.name} شروع شد`)
+                                        setTimeout(() => setToast(null), 1400)
+                                      }}
+                                    >
+                                      <Icon name="download" size={14} />
                                     </button>
                                   ) : (
                                     <span className="muted-dash">—</span>
