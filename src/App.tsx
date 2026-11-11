@@ -1321,27 +1321,6 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
             <IconButton icon="close" label="بستن" onClick={() => setUploadOpen(false)} />
           </div>
           <div className="group-grade-body">
-            <div className="score-kind-card" style={{ marginBottom: 12 }}>
-              <div className="score-kind-label">نوع محتوا</div>
-              <div className="score-kind-scales" style={{ flexWrap: 'wrap' }}>
-                {([
-                  ['pdf', 'PDF'],
-                  ['video', 'ویدیو'],
-                  ['image', 'تصویر'],
-                  ['audio', 'صدا'],
-                  ['text', 'متن'],
-                ] as const).map(([k, label]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    className={uploadType === k ? 'active' : ''}
-                    onClick={() => setUploadType(k)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
             <label className="field">
               <span>عنوان</span>
               <input
@@ -1360,20 +1339,18 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
                 onChange={e => setUploadText(e.target.value)}
               />
             </label>
-            {uploadType !== 'text' && (
-              <button
-                type="button"
-                className="upload"
-                onClick={() => setUploadFile(uploadType === 'pdf' ? 'فایل.pdf' : uploadType === 'video' ? 'ویدیو.mp4' : uploadType === 'image' ? 'تصویر.jpg' : 'صدا.mp3')}
-              >
-                <Icon name="paperclip" />
-                <div>
-                  <strong>{uploadFile ? 'تغییر فایل' : 'افزودن فایل'}</strong>
-                  <span>{uploadFile || 'PDF، ویدیو، تصویر یا صدا'}</span>
-                </div>
-                <Icon name={uploadFile ? 'check' : 'plus'} />
-              </button>
-            )}
+            <button
+              type="button"
+              className="upload"
+              onClick={() => setUploadFile(uploadFile ? null : 'فایل.pdf')}
+            >
+              <Icon name="paperclip" />
+              <div>
+                <strong>{uploadFile ? 'تغییر فایل' : 'افزودن فایل'}</strong>
+                <span>{uploadFile || 'PDF، ویدیو، تصویر یا صدا'}</span>
+              </div>
+              <Icon name={uploadFile ? 'check' : 'plus'} />
+            </button>
           </div>
           <div className="group-grade-footer">
             <button type="button" className="secondary" onClick={() => setUploadOpen(false)}>انصراف</button>
