@@ -1114,14 +1114,50 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
   const [filter, setFilter] = useState<'all'|'pdf'|'video'|'image'|'audio'|'text'>('all')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [uploadTitle, setUploadTitle] = useState('')
+  const [uploadText, setUploadText] = useState('')
+  const [uploadType, setUploadType] = useState<'pdf'|'video'|'image'|'audio'|'text'>('pdf')
+  const [uploadFile, setUploadFile] = useState<string | null>(null)
 
-  const items = [
-    {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf'},
-    {n:'آزمایش فشار هوا',m:'ویدیو · ۰۸:۳۴',i:'video' as IconName, type:'video'},
-    {n:'نمودار چرخه آب',m:'تصویر · ۱٫۲ مگابایت',i:'image' as IconName, type:'image'},
-    {n:'فایل صوتی درس سوم',m:'صدا · MP3 · ۴٫۱ مگابایت',i:'mic' as IconName, type:'audio'},
-    {n:'یادداشت درس سوم',m:'متن · ۱۲۰ کلمه',i:'file' as IconName, type:'text'},
-  ]
+  const [items, setItems] = useState([
+    {n:'جزوه فصل سوم علوم',m:'PDF · ۲٫۴ مگابایت',i:'file' as IconName, type:'pdf' as const},
+    {n:'آزمایش فشار هوا',m:'ویدیو · ۰۸:۳۴',i:'video' as IconName, type:'video' as const},
+    {n:'نمودار چرخه آب',m:'تصویر · ۱٫۲ مگابایت',i:'image' as IconName, type:'image' as const},
+    {n:'فایل صوتی درس سوم',m:'صدا · MP3 · ۴٫۱ مگابایت',i:'mic' as IconName, type:'audio' as const},
+    {n:'یادداشت درس سوم',m:'متن · ۱۲۰ کلمه',i:'file' as IconName, type:'text' as const},
+  ])
+
+  const typeMeta: Record<'pdf'|'video'|'image'|'audio'|'text', { icon: IconName; meta: string }> = {
+    pdf: { icon: 'file', meta: 'PDF · فایل جدید' },
+    video: { icon: 'video', meta: 'ویدیو · فایل جدید' },
+    image: { icon: 'image', meta: 'تصویر · فایل جدید' },
+    audio: { icon: 'mic', meta: 'صدا · فایل جدید' },
+    text: { icon: 'file', meta: 'متن · یادداشت' },
+  }
+
+  const submitUpload = () => {
+    const title = uploadTitle.trim() || (uploadType === 'text' ? 'یادداشت جدید' : 'فایل جدید')
+    const meta = typeMeta[uploadType]
+    const note = uploadText.trim()
+    setItems(prev => [{
+      n: title,
+      m: note ? `${meta.meta} · ${note.slice(0, 24)}${note.length > 24 ? '…' : ''}` : meta.meta,
+      i: meta.icon,
+      type: uploadType,
+    }, ...prev])
+    if (activeFolder) {
+      setFolders(prev => prev.map(f => f.id === activeFolder.id ? { ...f, count: f.count + 1 } : f))
+    }
+    setFilter(uploadType)
+    setUploadOpen(false)
+    setUploadTitle('')
+    setUploadText('')
+    setUploadFile(null)
+    setUploadType('pdf')
+    setToast('در پوشه ذخیره شد')
+    setTimeout(() => setToast(null), 1600)
+  }
   const q = query.trim()
   const filtered = items.filter(x => {
     const byType = filter === 'all' || x.type === filter
@@ -1264,6 +1300,88 @@ function Materials({ navigate, goBack }: { navigate: (s: Screen) => void; goBack
         </div>
       </button>
     </main>
+
+    <button
+      className="fab"
+      aria-label="افزودن محتوا"
+      onClick={() => setUploadOpen(true)}
+    >
+      <Icon name="plus" />
+    </button>
+
+    {uploadOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setUploadOpen(false)}>
+        <div className="bottom-sheet group-grade-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>افزودن به پوشه</strong>
+              <span>{activeFolder?.name || 'منابع کلاسی'}</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setUploadOpen(false)} />
+          </div>
+          <div className="group-grade-body">
+            <div className="score-kind-card" style={{ marginBottom: 12 }}>
+              <div className="score-kind-label">نوع محتوا</div>
+              <div className="score-kind-scales" style={{ flexWrap: 'wrap' }}>
+                {([
+                  ['pdf', 'PDF'],
+                  ['video', 'ویدیو'],
+                  ['image', 'تصویر'],
+                  ['audio', 'صدا'],
+                  ['text', 'متن'],
+                ] as const).map(([k, label]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    className={uploadType === k ? 'active' : ''}
+                    onClick={() => setUploadType(k)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="field">
+              <span>عنوان</span>
+              <input
+                type="text"
+                placeholder="مثلاً جزوه فصل چهارم"
+                value={uploadTitle}
+                onChange={e => setUploadTitle(e.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>توضیح / متن</span>
+              <textarea
+                rows={3}
+                placeholder="متن یادداشت یا توضیح فایل..."
+                value={uploadText}
+                onChange={e => setUploadText(e.target.value)}
+              />
+            </label>
+            {uploadType !== 'text' && (
+              <button
+                type="button"
+                className="upload"
+                onClick={() => setUploadFile(uploadType === 'pdf' ? 'فایل.pdf' : uploadType === 'video' ? 'ویدیو.mp4' : uploadType === 'image' ? 'تصویر.jpg' : 'صدا.mp3')}
+              >
+                <Icon name="paperclip" />
+                <div>
+                  <strong>{uploadFile ? 'تغییر فایل' : 'افزودن فایل'}</strong>
+                  <span>{uploadFile || 'PDF، ویدیو، تصویر یا صدا'}</span>
+                </div>
+                <Icon name={uploadFile ? 'check' : 'plus'} />
+              </button>
+            )}
+          </div>
+          <div className="group-grade-footer">
+            <button type="button" className="secondary" onClick={() => setUploadOpen(false)}>انصراف</button>
+            <button type="button" className="primary" onClick={submitUpload}>ذخیره در پوشه</button>
+          </div>
+        </div>
+      </div>
+    )}
 
     <SaveToFolderSheet
       open={pickFolderOpen}
