@@ -312,13 +312,18 @@ const quickLinks: { label: string; icon: IconName; color: string; badge?: string
   { label: 'ورزشی', icon: 'ball', color: 'ql-purple', screen: 'schedule' },
 ]
 
+const clickableQuickLinks = new Set(['پیام رسان', 'آموزش'])
+
 function QuickLinks({ navigate, active }: { navigate: (screen: Screen) => void; active?: string }) {
   return <div className="quick-links">
-    {quickLinks.map(q => <button className={`quick-link ${active === q.label ? 'active' : ''}`} key={q.label} onClick={() => navigate(q.screen)}>
+    {quickLinks.map(q => {
+      const clickable = clickableQuickLinks.has(q.label)
+      return <button className={`quick-link ${active === q.label ? 'active' : ''} ${clickable ? '' : 'ql-disabled'}`} key={q.label} onClick={clickable ? () => navigate(q.screen) : undefined}>
       <span className={`ql-icon ${q.color}`}><Icon name={q.icon} /></span>
       <strong>{q.label}</strong>
       {q.badge && <b className="ql-badge">{q.badge}</b>}
-    </button>)}
+    </button>
+    })}
   </div>
 }
 
@@ -522,7 +527,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
             <div className="edu-tools-scroll">
               {[
                 { t: 'اسلایدهای آموزشی', s: 'تهیه ارائه و محتوا', i: 'image' as IconName },
-                { t: 'آزمون ساز', s: 'طراحی و برگزاری آزمون', i: 'exam' as IconName },
+                { t: 'آزمون ساز', s: 'طراحی و برگزاری', i: 'exam' as IconName },
                 { t: 'طرح درس', s: 'سوالات استاندارد', i: 'file' as IconName },
                 { t: 'بانک سوالات', s: 'برنامه‌ریزی آموزشی', i: 'book' as IconName },
               ].map(tool => (
@@ -617,8 +622,12 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
 
 let classStarted = false
 let assignmentContext: { subject: string; klass: string } | null = null
+type PublishedExam = { title: string; kind: 'آزمون' | 'آزمونک'; day: string; time: string; startKey: string; at: string }
+/** last exam published from exam-create; shows in Chat until start time */
+let publishedExam: PublishedExam | null = null
 
-function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
+function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack: () => void; role?: UserRole }) {
+  const isStudent = role === 'student'
   const [sheet, setSheet] = useState<'tools' | 'attach' | null>(null)
   const [started, setStarted] = useState(classStarted)
   const [message, setMessage] = useState('')
@@ -639,6 +648,9 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
   const [saveSheetOpen, setSaveSheetOpen] = useState(false)
   const [saveTargetId, setSaveTargetId] = useState<string | null>(null)
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({})
+
+  const exam = publishedExam
+  const examReady = Boolean(exam && `${nowShamsi().date} ${nowShamsi().time}` >= exam.startKey)
 
   useEffect(() => {
     const timer = setInterval(() => setSeconds(s => s + 1), 1000)
@@ -696,15 +708,35 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
         <strong>کلاس تجربی<span className="verified"><Icon name="check" size={11} /></span></strong>
         <span>۲۸ عضو، ۶ نفر آنلاین</span>
       </button>
-      <IconButton icon="bag" label="کیف / کوله پشتی" onClick={() => setBagOpen(true)} />
+      {!isStudent && <IconButton icon="bag" label="کیف / کوله پشتی" onClick={() => setBagOpen(true)} />}
       <IconButton icon="more" label="گزینه‌های بیشتر" />
     </header>
+    {exam && (
+      <div className={`exam-shortcut-banner ${examReady ? 'ready' : ''}`}>
+        <span className="exam-shortcut-icon"><Icon name="exam" /></span>
+        <div className="exam-shortcut-info">
+          <strong>{exam.title}</strong>
+          <small>شروع: {exam.day} · ساعت {exam.time}</small>
+        </div>
+        <button
+          type="button"
+          className="exam-shortcut-btn"
+          disabled={!examReady}
+          onClick={() => {
+            chatFocusTarget = 'chat-msg-exam'
+            navigate('exam')
+          }}
+        >
+          {examReady ? 'مشاهده' : 'در انتظار شروع'}
+        </button>
+      </div>
+    )}
     {started && <div className="live-banner" onClick={() => navigate('call')}>
       <i className="live-dot" />
       <strong>کلاس در حال برگزاری</strong>
       <small>{formatTime(seconds)}</small>
     </div>}
-    <div className={`recent-activity ${activityOpen ? 'open' : 'collapsed'}`}>
+    {!isStudent && <div className={`recent-activity ${activityOpen ? 'open' : 'collapsed'}`}>
       <div className="activity-head">
         <small>{started ? 'دانش‌آموزان فعال' : 'دانش‌آموزان'}</small>
       </div>
@@ -727,11 +759,11 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
       <button className="activity-tab" onClick={() => setActivityOpen(o => !o)} aria-label={activityOpen ? 'جمع کردن' : 'باز کردن'}>
         <Icon name="chevron" size={15} />
       </button>
-    </div>
+    </div>}
     <main className="messages">
       <div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">خانم کریمی</strong><p>سلام بچه‌ها، وقتتون بخیر. فایل تمرین فصل سوم رو براتون فرستادم.</p><span>۱۰:۲۸</span></div></div>
-      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div><button type="button" className={`bookmark-btn ${savedIds['chat-pdf'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
+      <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div>{!isStudent && <button type="button" className={`bookmark-btn ${savedIds['chat-pdf'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
             if (savedIds['chat-pdf']) {
               setSavedIds(prev => ({ ...prev, 'chat-pdf': false }))
               setToast('از ذخیره‌ها حذف شد')
@@ -740,7 +772,7 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
             }
             setSaveTargetId('chat-pdf')
             setSaveSheetOpen(true)
-          }}><Icon name="bookmark" /></button><span>۱۰:۲۹</span></div></div>
+          }}><Icon name="bookmark" /></button>}<span>۱۰:۲۹</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>ممنون خانم، تا چه روزی فرصت داریم؟</p><span>۱۰:۳۴ <b>✓✓</b></span></div></div>
       <div className="message-row received" id="chat-msg-assignment">
         <div className="message-bubble announcement">
@@ -754,6 +786,26 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
           <span>۱۰:۳۶</span>
         </div>
       </div>
+      {exam && (
+        <div className="message-row received" id="chat-msg-exam">
+          <div className="message-bubble announcement exam-announcement">
+            <small>{exam.kind}</small>
+            <strong>{exam.title}</strong>
+            <p>شروع: {exam.day} · ساعت {exam.time}</p>
+            <button
+              type="button"
+              disabled={!examReady}
+              onClick={() => {
+                chatFocusTarget = 'chat-msg-exam'
+                navigate('exam')
+              }}
+            >
+              {examReady ? 'مشاهده' : 'در انتظار شروع'}
+            </button>
+            <span>{exam.at}</span>
+          </div>
+        </div>
+      )}
       <div className="message-row received"><div className="message-bubble voice"><button aria-label="پخش پیام صوتی"><span>▶</span></button><div className="wave"><i/><i/><i/><i/><i/><i/><i/><i/></div><small>۰:۳۷</small><span>۱۰:۴۱</span></div></div>
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
     </main>
@@ -809,11 +861,11 @@ function Chat({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack
               <span><Icon name="exam" /></span>
               <strong>ایجاد آزمون</strong>
             </button>
-            <button type="button" onClick={() => { setBagOpen(false); navigate('gradebook') }}>
+            <button type="button" onClick={() => { setBagOpen(false); navigate('grade-register') }}>
               <span><Icon name="chart" /></span>
-              <strong>دفتر نمره</strong>
+              <strong>ثبت نمره</strong>
             </button>
-            <button type="button" onClick={() => { setBagOpen(false); navigate('classroom') }}>
+            <button type="button" className="is-decorative">
               <span><Icon name="classes" /></span>
               <strong>ورود به کلاسا</strong>
             </button>
@@ -2646,6 +2698,12 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
   const [examFeedbackIndex, setExamFeedbackIndex] = useState<number | null>(null)
   const [examFeedbackDraft, setExamFeedbackDraft] = useState('')
   const [examSaving, setExamSaving] = useState(false)
+  const [examStarted, setExamStarted] = useState(false)
+  const [examAnswer, setExamAnswer] = useState('')
+  const [examFile, setExamFile] = useState<string | null>(null)
+  const [examVoice, setExamVoice] = useState(false)
+  const [examRecording, setExamRecording] = useState(false)
+  const [examSubmitted, setExamSubmitted] = useState(false)
   const [examScoreKind, setExamScoreKind] = useState<'کمی' | 'کیفی'>('کمی')
   const [examQuantScale, setExamQuantScale] = useState('۲۰/۰')
   const [examScoreValue, setExamScoreValue] = useState('')
@@ -2683,7 +2741,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
       s: '۱۵ دقیقه · ۲۵ شرکت‌کننده',
       color: 'blue',
       kind: 'آزمونک',
-      description: 'آزمونک کوتاه از مبحث جمع و تفریق اعداد صحیح. فقط ۱۵ دقیقه فرصت دارید.',
+      description: 'شامل مبحث جمع و تفریق اعداد صحیح. فقط ۱۵ دقیقه فرصت دارید.',
       fileName: 'آزمونک_فصل۲.pdf',
       fileSize: '۰٫۶ مگابایت',
       voice: '۰:۲۰',
@@ -2697,7 +2755,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
       s: '۲۰ دقیقه · ۲۲ شرکت‌کننده',
       color: 'green',
       kind: 'آزمونک',
-      description: 'آزمونک تشریحی کوتاه از درس سوم. فایل راهنما و صوت معلم را قبل از شروع ببینید.',
+      description: 'شامل درس سوم، به‌صورت تشریحی و کوتاه. فایل راهنما و صوت معلم را قبل از شروع ببینید.',
       fileName: 'راهنما_آزمونک.pdf',
       fileSize: '۰٫۹ مگابایت',
       voice: '۰:۳۲',
@@ -2711,7 +2769,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
       s: '۴۵ دقیقه · منتشر نشده',
       color: 'purple',
       kind: 'آزمون',
-      description: 'آزمون پایان فصل شامل درک مطلب و املا است. هنوز منتشر نشده و قابل ویرایش است.',
+      description: 'شامل درک مطلب و املا است. هنوز منتشر نشده و قابل ویرایش است.',
       fileName: 'آزمون_پایان_فصل.pdf',
       fileSize: '۲٫۱ مگابایت',
       voice: '۰:۵۵',
@@ -2725,7 +2783,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
       s: '۱۰ دقیقه · ۱۸ از ۲۸ شرکت',
       color: 'mint',
       kind: 'آزمونک',
-      description: 'آزمونک آنلاین ۱۰ دقیقه‌ای از آزمایش فشار هوا.',
+      description: 'آنلاین و ۱۰ دقیقه‌ای، از آزمایش فشار هوا.',
       fileName: 'سوالات_آنلاین.pdf',
       fileSize: '۰٫۴ مگابایت',
       voice: '۰:۱۵',
@@ -2757,7 +2815,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
     setSelected(next)
     setDraft(next)
     setEditing(false)
-    setToast('تغییرات آزمون ذخیره شد')
+    setToast('تغییرات ذخیره شد')
     setTimeout(() => setToast(null), 1400)
   }
 
@@ -2769,7 +2827,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
           screen="exam"
           back={() => { setSelected(null); setEditing(false) }}
           title={view.t}
-          subtitle={`${view.kind} · کلاس ۹۰۱`}
+          subtitle="کلاس ۹۰۱"
           rightIcon={!isStudent && !editing ? 'pencil' : null}
           rightLabel={!isStudent && !editing ? 'ویرایش' : ''}
           onRightClick={!isStudent && !editing ? openEdit : undefined}
@@ -2781,7 +2839,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
             </span>
             <div>
               <strong>{view.t}</strong>
-              <small>{view.kind} · علوم تجربی · کلاس ۹۰۱</small>
+              <small>علوم تجربی · کلاس ۹۰۱</small>
             </div>
           </div>
 
@@ -2940,7 +2998,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                       disabled={examSaving}
                       onClick={() => {
                         setExamSaving(true)
-                        setToast('نمرات و بازخوردهای آزمون ثبت شد')
+                        setToast('نمرات و بازخوردها ثبت شد')
                         setTimeout(() => { setExamSaving(false); setToast(null) }, 1400)
                       }}
                     >
@@ -2951,10 +3009,122 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
               )}
 
               {isStudent && (
-                <div className="sticky-action">
-                  <button type="button" onClick={() => { setToast('ورود به جلسه آزمون (شبیه‌سازی)'); setTimeout(() => setToast(null), 1400) }}>
-                    شروع {view.kind}
+                <div className="exam-start-block">
+                  <button
+                    type="button"
+                    className="exam-start-btn"
+                    onClick={() => {
+                      if (!examStarted) {
+                        setExamStarted(true)
+                        return
+                      }
+                      if (examSubmitted) return
+                      if (!examAnswer.trim() && !examFile && !examVoice) {
+                        setToast('ابتدا پاسخی وارد کنید')
+                        setTimeout(() => setToast(null), 1400)
+                        return
+                      }
+                      setExamSubmitted(true)
+                      setToast('پاسخ شما بارگذاری شد')
+                      setTimeout(() => setToast(null), 1400)
+                    }}
+                  >
+                    {examSubmitted ? (
+                      <><Icon name="check" /> بارگذاری شد</>
+                    ) : examStarted ? (
+                      'بارگذاری'
+                    ) : (
+                      'شروع'
+                    )}
                   </button>
+
+                  {examStarted && (
+                    <div className="sa-panel exam-answer-panel">
+                      <div className="sa-panel-head">
+                        <strong>پاسخ شما</strong>
+                        <span>
+                          {[examAnswer.trim() ? 'متن' : '', examFile ? 'فایل' : '', examVoice ? 'صوت' : ''].filter(Boolean).join(' · ') || 'بدون پاسخ'}
+                        </span>
+                      </div>
+
+                      <label className="field">
+                        <span>پاسخ متنی</span>
+                        <textarea
+                          rows={4}
+                          placeholder="پاسخ خود را بنویسید..."
+                          value={examAnswer}
+                          onChange={e => setExamAnswer(e.target.value)}
+                          disabled={examSubmitted}
+                        />
+                      </label>
+
+                      <div className="sa-upload-stack">
+                        <button
+                          type="button"
+                          className="upload"
+                          disabled={examSubmitted}
+                          onClick={() => {
+                            setExamFile('پاسخ_آزمون.pdf')
+                            setToast('فایل پیوست شد')
+                            setTimeout(() => setToast(null), 1200)
+                          }}
+                        >
+                          <Icon name="paperclip" />
+                          <div>
+                            <strong>{examFile || 'افزودن فایل'}</strong>
+                            <span>{examFile ? 'فایل پیوست شد · لمس برای تغییر' : 'PDF، ورد یا فایل متنی'}</span>
+                          </div>
+                          <Icon name={examFile ? 'check' : 'plus'} />
+                        </button>
+                        <button
+                          type="button"
+                          className={`upload ${examRecording ? 'upload-recording' : ''}`}
+                          disabled={examSubmitted}
+                          onClick={() => {
+                            if (examRecording) {
+                              setExamVoice(true)
+                              setExamRecording(false)
+                            } else {
+                              setExamRecording(true)
+                            }
+                          }}
+                        >
+                          <Icon name="mic" />
+                          <div>
+                            <strong>{examVoice ? 'پیام صوتی ثبت شد' : examRecording ? 'در حال ضبط... توقف و ذخیره' : 'افزودن پیام صوتی'}</strong>
+                            <span>{examRecording ? 'برای ذخیره دوباره لمس کنید' : 'صوت کوتاه به‌عنوان پاسخ'}</span>
+                          </div>
+                          <Icon name={examVoice || examRecording ? 'check' : 'plus'} />
+                        </button>
+                      </div>
+
+                      <div className="exam-answer-actions">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => {
+                            setExamStarted(false)
+                            setExamAnswer('')
+                            setExamFile(null)
+                            setExamVoice(false)
+                            setExamRecording(false)
+                            setExamSubmitted(false)
+                          }}
+                        >
+                          انصراف
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setToast('پایان ثبت شد')
+                            setTimeout(() => setToast(null), 1600)
+                          }}
+                        >
+                          پایان
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -3173,8 +3343,8 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                     </div>
                     <p className="sa-desc">
                       {row.status === 'شرکت‌کرده'
-                        ? `پاسخ ${firstName} در این آزمون ثبت شده است.`
-                        : 'این دانش‌آموز هنوز در آزمون شرکت نکرده است.'}
+                        ? `پاسخ ${firstName} ثبت شده است.`
+                        : 'این دانش‌آموز هنوز شرکت نکرده است.'}
                     </p>
                     <div className="sa-file-list">
                       <button type="button" className="resource">
@@ -3328,7 +3498,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchClose={() => { setSearchOpen(false); setSearchQuery('') }}
-        searchPlaceholder="جست‌وجو در آزمون‌ها..."
+        searchPlaceholder="جست‌وجو..."
       />
       <main className="inner-content">
         <div className="assignment-week-navigation">
@@ -3366,11 +3536,21 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                 <div className="assignment-day-title">
                   <strong>{dayName}</strong>
                   <span>{formatDate(weekDates[dayIndex])}</span>
-                  <span className="assignment-day-count">{fa(items.length)} آزمون</span>
+                  <span className="assignment-day-count">{fa(items.length)} مورد</span>
                 </div>
                 {items.length ? (
                   items.map(item => (
-                    <button className="resource" key={item.t} onClick={() => { setSelected(item); setEditing(false); setDraft(item) }}>
+                    <button className="resource" key={item.t} onClick={() => {
+                      setSelected(item)
+                      setEditing(false)
+                      setDraft(item)
+                      setExamStarted(false)
+                      setExamAnswer('')
+                      setExamFile(null)
+                      setExamVoice(false)
+                      setExamRecording(false)
+                      setExamSubmitted(false)
+                    }}>
                       <span className={`resource-icon ${item.color}`}>
                         <Icon name="exam" />
                       </span>
@@ -3389,7 +3569,7 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                     </button>
                   ))
                 ) : (
-                  <div className="assignment-day-empty">آزمونی برای این روز ثبت نشده است.</div>
+                  <div className="assignment-day-empty">موردی برای این روز ثبت نشده است.</div>
                 )}
               </section>
             )
@@ -3423,12 +3603,11 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
                 type="button"
                 onClick={() => {
                   setCreateMenuOpen(false)
-                  navigate('exam-create')
                 }}
               >
                 <span><Icon name="exam" /></span>
                 <strong>آزمون‌ساز</strong>
-                <small>طراحی سریع با قالب آماده</small>
+                <small>طراحی سریع و حرفه‌ای</small>
               </button>
               <button
                 type="button"
@@ -3460,6 +3639,10 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
   const [voiceNote, setVoiceNote] = useState<{ seconds: number } | null>(null)
   const [playing, setPlaying] = useState(false)
   const recTimerRef = useRef<number | null>(null)
+  const [startDay, setStartDay] = useState(() => examDateRange()[0])
+  const [startTime, setStartTime] = useState('09:00')
+  const [endDay, setEndDay] = useState(() => examDateRange()[0])
+  const [endTime, setEndTime] = useState('09:30')
 
   const fmtTime = (s: number) => fa(`${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s)) % 60).padStart(2, '0')}`)
 
@@ -3489,30 +3672,16 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
       subtitle="فایل، صوت و بازه زمانی شروع تا پایان"
     />
     <main className="inner-content form-page">
-      <div className="score-kind-card" style={{ marginBottom: 14 }}>
-        <div className="score-kind-label">نوع</div>
-        <div className="score-kind-tabs">
-          {(['آزمون', 'آزمونک'] as const).map(k => (
-            <button
-              key={k}
-              type="button"
-              className={kind === k ? 'active' : ''}
-              onClick={() => setKind(k)}
-              style={{ gridColumn: 'span 1' }}
-            >
-              {k}
-            </button>
-          ))}
-        </div>
-        <div className="score-kind-hint">
-          {kind === 'آزمونک'
-            ? 'آزمونک کوتاه‌مدت است و بازه شروع و پایان مشخص دارد.'
-            : 'آزمون با بازه شروع و پایان و امکان پیوست فایل و صوت.'}
-        </div>
-      </div>
+      <label className="field">
+        <span>نوع دسته‌بندی</span>
+        <select value={kind} onChange={e => setKind(e.target.value as 'آزمون' | 'آزمونک')}>
+          <option value="آزمون">آزمون</option>
+          <option value="آزمونک">آزمونک</option>
+        </select>
+      </label>
 
       <label className="field">
-        <span>عنوان {kind}</span>
+        <span>عنوان</span>
         <input
           type="text"
           placeholder={kind === 'آزمونک' ? 'مثلاً آزمونک فصل دوم' : 'مثلاً آزمون میان‌ترم علوم'}
@@ -3525,7 +3694,7 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
         <span>توضیحات</span>
         <textarea
           rows={4}
-          placeholder="راهنما، نکات مهم و دستورالعمل شرکت در آزمون..."
+          placeholder="راهنما، نکات مهم و دستورالعمل‌ها..."
           value={desc}
           onChange={e => setDesc(e.target.value)}
         />
@@ -3535,7 +3704,7 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
         {!voiceNote && !recording && (
           <button type="button" className="upload" onClick={startVoice}>
             <Icon name="mic" />
-            <div><strong>افزودن صوت</strong><span>توضیح صوتی برای {kind}</span></div>
+            <div><strong>افزودن صوت</strong><span>توضیح صوتی</span></div>
             <Icon name="plus" />
           </button>
         )}
@@ -3586,7 +3755,7 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
           </span>
           <div className="voice-note-info">
             <strong>{fileLabel}</strong>
-            <small>پیوست {kind}</small>
+            <small>پیوست</small>
           </div>
           <button type="button" className="attach-remove" aria-label="حذف فایل" onClick={() => setFileLabel(null)}>
             <Icon name="close" size={16} />
@@ -3595,29 +3764,29 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
       )}
 
       <label className="field">
-        <span>شروع {kind}</span>
+        <span>شروع</span>
         <div className="two-fields">
-          <select defaultValue="">
+          <select value={startDay} onChange={e => setStartDay(e.target.value)}>
             <option value="">تاریخ شروع</option>
-            {reportDateRange().map(d => <option key={`s-${d}`} value={d}>{d}</option>)}
+            {examDateRange().map(d => <option key={`s-${d}`} value={d}>{d}</option>)}
           </select>
-          <input type="time" defaultValue="09:00" aria-label="ساعت شروع" />
+          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} aria-label="ساعت شروع" />
         </div>
       </label>
 
       <label className="field">
-        <span>پایان {kind}</span>
+        <span>پایان</span>
         <div className="two-fields">
-          <select defaultValue="">
+          <select value={endDay} onChange={e => setEndDay(e.target.value)}>
             <option value="">تاریخ پایان</option>
-            {reportDateRange().map(d => <option key={`e-${d}`} value={d}>{d}</option>)}
+            {examDateRange().map(d => <option key={`e-${d}`} value={d}>{d}</option>)}
           </select>
-          <input type="time" defaultValue="09:30" aria-label="ساعت پایان" />
+          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} aria-label="ساعت پایان" />
         </div>
       </label>
 
       <div className="score-kind-hint" style={{ marginTop: 4 }}>
-        برخلاف تکلیف، {kind} حتماً بازهٔ زمانی شروع و پایان دارد.
+        برخلاف تکلیف، حتماً بازهٔ زمانی شروع و پایان دارد.
       </div>
     </main>
     <div className="sticky-action two">
@@ -3625,11 +3794,22 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
       <button
         type="button"
         onClick={() => {
+          const now = shamsiOf(new Date())
+          const day = startDay || now.date
+          const time = fa(startTime || '09:00')
+          publishedExam = {
+            title: title.trim() || kind,
+            kind,
+            day,
+            time,
+            startKey: `${day} ${time}`,
+            at: now.time,
+          }
           setPublished(true)
           setTimeout(() => goBack(), 900)
         }}
       >
-        {published ? <><Icon name="check" /> منتشر شد</> : `انتشار ${kind}`}
+        {published ? <><Icon name="check" /> منتشر شد</> : 'انتشار'}
       </button>
     </div>
   </div>
@@ -3946,6 +4126,13 @@ const scheduleItems = [
   { time:'۱۱:۳۰', title:'جلسه گروه آموزشی', info:'اتاق دبیران · ۳۰ دقیقه', color:'orange', days:[24,25,27,29,31] },
 ]
 
+const studentScheduleEvents: { day: number; type: 'assignment' | 'exam'; title: string; subject: string; screen: Screen }[] = [
+  { day: 24, type: 'assignment', title: 'تمرین فصل سوم', subject: 'علوم تجربی', screen: 'assignments' },
+  { day: 26, type: 'exam', title: 'آزمون فصل سوم', subject: 'علوم تجربی', screen: 'exam' },
+  { day: 28, type: 'assignment', title: 'تمرین فصل چهارم', subject: 'علوم تجربی', screen: 'assignments' },
+  { day: 30, type: 'exam', title: 'آزمون فصل چهارم', subject: 'علوم تجربی', screen: 'exam' },
+]
+
 const fa = (n: number | string) => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[+d])
 const toEn = (s: string) => String(s).replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
 
@@ -3967,14 +4154,62 @@ const dateCells = Array.from({ length: 14 }, (_, i) => {
 const scheduleWeekDays = dateCells.slice(0, 5)
 const scheduleTimes = ['۰۸:۰۰', '۰۹:۰۰', '۱۱:۳۰']
 
-function MainSection({ screen, navigate, role, setRole }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void; role: UserRole; setRole: (r: UserRole) => void }) {
+function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void; role: UserRole; setRole: (r: UserRole) => void }) {
   const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     weekday: 'long', day: 'numeric', month: 'long'
   }).format(new Date())
   const isTeacher = role === 'teacher'
+  const isStudent = role === 'student'
   return <div className="screen main-section"><QuickLinks navigate={navigate} /><main className="section-content">
-    {screen === 'schedule' && <section className="weekly-schedule" dir="rtl">
-      <div className="schedule-today-date">امروز، {todayLabel}</div>
+    {screen === 'schedule' && (
+      isStudent ? (
+        <section className="weekly-schedule student-calendar" dir="rtl">
+          <div className="sub-header" style={{ position: 'static', borderRadius: 12, marginBottom: 12 }}>
+            <IconButton icon="chevron" label="بازگشت" onClick={() => goBack && goBack()} />
+            <div><strong>تقویم درسی</strong><span>علوم تجربی · پایه نهم</span></div>
+            <IconButton icon="more" label="بیشتر" />
+          </div>
+          <div className="schedule-today-date">امروز، {todayLabel}</div>
+          <div className="calendar-grid">
+            {dateCells.map((c, i) => {
+              const ev = studentScheduleEvents.find(e => e.day === c.day)
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  className={`calendar-day ${ev ? 'has-event ' + ev.type : ''}`}
+                  onClick={() => ev && navigate(ev.screen)}
+                  disabled={!ev}
+                >
+                  <span className="calendar-day-num">{fa(c.day)}</span>
+                  <span className="calendar-day-label">{c.label}</span>
+                  {ev && <span className="calendar-event-dot" />}
+                </button>
+              )
+            })}
+          </div>
+          <div className="calendar-events">
+            <div className="activity-head"><small>پیش‌رو</small></div>
+            {studentScheduleEvents.map((e, i) => (
+              <button key={i} type="button" className="calendar-event-row" onClick={() => navigate(e.screen)}>
+                <span className={`calendar-event-badge ${e.type}`}>{e.type === 'exam' ? 'آزمون' : 'تکلیف'}</span>
+                <div>
+                  <strong>{e.title}</strong>
+                  <small>{fa(e.day)} · {e.subject}</small>
+                </div>
+                <Icon name="chevron" />
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="weekly-schedule" dir="rtl">
+          <div className="sub-header" style={{ position: 'static', borderRadius: 12, marginBottom: 12 }}>
+            <IconButton icon="chevron" label="بازگشت" onClick={() => goBack && goBack()} />
+            <div><strong>برنامه کلاسی</strong><span>علوم تجربی · پایه نهم</span></div>
+            <IconButton icon="more" label="بیشتر" />
+          </div>
+          <div className="schedule-today-date">امروز، {todayLabel}</div>
       <div className="schedule-table-wrap">
         <table className="schedule-table">
           <thead>
@@ -4010,7 +4245,7 @@ function MainSection({ screen, navigate, role, setRole }: { screen: Screen; navi
           </tbody>
         </table>
       </div>
-    </section>}
+    </section>))}
     {screen === 'calls' && <><div className="call-tabs"><button className="active">همه</button><button>ازدست‌رفته</button></div>{conversations.slice(0,5).map((c,i)=><button className="call-row" key={c.name} onClick={()=>navigate('call')}><Avatar item={c}/><div><strong>{c.name}</strong><span className={i===1?'missed':''}>{i===1?'تماس ازدست‌رفته':'تماس ورودی'} · {c.time}</span></div><Icon name={i%2?'video':'phone'}/></button>)}</>}
     {screen === 'more' && <>
       <div className="profile-card">
@@ -4032,7 +4267,7 @@ function MainSection({ screen, navigate, role, setRole }: { screen: Screen; navi
       <div className="more-grid">
         {(isTeacher
           ? [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
-          : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'برنامه کلاسی',i:'calendar',s:'schedule'}]
+          : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'}]
         ).map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}
       </div>
       <div className="settings-list">
@@ -4060,7 +4295,7 @@ function CallScreen({ goBack }: { navigate: (s: Screen) => void; goBack: () => v
 
 const classSections: { title: string; sub: string; icon: IconName; screen: Screen }[] = [
   { title: 'تکالیف', sub: '۲ تکلیف فعال', icon: 'book', screen: 'assignments' },
-  { title: 'آزمون‌ها', sub: '۱ آزمون پیش‌رو', icon: 'exam', screen: 'exam' },
+  { title: 'آزمون‌ها', sub: '۱ مورد پیش‌رو', icon: 'exam', screen: 'exam' },
   { title: 'منابع کلاسی', sub: '۴ فایل این هفته', icon: 'file', screen: 'materials' },
   { title: 'حضور و غیاب', sub: 'ثبت امروز', icon: 'attendance', screen: 'attendance' },
   { title: 'ثبت نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
@@ -4073,7 +4308,7 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
         { title: 'تکالیف من', sub: 'ارسال و پیگیری', icon: 'book' as IconName, screen: 'assignments' as Screen },
         { title: 'آزمون‌ها', sub: 'برنامه و نتایج', icon: 'exam' as IconName, screen: 'exam' as Screen },
         { title: 'منابع کلاسی', sub: 'جزوه و فایل‌ها', icon: 'file' as IconName, screen: 'materials' as Screen },
-        { title: 'برنامه کلاسی', sub: 'ساعات درسی', icon: 'calendar' as IconName, screen: 'schedule' as Screen },
+        { title: 'تقویم درسی', sub: 'علوم تجربی · تکالیف و آزمون‌ها', icon: 'calendar' as IconName, screen: 'schedule' as Screen },
       ]
     : classSections
   const [mediaTab, setMediaTab] = useState('نمای کلی')
@@ -4111,13 +4346,7 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
         <strong>علوم تجربی · پایه نهم</strong>
         <small>۲۸ عضو · ۶ نفر آنلاین</small>
         <div className="start-cta-group">
-          <span
-            className="start-cta"
-            role="button"
-            tabIndex={0}
-            onClick={() => navigate('call')}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('call') } }}
-          >
+          <span className="start-cta is-decorative">
             ورود به کلاسا
           </span>
           <span
@@ -4160,17 +4389,17 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
                 <button onClick={() => navigate('reports')}>
                   <span><Icon name="chart" /></span>
                   <strong>گزارش‌های کلاس</strong>
-                  <small>حضور و غیاب، نمره‌ها، تکالیف و آزمون‌ها</small>
+                  <small>حضور و غیاب، نمره‌ها، تکالیف و موارد کلاسی</small>
                 </button>
               )}
-              <button className="storage-tile" onClick={() => navigate('storage')}>
+              {!isStudent && <button className="storage-tile" onClick={() => navigate('storage')}>
                 <span className="storage-cyl"><StorageGauge used={6} total={10} mini /></span>
                 <div>
                   <strong>مدیریت حافظه</strong>
                   <small>۶ از ۱۰ گیگ اشغال شده</small>
                 </div>
                 <Icon name="chevron" />
-              </button>
+              </button>}
             </div>
           ) : mediaTab === 'رسانه' ? (
             <div className="media-overview">
@@ -4205,8 +4434,7 @@ type GradeEntry = {
 
 let gradeHistoryStore: GradeEntry[] = []
 
-function nowShamsi() {
-  const d = new Date()
+function shamsiOf(d: Date) {
   // Gregorian -> Jalali (accurate civil conversion)
   let gy = d.getFullYear()
   let gm = d.getMonth() + 1
@@ -4234,6 +4462,20 @@ function nowShamsi() {
     time: fa(`${hh}:${mm}`),
     timeWithSec: fa(`${hh}:${mm}:${ss}`),
   }
+}
+
+function nowShamsi() {
+  return shamsiOf(new Date())
+}
+
+/** today + next 20 days, as Shamsi date options for scheduling */
+function examDateRange(): string[] {
+  const out: string[] = []
+  const base = new Date()
+  for (let i = 0; i < 21; i++) {
+    out.push(shamsiOf(new Date(base.getFullYear(), base.getMonth(), base.getDate() + i)).date)
+  }
+  return out
 }
 
 function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
@@ -4369,7 +4611,7 @@ function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
 }
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'امتحان', 'فعالیت کلاسی']
+  const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'آزمون', 'فعالیت کلاسی']
   const qualitativeOptions = ['خیلی خوب', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
   const [title, setTitle] = useState('')
@@ -5638,7 +5880,7 @@ export default function App() {
     {screen === 'home' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'school' && <MySchool navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'chat' && <Chat navigate={navigate} goBack={goBack}/>}
+    {screen === 'chat' && <Chat navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
     {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack} role={role}/>}

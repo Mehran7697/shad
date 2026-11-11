@@ -135,6 +135,15 @@
 .live-banner { background: var(--green-soft); color: var(--green-dark); padding: 8px 15px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid #d4ece3; }
 .live-banner strong { font-size: 10px; font-weight: 700; flex: 1; }
 .live-banner small { font-size: 9px; font-family: monospace; }
+.exam-shortcut-banner { display: flex; align-items: center; gap: 10px; padding: 9px 15px; background: var(--amber-soft); border-bottom: 1px solid #f1dfb5; }
+.exam-shortcut-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: white; color: #a76d14; flex: none; box-shadow: 0 2px 6px rgb(0 0 0 / .07); }
+.exam-shortcut-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.exam-shortcut-info strong { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.exam-shortcut-info small { font-size: 9px; color: #99742f; }
+.exam-shortcut-btn { border: 0; border-radius: 9px; padding: 7px 12px; font-size: 9px; font-weight: 700; background: var(--green); color: white; flex: none; box-shadow: 0 3px 8px rgb(17 156 120 / .25); }
+.exam-shortcut-btn:disabled { background: #e7eaed; color: #98a2a9; box-shadow: none; cursor: not-allowed; }
+.exam-shortcut-banner.ready .exam-shortcut-icon { color: var(--green); background: var(--green-soft); }
+.exam-shortcut-banner.ready .exam-shortcut-info small { color: var(--green-dark); }
 .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
@@ -181,6 +190,9 @@
 .announcement > small { color: var(--green); font-size: 8px; }
 .announcement > strong { display: block; font-size: 12px; margin-top: 2px; }
 .announcement button { border: 0; width: 100%; color: var(--green-dark); background: var(--green-soft); padding: 7px; border-radius: 9px; font-size: 9px; margin: 4px 0; font-weight: 600; }
+.announcement.exam-announcement { border-right-color: #e0a83c; }
+.announcement.exam-announcement > small { color: #b07d12; }
+.announcement button:disabled { background: #eef1f4; color: #98a2a9; cursor: not-allowed; }
 .voice { width: 68%; display: grid; grid-template-columns: 34px 1fr 25px; align-items: center; gap: 7px; }
 .voice > button { width: 32px; height: 32px; border: 0; border-radius: 50%; color: white; background: var(--green); }
 .voice > small { color: var(--muted); font-size: 8px; direction: ltr; }
@@ -687,6 +699,27 @@
 .schedule-class-cell.blue { background: #edf6fb; color: #347da9; }
 .schedule-class-cell.orange { background: #fff4e8; color: #b66b24; }
 .schedule-empty-cell { color: #c4cdd1; font-size: 12px; }
+
+/* student subject calendar (تقویم درسی) */
+.student-calendar .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 16px; }
+.calendar-day { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 6px 2px; min-height: 52px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: default; transition: .15s; }
+.calendar-day:disabled { opacity: .55; }
+.calendar-day.has-event { cursor: pointer; border-color: var(--green); }
+.calendar-day.has-event:active { transform: scale(.97); }
+.calendar-day-num { font-size: 13px; font-weight: 800; color: var(--ink); }
+.calendar-day-label { font-size: 9px; color: var(--muted); }
+.calendar-day.has-event.assignment { background: #edf6fb; }
+.calendar-day.has-event.exam { background: #fff4e8; }
+.calendar-event-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-top: 2px; }
+.calendar-day.has-event.exam .calendar-event-dot { background: #b66b24; }
+.calendar-events { display: flex; flex-direction: column; gap: 8px; }
+.calendar-event-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; text-align: right; }
+.calendar-event-row:active { background: var(--green-soft); }
+.calendar-event-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 8px; color: #fff; background: var(--green); flex-shrink: 0; }
+.calendar-event-badge.exam { background: #b66b24; }
+.calendar-event-row > div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.calendar-event-row strong { font-size: 12px; }
+.calendar-event-row small { font-size: 10px; color: var(--muted); }
 
 
 /* Weekly day selector for assignments: square date cards */
@@ -3862,3 +3895,24 @@
   pointer-events: none;
   user-select: none;
 }
+
+/* quick-links: only messenger & school are clickable */
+.quick-link.ql-disabled { cursor: default; }
+.quick-link.ql-disabled:hover { border-color: var(--line); box-shadow: none; }
+.quick-link.ql-disabled:active { transform: none; }
+
+/* decorative (non-interactive) controls */
+.is-decorative { cursor: default; }
+button.is-decorative:hover { border-color: var(--line); background: white; }
+.tool-grid button.is-decorative:active { background: white; transform: none; }
+.start-cta-group .start-cta.is-decorative { cursor: default; }
+.start-cta-group .start-cta.is-decorative:active { transform: none; }
+
+/* student exam: centered start button + answer panel */
+.exam-start-block { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 18px; }
+.exam-start-btn { min-width: 210px; height: 48px; border: 0; border-radius: 14px; color: white; background: var(--green); font-size: 13px; font-weight: 700; display: inline-flex; justify-content: center; align-items: center; gap: 6px; box-shadow: 0 8px 18px rgb(17 156 120 / .25); }
+.exam-answer-panel { width: 100%; text-align: right; }
+.exam-answer-actions { display: flex; gap: 9px; margin-top: 12px; }
+.exam-answer-actions button { flex: 1; height: 44px; border: 0; border-radius: 12px; color: white; background: var(--green); font-size: 12px; font-weight: 700; display: inline-flex; justify-content: center; align-items: center; gap: 6px; }
+.exam-answer-actions .secondary { color: var(--green-dark); background: var(--green-soft); }
+.exam-answer-panel .upload:disabled, .exam-answer-panel textarea:disabled { opacity: .6; }
