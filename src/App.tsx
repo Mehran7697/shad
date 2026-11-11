@@ -5417,55 +5417,54 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           {(() => {
             const si = selected ? students.indexOf(selected) : 0
             const d = (offset: number) => `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + offset).padStart(2, '۰')}`
-            type Ev = { date: string; name: string; type: string; score: number | null; max: number; weight: number; desc: string }
+            type Ev = { date: string; name: string; type: string; score: number | null; max: number; desc: string }
             const byTab: Record<string, Ev[]> = {
               'آزمونک': [
-                { date: d(1), name: 'آزمونک فصل ۱', type: 'آزمونک', score: 2.5, max: 3, weight: 3, desc: 'کوتاه' },
-                { date: d(2), name: 'آزمونک فصل ۲', type: 'آزمونک', score: 4, max: 5, weight: 5, desc: 'مبحث جمع' },
-                { date: d(3), name: 'آزمونک فصل ۳', type: 'آزمونک', score: null, max: 3, weight: 3, desc: 'غایب' },
-                { date: d(4), name: 'آزمونک مرور', type: 'آزمونک', score: 4.5, max: 5, weight: 5, desc: 'خوب' },
-                { date: d(5), name: 'آزمونک پایانی', type: 'آزمونک', score: 3, max: 4, weight: 4, desc: 'متوسط' },
+                { date: d(1), name: 'آزمونک فصل ۱', type: 'آزمونک', score: 1, max: 5, desc: 'کوتاه' },
+                { date: d(2), name: 'آزمونک فصل ۲', type: 'آزمونک', score: 4, max: 5, desc: 'مبحث جمع' },
+                { date: d(3), name: 'آزمونک فصل ۳', type: 'آزمونک', score: null, max: 3, desc: 'غایب در جلسه' },
+                { date: d(4), name: 'آزمونک مرور', type: 'آزمونک', score: 2, max: 3, desc: 'خوب' },
+                { date: d(5), name: 'آزمونک پایانی', type: 'آزمونک', score: 14, max: 20, desc: 'جامع' },
               ],
               'پرسش شفاهی': [
-                { date: d(1), name: 'پرسش شفاهی ۱', type: 'پرسش شفاهی', score: 18, max: 20, weight: 2, desc: 'پاسخ کامل' },
-                { date: d(2), name: 'پرسش شفاهی ۲', type: 'پرسش شفاهی', score: null, max: 20, weight: 2, desc: 'غایب' },
-                { date: d(3), name: 'پرسش شفاهی ۳', type: 'پرسش شفاهی', score: 16, max: 20, weight: 2, desc: 'قابل قبول' },
-                { date: d(4), name: 'پرسش شفاهی ۴', type: 'پرسش شفاهی', score: 19, max: 20, weight: 3, desc: 'عالی' },
-                { date: d(5), name: 'پرسش شفاهی ۵', type: 'پرسش شفاهی', score: 15, max: 20, weight: 2, desc: 'نیاز به تمرین' },
+                { date: d(1), name: 'پرسش شفاهی ۱', type: 'پرسش شفاهی', score: 18, max: 20, desc: 'پاسخ کامل' },
+                { date: d(2), name: 'پرسش شفاهی ۲', type: 'پرسش شفاهی', score: null, max: 20, desc: 'غایب در جلسه' },
+                { date: d(3), name: 'پرسش شفاهی ۳', type: 'پرسش شفاهی', score: 16, max: 20, desc: 'قابل قبول' },
+                { date: d(4), name: 'پرسش شفاهی ۴', type: 'پرسش شفاهی', score: 4, max: 5, desc: 'کوتاه' },
+                { date: d(5), name: 'پرسش شفاهی ۵', type: 'پرسش شفاهی', score: 15, max: 20, desc: 'نیاز به تمرین' },
               ],
               'تکالیف': [
-                { date: d(1), name: 'تکلیف فصل ۱', type: 'تکالیف', score: 17, max: 20, weight: 2, desc: 'تحویل به موقع' },
-                { date: d(2), name: 'تکلیف فصل ۲', type: 'تکالیف', score: 14, max: 20, weight: 2, desc: 'ناقص' },
-                { date: d(3), name: 'تکلیف فصل ۳', type: 'تکالیف', score: null, max: 20, weight: 3, desc: 'غایب' },
-                { date: d(4), name: 'تکلیف مرور', type: 'تکالیف', score: 18, max: 20, weight: 2, desc: 'مرتب' },
-                { date: d(5), name: 'تکلیف پروژه', type: 'تکالیف', score: 16, max: 20, weight: 4, desc: 'پروژه گروهی' },
+                { date: d(1), name: 'تکلیف فصل ۱', type: 'تکالیف', score: 17, max: 20, desc: 'تحویل به موقع' },
+                { date: d(2), name: 'تکلیف فصل ۲', type: 'تکالیف', score: 14, max: 20, desc: 'ناقص' },
+                { date: d(3), name: 'تکلیف فصل ۳', type: 'تکالیف', score: null, max: 20, desc: 'غایب در جلسه' },
+                { date: d(4), name: 'تکلیف مرور', type: 'تکالیف', score: 3, max: 5, desc: 'کوتاه' },
+                { date: d(5), name: 'تکلیف پروژه', type: 'تکالیف', score: 16, max: 20, desc: 'پروژه گروهی' },
               ],
               'فعالیت کلاسی': [
-                { date: d(1), name: 'فعالیت ۱', type: 'فعالیت کلاسی', score: 5, max: 5, weight: 1, desc: 'مشارکت' },
-                { date: d(2), name: 'فعالیت ۲', type: 'فعالیت کلاسی', score: 4, max: 5, weight: 1, desc: 'گروهی' },
-                { date: d(3), name: 'فعالیت ۳', type: 'فعالیت کلاسی', score: null, max: 5, weight: 1, desc: 'غایب' },
-                { date: d(4), name: 'فعالیت ۴', type: 'فعالیت کلاسی', score: 5, max: 5, weight: 2, desc: 'ارائه' },
-                { date: d(5), name: 'فعالیت ۵', type: 'فعالیت کلاسی', score: 3, max: 5, weight: 1, desc: 'تمرین کلاسی' },
+                { date: d(1), name: 'فعالیت ۱', type: 'فعالیت کلاسی', score: 5, max: 5, desc: 'مشارکت' },
+                { date: d(2), name: 'فعالیت ۲', type: 'فعالیت کلاسی', score: 4, max: 5, desc: 'گروهی' },
+                { date: d(3), name: 'فعالیت ۳', type: 'فعالیت کلاسی', score: null, max: 5, desc: 'غایب در جلسه' },
+                { date: d(4), name: 'فعالیت ۴', type: 'فعالیت کلاسی', score: 14, max: 20, desc: 'ارائه' },
+                { date: d(5), name: 'فعالیت ۵', type: 'فعالیت کلاسی', score: 3, max: 5, desc: 'تمرین کلاسی' },
               ],
               'آزمون': [
-                { date: d(1), name: 'آزمون میان‌ترم', type: 'آزمون', score: 16, max: 20, weight: 5, desc: 'فصل ۱–۳' },
-                { date: d(2), name: 'آزمون فصلی', type: 'آزمون', score: 14, max: 20, weight: 3, desc: 'فصل ۲' },
-                { date: d(3), name: 'آزمون عملی', type: 'آزمون', score: null, max: 20, weight: 4, desc: 'غایب' },
-                { date: d(4), name: 'آزمون کتبی', type: 'آزمون', score: 18, max: 20, weight: 5, desc: 'خوب' },
-                { date: d(5), name: 'آزمون پایانی', type: 'آزمون', score: 15, max: 20, weight: 6, desc: 'نهایی' },
+                { date: d(1), name: 'آزمون میان‌ترم', type: 'آزمون', score: 16, max: 20, desc: 'فصل ۱–۳' },
+                { date: d(2), name: 'آزمون فصلی', type: 'آزمون', score: 14, max: 20, desc: 'فصل ۲' },
+                { date: d(3), name: 'آزمون عملی', type: 'آزمون', score: null, max: 20, desc: 'غایب در جلسه' },
+                { date: d(4), name: 'آزمون کتبی', type: 'آزمون', score: 18, max: 20, desc: 'خوب' },
+                { date: d(5), name: 'آزمون پایانی', type: 'آزمون', score: 15, max: 20, desc: 'نهایی' },
               ],
             }
             const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
-              // vary absent pattern a bit per student
-              if (idx === 2 && si % 2 === 1) return { ...e, score: e.max - 1, desc: 'شرکت کرده' }
+              if (idx === 2 && si % 2 === 1) return { ...e, score: Math.max(1, e.max - 1), desc: 'شرکت کرده' }
               return e
             })
             const attended = events.filter(e => e.score !== null)
-            const totalW = attended.reduce((s, e) => s + e.weight, 0)
-            const weighted = totalW
-              ? attended.reduce((s, e) => s + ((e.score as number) / e.max) * 20 * e.weight, 0) / totalW
+            // normalize each score to 20, then simple average
+            const avg20 = attended.length
+              ? attended.reduce((s, e) => s + ((e.score as number) / e.max) * 20, 0) / attended.length
               : 0
-            const avgLabel = totalW ? fa(weighted.toFixed(1)) : '—'
+            const avgLabel = attended.length ? fa(avg20.toFixed(1)) : '—'
             const partLabel = `${fa(attended.length)} از ${fa(events.length)}`
 
             return (
@@ -5473,7 +5472,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 <div className="week-summary-banner">
                   <div className="week-summary-item">
                     <strong>{avgLabel}</strong>
-                    <span>میانگین وزنی</span>
+                    <span>میانگین از ۲۰</span>
                   </div>
                   <div className="week-summary-item">
                     <strong>{partLabel}</strong>
@@ -5499,9 +5498,9 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                           <th>#</th>
                           <th>تاریخ</th>
                           <th>عنوان</th>
-                          <th>وزن</th>
                           <th>نمره</th>
                           <th>توضیح</th>
+                          <th>صوت</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -5510,13 +5509,21 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                             <td>{fa(i + 1)}</td>
                             <td>{e.date}</td>
                             <td>{e.name}</td>
-                            <td>{fa(e.weight)}</td>
                             <td>
                               {e.score === null
                                 ? <span className="status-pill wait">غایب</span>
                                 : `${fa(e.score)}/${fa(e.max)}`}
                             </td>
                             <td>{e.desc}</td>
+                            <td>
+                              {e.score === null ? (
+                                <span className="muted-dash">—</span>
+                              ) : (
+                                <button type="button" className="table-action-btn view" onClick={() => setToast('پخش صوت')}>
+                                  <Icon name="play" size={14} />
+                                </button>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
