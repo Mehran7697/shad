@@ -4323,3 +4323,40 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   padding: 10px 12px;
   margin-bottom: 10px;
 }
+
+
+.cal-item-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  text-align: right;
+  padding: 8px 2px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cal-item-link + .cal-item-link {
+  border-top: 1px solid var(--line);
+}
+.cal-item-link .cal-item-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+.cal-item-link .cal-item-copy small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.cal-item-link > svg {
+  flex: none;
+  color: var(--muted);
+}
+.cal-item-link:active {
+  background: var(--surface);
+  border-radius: 10px;
+}

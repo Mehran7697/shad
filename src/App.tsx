@@ -630,7 +630,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   </div>
 }
 
-function CalendarPage({ goBack }: { goBack: () => void }) {
+function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
   type CalKind = 'assignment' | 'exam' | 'event'
   type CalItem = { day: number; kind: CalKind; subject: string; title: string; due: string }
   type CalMonth = {
@@ -762,11 +762,31 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
                 <div className="mt-group kind-by-date" key={day} id={`cal-day-${day}`}>
                   <em>{fa(day)} {m.label.replace(/\s*\d+$/, '').trim()}</em>
                   {list.map(it => (
-                    <span key={`${it.day}-${it.kind}-${it.title}`}>
+                    <button
+                      type="button"
+                      className={`cal-item-link kind-${it.kind}`}
+                      key={`${it.day}-${it.kind}-${it.title}`}
+                      onClick={() => {
+                        if (it.kind === 'assignment') {
+                          assignmentContext = { subject: it.subject, klass: 'کلاس ۹۰۱' }
+                          navigate('assignment')
+                          return
+                        }
+                        if (it.kind === 'exam') {
+                          navigate('exam')
+                          return
+                        }
+                        // event → classroom / chat context
+                        navigate('classroom')
+                      }}
+                    >
                       <i className={`dot ${it.kind}`} />
-                      <b>{kindLabel[it.kind]}</b> · {it.subject} · {it.title}
-                      <small>{it.due}</small>
-                    </span>
+                      <span className="cal-item-copy">
+                        <b>{kindLabel[it.kind]}</b> · {it.subject} · {it.title}
+                        <small>{it.due}</small>
+                      </span>
+                      <Icon name="chevron" size={16} />
+                    </button>
                   ))}
                 </div>
               )
@@ -6468,7 +6488,7 @@ export default function App() {
     {screen === 'home' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'school' && <MySchool navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'calendar' && <CalendarPage goBack={goBack}/>}
+    {screen === 'calendar' && <CalendarPage navigate={navigate} goBack={goBack}/>}
     {screen === 'chat' && <Chat navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
