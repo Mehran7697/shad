@@ -4257,3 +4257,16 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   font-size: 12px;
   padding: 0 6px;
 }
+
+
+.mg-cell.is-clickable { cursor: pointer; }
+.mg-cell.is-clickable:active { transform: scale(.96); }
+.mt-group.kind-by-date {
+  scroll-margin-top: 12px;
+}
+.mt-group.kind-by-date em {
+  color: var(--green-dark);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+}

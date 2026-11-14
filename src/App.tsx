@@ -666,10 +666,15 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
   }
   const [monthIdx, setMonthIdx] = useState(1)
   const m = months[monthIdx]
-  const kindsOnDay = (day: number) => {
-    const set = new Set(m.items.filter(it => it.day === day).map(it => it.kind))
-    return set
+  const kindsOnDay = (day: number) => new Set(m.items.filter(it => it.day === day).map(it => it.kind))
+  const daysWithItems = [...new Set(m.items.map(it => it.day))].sort((a, b) => a - b)
+
+  const scrollToDay = (day: number) => {
+    if (!kindsOnDay(day).size) return
+    const el = document.getElementById(`cal-day-${day}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
   return (
     <div className="screen inner-screen">
       <SubHeader screen="calendar" back={goBack} rightIcon={null} subtitle={`${m.label} · همه دروس`} />
@@ -695,7 +700,19 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
               if (kinds.has('assignment')) cls.push('has-assignment')
               if (kinds.has('exam')) cls.push('has-exam')
               if (kinds.has('event')) cls.push('has-event')
-              return <span key={day} className={cls.join(' ')}>{fa(day)}</span>
+              if (kinds.size) cls.push('is-clickable')
+              return (
+                <span
+                  key={day}
+                  className={cls.join(' ')}
+                  role={kinds.size ? 'button' : undefined}
+                  tabIndex={kinds.size ? 0 : undefined}
+                  onClick={() => scrollToDay(day)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') scrollToDay(day) }}
+                >
+                  {fa(day)}
+                </span>
+              )
             })}
           </div>
           <div className="month-legend">
@@ -705,19 +722,18 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
             <span><i className="dot event" />رویداد</span>
           </div>
           <div className="month-tasks">
-            {m.items.length === 0 && (
+            {daysWithItems.length === 0 && (
               <div className="report-empty-hint">رویدادی برای این ماه ثبت نشده است.</div>
             )}
-            {(['assignment', 'exam', 'event'] as CalKind[]).map(kind => {
-              const list = m.items.filter(it => it.kind === kind)
-              if (!list.length) return null
+            {daysWithItems.map(day => {
+              const list = m.items.filter(it => it.day === day)
               return (
-                <div className={`mt-group kind-${kind}`} key={kind}>
-                  <em>{kindLabel[kind]}</em>
+                <div className="mt-group kind-by-date" key={day} id={`cal-day-${day}`}>
+                  <em>{fa(day)} {m.label.replace(/\s*\d+$/, '').trim()}</em>
                   {list.map(it => (
-                    <span key={`${it.day}-${it.title}`}>
-                      <i className={`dot ${kind}`} />
-                      <b>{it.subject}</b> · {it.title}
+                    <span key={`${it.day}-${it.kind}-${it.title}`}>
+                      <i className={`dot ${it.kind}`} />
+                      <b>{kindLabel[it.kind]}</b> · {it.subject} · {it.title}
                       <small>{it.due}</small>
                     </span>
                   ))}
@@ -731,11 +747,6 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
   )
 }
 
-let classStarted = false
-let assignmentContext: { subject: string; klass: string } | null = null
-type PublishedExam = { title: string; kind: 'آزمون' | 'آزمونک'; day: string; time: string; startKey: string; at: string }
-/** last exam published from exam-create; shows in Chat until start time */
-let publishedExam: PublishedExam | null = null
 
 function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack: () => void; role?: UserRole }) {
   const isStudent = role === 'student'
