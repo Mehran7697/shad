@@ -4981,20 +4981,6 @@ function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
       <span>{now.time}</span>
     </div>
     <main className="inner-content">
-      <div className="grade-summary-card">
-        <div className="grade-summary-item">
-          <strong>{fa(history.length)}</strong>
-          <span>ثبت کل</span>
-        </div>
-        <div className="grade-summary-item">
-          <strong>{fa(uniqueDates.length)}</strong>
-          <span>روزهای فعال</span>
-        </div>
-        <div className="grade-summary-item">
-          <strong>{fa(students.length)}</strong>
-          <span>دانش‌آموز</span>
-        </div>
-      </div>
       {uniqueDates.length > 0 && (
         <div className="grade-filter-row">
           <label className="field grade-filter-field"><span>فیلتر تاریخ</span>
