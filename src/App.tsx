@@ -6500,81 +6500,201 @@ function StorageGauge({ used, total, mini = false }: { used: number; total: numb
 }
 
 function StorageManage({ goBack }: { goBack: () => void }) {
-  const [items, setItems] = useState([
-    { id: 'assignments', title: 'تکالیف', sub: '۴۲ فایل ارسالی', icon: 'book' as IconName, size: 2.4 },
-    { id: 'exams', title: 'آزمون‌ها', sub: '۱۸ فایل و پاسخ', icon: 'exam' as IconName, size: 1.2 },
-    { id: 'materials', title: 'منابع کلاسی', sub: '۲۶ فایل و جزوه', icon: 'file' as IconName, size: 1.5 },
-    { id: 'media', title: 'رسانه‌های گفتگو', sub: 'تصاویر و صداها', icon: 'image' as IconName, size: 0.9 },
+  type FileItem = { id: string; name: string; meta: string; size: number }
+  type CatItem = { id: string; title: string; icon: IconName; files: FileItem[] }
+
+  const [cats, setCats] = useState<CatItem[]>([
+    {
+      id: 'assignments', title: 'تکالیف', icon: 'book',
+      files: [
+        { id: 'a1', name: 'پاسخ تمرین فصل سوم.pdf', meta: 'علی احمدی · ۲٫۱ مگ', size: 0.35 },
+        { id: 'a2', name: 'گزارش آزمایش.docx', meta: 'فاطمه محمدی · ۱٫۴ مگ', size: 0.28 },
+        { id: 'a3', name: 'تصاویر تکلیف.zip', meta: 'آراد حسینی · ۸٫۲ مگ', size: 0.52 },
+        { id: 'a4', name: 'ویس توضیح تکلیف.m4a', meta: 'یسنا کریمی · ۳٫۱ مگ', size: 0.25 },
+        { id: 'a5', name: 'پروژه گروهی.pdf', meta: 'امیررضا صالحی · ۴٫۵ مگ', size: 0.4 },
+      ],
+    },
+    {
+      id: 'exams', title: 'آزمون‌ها', icon: 'exam',
+      files: [
+        { id: 'e1', name: 'پاسخ آزمونک فصل ۲.pdf', meta: 'مبینا اکبری · ۱٫۱ مگ', size: 0.2 },
+        { id: 'e2', name: 'برگه آزمون میان‌ترم.pdf', meta: 'علی احمدی · ۲٫۴ مگ', size: 0.3 },
+        { id: 'e3', name: 'فایل صوتی پاسخ.m4a', meta: 'فاطمه محمدی · ۵٫۰ مگ', size: 0.35 },
+        { id: 'e4', name: 'آزمون عملی.zip', meta: 'آراد حسینی · ۶٫۲ مگ', size: 0.35 },
+      ],
+    },
+    {
+      id: 'materials', title: 'منابع کلاسی', icon: 'file',
+      files: [
+        { id: 'm1', name: 'جزوه فصل سوم.pdf', meta: 'منبع معلم · ۲٫۴ مگ', size: 0.4 },
+        { id: 'm2', name: 'ویدیو آزمایش.mp4', meta: 'منبع معلم · ۱۸ مگ', size: 0.55 },
+        { id: 'm3', name: 'اسلاید درس.pptx', meta: 'منبع معلم · ۵٫۱ مگ', size: 0.3 },
+        { id: 'm4', name: 'فایل صوتی درس.mp3', meta: 'منبع معلم · ۴٫۱ مگ', size: 0.25 },
+      ],
+    },
+    {
+      id: 'media', title: 'رسانه‌های گفتگو', icon: 'image',
+      files: [
+        { id: 'g1', name: 'تصویر تخته.jpg', meta: 'گفتگو · ۲٫۲ مگ', size: 0.25 },
+        { id: 'g2', name: 'ویس کلاس.m4a', meta: 'گفتگو · ۳٫۸ مگ', size: 0.3 },
+        { id: 'g3', name: 'عکس فعالیت.png', meta: 'گفتگو · ۱٫۶ مگ', size: 0.2 },
+        { id: 'g4', name: 'فایل پیوست.pdf', meta: 'گفتگو · ۲٫۱ مگ', size: 0.15 },
+      ],
+    },
   ])
+  const [openId, setOpenId] = useState<string | null>(null)
   const [selected, setSelected] = useState<string[]>([])
   const [toast, setToast] = useState<string | null>(null)
-  const used = items.reduce((s, i) => s + i.size, 0)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
+
+  const q = query.trim()
+  const visibleCats = cats.map(c => ({
+    ...c,
+    files: q
+      ? c.files.filter(f => f.name.includes(q) || f.meta.includes(q) || c.title.includes(q))
+      : c.files,
+  })).filter(c => !q || c.files.length > 0)
+
+  const allFiles = cats.flatMap(c => c.files)
+  const used = allFiles.reduce((s, f) => s + f.size, 0)
   const total = 10
-  const toggle = (id: string) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
-  const toggleAll = () => {
-    if (selected.length === items.length) setSelected([])
-    else setSelected(items.map(i => i.id))
-  }
-  const removeSelected = () => {
-    if (!selected.length) return
-    const count = selected.length
-    setItems(list => list.filter(i => !selected.includes(i.id)))
-    setSelected([])
-    setToast(`${fa(count)} مورد حذف شد`)
-    setTimeout(() => setToast(null), 1600)
-  }
   const fmt = (n: number) => {
     const s = n % 1 === 0 ? String(n) : n.toFixed(1)
     return fa(s).replace(/\./g, '٫')
   }
+
+  const toggleFile = (id: string) => {
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
+  }
+
+  const toggleCatFiles = (cat: CatItem) => {
+    const ids = cat.files.map(f => f.id)
+    if (!ids.length) return
+    const allOn = ids.every(id => selected.includes(id))
+    setSelected(s => allOn ? s.filter(id => !ids.includes(id)) : Array.from(new Set([...s, ...ids])))
+  }
+
+  const toggleAll = () => {
+    if (!allFiles.length) return
+    if (selected.length === allFiles.length) setSelected([])
+    else setSelected(allFiles.map(f => f.id))
+  }
+
+  const removeSelected = () => {
+    if (!selected.length) {
+      setToast('موردی برای حذف انتخاب نشده است')
+      setTimeout(() => setToast(null), 1600)
+      return
+    }
+    const count = selected.length
+    setCats(list => list.map(c => ({
+      ...c,
+      files: c.files.filter(f => !selected.includes(f.id)),
+    })))
+    setSelected([])
+    setToast(`${fa(count)} مورد حذف شد`)
+    setTimeout(() => setToast(null), 1600)
+  }
+
   return (
     <div className="screen inner-screen">
-      <SubHeader screen="storage" back={goBack} title="مدیریت حافظه" subtitle={`${fmt(used)} از ${fa(total)} گیگ استفاده شده`} />
+      <SubHeader
+        screen="storage"
+        back={goBack}
+        title="مدیریت حافظه"
+        subtitle={`${fmt(used)} از ${fa(total)} گیگ استفاده شده`}
+        rightIcon={null}
+        showSearchBtn
+        searchOpen={searchOpen}
+        searchValue={query}
+        onSearchClick={() => setSearchOpen(true)}
+        onSearchChange={setQuery}
+        onSearchClose={() => { setSearchOpen(false); setQuery('') }}
+        searchPlaceholder="جست‌وجو در فایل‌ها..."
+      />
       <main className="inner-content form-page">
         <div className="storage-hero">
           <StorageGauge used={used} total={total} />
           <div className="storage-summary">
             <strong>{fmt(used)} گیگ استفاده شده</strong>
-            <span>{fmt(total - used)} گیگ آزاد</span>
+            <span>{fmt(Math.max(0, total - used))} گیگ آزاد</span>
           </div>
         </div>
         <div className="storage-section-head">
           <strong>موارد ذخیره‌شده</strong>
-          <button type="button" className="storage-select-all" onClick={toggleAll}>
-            {selected.length === items.length && items.length ? 'لغو انتخاب همه' : 'انتخاب همه'}
+          <button type="button" className="storage-select-all" onClick={toggleAll} disabled={!allFiles.length}>
+            {allFiles.length && selected.length === allFiles.length ? 'لغو انتخاب همه' : 'انتخاب همه'}
           </button>
         </div>
-        {items.length === 0 ? (
+        {allFiles.length === 0 ? (
           <div className="empty compact-empty">
             <Icon name="check" size={32} />
-            <strong>حافظه آزاد است</strong>
-            <span>موردی برای حذف باقی نمانده.</span>
+            <strong>موردی برای حذف نیست</strong>
+            <span>همه فایل‌ها پاک شده‌اند و حافظه آزاد است.</span>
+          </div>
+        ) : visibleCats.length === 0 ? (
+          <div className="empty compact-empty">
+            <Icon name="search" size={32} />
+            <strong>نتیجه‌ای پیدا نشد</strong>
+            <span>عبارت جست‌وجو را تغییر دهید.</span>
           </div>
         ) : (
           <div className="storage-list">
-            {items.map(item => {
-              const checked = selected.includes(item.id)
+            {visibleCats.map(cat => {
+              const open = openId === cat.id
+              const catSize = cat.files.reduce((s, f) => s + f.size, 0)
+              const catSelected = cat.files.length > 0 && cat.files.every(f => selected.includes(f.id))
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`storage-row ${checked ? 'checked' : ''}`}
-                  onClick={() => toggle(item.id)}
-                >
-                  <span className="storage-check">{checked && <Icon name="check" size={14} />}</span>
-                  <span className="storage-row-icon"><Icon name={item.icon} /></span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <small>{item.sub}</small>
-                  </div>
-                  <span className="storage-row-size">{fmt(item.size)} گیگ</span>
-                </button>
+                <div className={`storage-group ${open ? 'open' : ''}`} key={cat.id}>
+                  <button
+                    type="button"
+                    className={`storage-row ${catSelected ? 'checked' : ''}`}
+                    onClick={() => setOpenId(open ? null : cat.id)}
+                  >
+                    <span
+                      className={`storage-check ${catSelected ? 'on' : ''}`}
+                      onClick={e => { e.stopPropagation(); toggleCatFiles(cat) }}
+                    />
+                    <span className="storage-row-icon"><Icon name={cat.icon} /></span>
+                    <div>
+                      <strong>{cat.title}</strong>
+                      <small>{cat.files.length ? `${fa(cat.files.length)} مورد` : 'خالی'}</small>
+                    </div>
+                    <span className="storage-row-size">{fmt(catSize)} گیگ</span>
+                    <span className={`storage-chevron ${open ? 'open' : ''}`} aria-hidden="true">▾</span>
+                  </button>
+                  {open && (
+                    <div className="storage-files">
+                      {cat.files.length === 0 ? (
+                        <div className="storage-empty-hint">موردی برای حذف در این بخش نیست.</div>
+                      ) : cat.files.map(file => {
+                        const checked = selected.includes(file.id)
+                        return (
+                          <button
+                            type="button"
+                            key={file.id}
+                            className={`storage-file-row ${checked ? 'checked' : ''}`}
+                            onClick={() => toggleFile(file.id)}
+                          >
+                            <span className={`storage-check ${checked ? 'on' : ''}`} />
+                            <div>
+                              <strong>{file.name}</strong>
+                              <small>{file.meta}</small>
+                            </div>
+                            <span className="storage-row-size">{fmt(file.size)} گیگ</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
         )}
       </main>
-      {items.length > 0 && (
+      {allFiles.length > 0 && (
         <div className="sticky-action">
           <button disabled={!selected.length} onClick={removeSelected}>
             {selected.length ? `حذف ${fa(selected.length)} مورد انتخاب‌شده` : 'حذف انتخاب‌شده‌ها'}
@@ -6585,6 +6705,7 @@ function StorageManage({ goBack }: { goBack: () => void }) {
     </div>
   )
 }
+
 
 export default function App() {
   const [history, setHistory] = useState<Screen[]>(['messenger'])
