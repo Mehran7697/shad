@@ -631,37 +631,61 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
 }
 
 function CalendarPage({ goBack }: { goBack: () => void }) {
-  const nowTasks = [
-    { subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
-    { subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
+  type CalMonth = {
+    label: string
+    days: number
+    offset: number
+    today: number
+    nowDays: number[]
+    nextDays: number[]
+    nowTasks: { subject: string; title: string; due: string }[]
+    nextTasks: { subject: string; title: string; due: string }[]
+  }
+  const months: CalMonth[] = [
+    { label: 'شهریور ۱۴۰۵', days: 31, offset: 0, today: 0, nowDays: [], nextDays: [], nowTasks: [], nextTasks: [] },
+    {
+      label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4, nowDays: [4, 5], nextDays: [12, 15, 20],
+      nowTasks: [
+        { subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
+        { subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
+      ],
+      nextTasks: [
+        { subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
+        { subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
+        { subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
+      ],
+    },
+    {
+      label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0, nowDays: [], nextDays: [3],
+      nowTasks: [],
+      nextTasks: [{ subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' }],
+    },
   ]
-  const nextTasks = [
-    { subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
-    { subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
-    { subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
-  ]
+  const [monthIdx, setMonthIdx] = useState(1)
+  const m = months[monthIdx]
   return (
     <div className="screen inner-screen">
-      <SubHeader screen="calendar" back={goBack} rightIcon={null} />
+      <SubHeader screen="calendar" back={goBack} rightIcon={null} subtitle={`${m.label} · همه دروس`} />
       <main className="inner-content">
         <div className="month-card month-page">
           <div className="month-card-head">
-            <strong>تقویم مهر ۱۴۰۵</strong>
-            <span>{fa(nowTasks.length + nextTasks.length)} رویداد · همه دروس</span>
+            <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => setMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
+            <strong>تقویم {m.label}</strong>
+            <button type="button" className="month-nav" disabled={monthIdx === months.length - 1} onClick={() => setMonthIdx(i => Math.min(months.length - 1, i + 1))}>بعدی</button>
           </div>
           <div className="month-grid">
             {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => (
               <span key={d} className="mg-dayname">{d}</span>
             ))}
-            {Array.from({ length: 3 }, (_, i) => (
+            {Array.from({ length: m.offset }, (_, i) => (
               <span key={`e${i}`} className="mg-cell empty" />
             ))}
-            {Array.from({ length: 30 }, (_, i) => {
+            {Array.from({ length: m.days }, (_, i) => {
               const day = i + 1
               const cls = ['mg-cell']
-              if (day === 4) cls.push('today')
-              if (day === 4 || day === 5) cls.push('has-now')
-              if (day === 12 || day === 15 || day === 20) cls.push('has-next')
+              if (day === m.today) cls.push('today')
+              if (m.nowDays.includes(day)) cls.push('has-now')
+              if (m.nextDays.includes(day)) cls.push('has-next')
               return <span key={day} className={cls.join(' ')}>{fa(day)}</span>
             })}
           </div>
@@ -670,26 +694,33 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
             <span><i className="dot next" />پیش رو</span>
           </div>
           <div className="month-tasks">
-            <div className="mt-group">
-              <em>الان</em>
-              {nowTasks.map(t => (
-                <span key={t.title}>
-                  <i className="dot now" />
-                  <b>{t.subject}</b> · {t.title}
-                  <small>{t.due}</small>
-                </span>
-              ))}
-            </div>
-            <div className="mt-group">
-              <em>پیش رو</em>
-              {nextTasks.map(t => (
-                <span key={t.title}>
-                  <i className="dot next" />
-                  <b>{t.subject}</b> · {t.title}
-                  <small>{t.due}</small>
-                </span>
-              ))}
-            </div>
+            {m.nowTasks.length + m.nextTasks.length === 0 && (
+              <div className="report-empty-hint">رویدادی برای این ماه ثبت نشده است.</div>
+            )}
+            {m.nowTasks.length > 0 && (
+              <div className="mt-group">
+                <em>الان</em>
+                {m.nowTasks.map(t => (
+                  <span key={t.title}>
+                    <i className="dot now" />
+                    <b>{t.subject}</b> · {t.title}
+                    <small>{t.due}</small>
+                  </span>
+                ))}
+              </div>
+            )}
+            {m.nextTasks.length > 0 && (
+              <div className="mt-group">
+                <em>پیش رو</em>
+                {m.nextTasks.map(t => (
+                  <span key={t.title}>
+                    <i className="dot next" />
+                    <b>{t.subject}</b> · {t.title}
+                    <small>{t.due}</small>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -5213,19 +5244,12 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [selected, setSelected] = useState<string | null>(null)
   const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
   const [studentQuery, setStudentQuery] = useState('')
+  const [headerSearch, setHeaderSearch] = useState(false)
   const [detailTab, setDetailTab] = useState('آزمونک')
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
 
   const collectiveCats = ['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
-  const collectiveRows: string[][] = [
-    ['۱۶/۲۰', '۱۸/۲۰', 'خیلی خوب', 'خیلی خوب', '۱۷/۲۰', '۹۵٪'],
-    ['نیاز به تلاش بیشتر', '۱۶/۲۰', 'خیلی خوب', 'خیلی خوب', '۱۹/۲۰', '۹۲٪'],
-    ['۱۸/۲۰', '۱۸/۲۰', '۱۹/۲۰', 'نیاز به تلاش بیشتر', '۱۶/۲۰', '۸۸٪'],
-    ['۱۷/۲۰', '۲۰/۲۰', 'خیلی خوب', 'خیلی خوب', '۱۸/۲۰', '۱۰۰٪'],
-    ['خیلی خوب', '۱۵/۲۰', '۱۷/۲۰', 'خیلی خوب', '۲۰/۲۰', '۹۷٪'],
-    ['۱۵/۲۰', '۱۶/۲۰', 'نیاز به تلاش بیشتر', 'نیاز به تلاش بیشتر', 'خیلی خوب', '۹۳٪'],
-  ]
 
   const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -5519,50 +5543,77 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   // 1) First: student list
   if (!selected) {
     const visibleStudents = students.filter(n => !studentQuery.trim() || n.includes(studentQuery.trim()))
-    const rowFor = (name: string) => collectiveRows[students.indexOf(name) % collectiveRows.length]
-    const avgRaw = (ci: number) => {
-      let sum = 0
-      let n = 0
-      visibleStudents.forEach(name => {
-        const v = rowFor(name)[ci]
-        const ascii = v.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-        if (ascii.includes('/') || ascii.includes('٪')) {
-          const num = parseFloat(ascii)
-          if (!Number.isNaN(num)) {
-            sum += num
-            n++
-          }
-        }
+    const entries = (() => {
+      switch (detailTab) {
+        case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
+        case 'پرسش شفاهی': return ['پرسش ۱', 'پرسش ۲', 'پرسش ۳', 'پرسش ۴', 'پرسش ۵']
+        case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
+        case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
+        case 'آزمون': return ['آزمون ۱', 'آزمون ۲', 'آزمون ۳', 'آزمون ۴', 'آزمون ۵']
+        default: return ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴', 'هفته ۵']
+      }
+    })()
+    const isPctTab = detailTab === 'حضور و غیاب'
+    const tabIdx = collectiveCats.indexOf(detailTab)
+    const scoresFor = (name: string) => {
+      const si = students.indexOf(name)
+      return entries.map((_, ei) => {
+        if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5) % 15))}٪`
+        if (detailTab === 'فعالیت کلاسی') return (si + ei * 2) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+        if ((si * 5 + ei * 3 + tabIdx) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+        return `${fa(14 + ((si * 3 + ei * 5 + tabIdx * 2) % 7))}/۲۰`
       })
-      return n ? sum / n : null
     }
-    const collectiveAvg = (ci: number) => {
-      const a = avgRaw(ci)
-      if (a === null) return '—'
-      const isPct = visibleStudents.some(name => rowFor(name)[ci].includes('٪'))
-      const v = fa(a.toFixed(1).replace('.', '٫'))
-      return isPct ? `${v}٪` : `${v}/۲۰`
+    const toNum = (v: string): number | null => {
+      if (v.includes('خیلی خوب')) return 20
+      if (v.includes('نیاز به تلاش')) return 10
+      const ascii = v.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+      const num = parseFloat(ascii)
+      return Number.isNaN(num) ? null : num
     }
+    const avgOf = (nums: number[]) => (nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null)
+    const fmtAvg = (n: number | null) => {
+      if (n === null) return '—'
+      const v = fa(n.toFixed(1).replace('.', '٫'))
+      return isPctTab ? `${v}٪` : `${v}/۲۰`
+    }
+    const rowNums = (name: string) => scoresFor(name).map(toNum).filter((n): n is number => n !== null)
+    const rowAvg = (name: string) => fmtAvg(avgOf(rowNums(name)))
+    const colAvg = (ei: number) => fmtAvg(avgOf(
+      visibleStudents.map(name => toNum(scoresFor(name)[ei])).filter((n): n is number => n !== null)
+    ))
+    const overallAvg = fmtAvg(avgOf(
+      visibleStudents.map(name => avgOf(rowNums(name))).filter((n): n is number => n !== null)
+    ))
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
         back={goBack}
         title="گزارش‌های کلاس"
         subtitle={reportMode === 'collective' ? 'گزارش جمعی همه دانش‌آموزان' : 'انتخاب دانش‌آموز'}
+        showSearchBtn
+        searchOpen={headerSearch}
+        searchValue={studentQuery}
+        onSearchClick={() => setHeaderSearch(true)}
+        onSearchChange={setStudentQuery}
+        onSearchClose={() => setHeaderSearch(false)}
+        searchPlaceholder="جست‌وجوی نام دانش‌آموز..."
       />
       <main className="inner-content">
-        <div className="report-topbar">
-          <div className="report-search-row">
-            <Icon name="search" size={16} />
-            <input
-              type="search"
-              placeholder="جست‌وجوی نام دانش‌آموز..."
-              value={studentQuery}
-              onChange={e => setStudentQuery(e.target.value)}
-            />
+        {!headerSearch && (
+          <div className="report-topbar">
+            <div className="report-search-row">
+              <Icon name="search" size={16} />
+              <input
+                type="search"
+                placeholder="جست‌وجوی نام دانش‌آموز..."
+                value={studentQuery}
+                onChange={e => setStudentQuery(e.target.value)}
+              />
+            </div>
+            <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
           </div>
-          <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
-        </div>
+        )}
         {reportMode === 'individual' ? (
           <>
             <div className="section-heading">
@@ -5593,6 +5644,18 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               <strong>گزارش جمعی</strong>
               <span>{fa(visibleStudents.length)} نفر</span>
             </div>
+            <div className="chips compact scrollable student-detail-tabs" style={{ marginBottom: 10 }}>
+              {collectiveCats.map(tab => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={detailTab === tab ? 'active' : ''}
+                  onClick={() => setDetailTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
             {visibleStudents.length === 0 ? (
               <div className="report-empty-hint">دانش‌آموزی با این نام پیدا نشد.</div>
             ) : (
@@ -5602,25 +5665,25 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                     <tr>
                       <th>#</th>
                       <th>دانش‌آموز</th>
-                      {collectiveCats.map(c => <th key={c}>{c}</th>)}
+                      {entries.map(e => <th key={e}>{e}</th>)}
+                      <th>میانگین وزنی</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleStudents.map((name, i) => {
-                      const vals = rowFor(name)
-                      return (
-                        <tr key={name}>
-                          <td>{fa(i + 1)}</td>
-                          <td><strong>{name}</strong></td>
-                          {collectiveCats.map((c, ci) => <td key={c}>{vals[ci]}</td>)}
-                        </tr>
-                      )
-                    })}
+                    {visibleStudents.map((name, i) => (
+                      <tr key={name}>
+                        <td>{fa(i + 1)}</td>
+                        <td><strong>{name}</strong></td>
+                        {scoresFor(name).map((v, ei) => <td key={ei}>{v}</td>)}
+                        <td className="avg-cell">{rowAvg(name)}</td>
+                      </tr>
+                    ))}
                   </tbody>
                   <tfoot className="collective-foot">
                     <tr>
-                      <td colSpan={2}><strong>میانگین وزنی نمرات</strong></td>
-                      {collectiveCats.map((c, ci) => <td key={c}>{collectiveAvg(ci)}</td>)}
+                      <td colSpan={2}><strong>میانگین وزنی کلاس</strong></td>
+                      {entries.map((e, ei) => <td key={e}>{colAvg(ei)}</td>)}
+                      <td>{overallAvg}</td>
                     </tr>
                   </tfoot>
                 </table>
