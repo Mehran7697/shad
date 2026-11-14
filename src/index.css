@@ -4136,3 +4136,16 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   border-color: var(--line);
 }
 .fb-plus-text { color: var(--green-dark) !important; }
+
+.feedback-stack-item.score-only,
+.feedback-stack-item.desc-only {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
+.feedback-stack-item.desc-only small {
+  margin-top: 0;
+  font-size: 11px;
+  color: var(--ink);
+  line-height: 1.5;
+}

@@ -5561,7 +5561,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           return (si + ei * 2) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
         }
         if (detailTab === 'بازخورد کلاسی') {
-          const opts = ['+', '۰', '−', '+', '۰']
+          const opts = ['۳+', '۰', '۲−', '۵+', '۱−', '۰', '۴+']
           return opts[(si + ei * 2) % opts.length]
         }
         if ((si * 5 + ei * 3 + tabIdx) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
@@ -5976,13 +5976,13 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 { date: d(5), name: 'آزمون پایانی', type: 'آزمون', score: 15, max: 20, desc: 'نهایی' },
               ],
               'بازخورد کلاسی': [
-                { date: d(1), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 1, max: 1, desc: 'مشارکت فعال در بحث کلاس' },
-                { date: d(1), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 1, max: 1, desc: 'پاسخ کامل به پرسش معلم' },
-                { date: d(2), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: -1, max: 1, desc: 'نیاز به تمرکز بیشتر هنگام تدریس' },
+                { date: d(1), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 3, max: 1, desc: 'مشارکت فعال در بحث کلاس' },
+                { date: d(1), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 2, max: 1, desc: 'پاسخ کامل به پرسش معلم' },
+                { date: d(2), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: -2, max: 1, desc: 'نیاز به تمرکز بیشتر هنگام تدریس' },
                 { date: d(3), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 0, max: 1, desc: 'حضور داشت؛ مشارکت خنثی بود' },
-                { date: d(3), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 1, max: 1, desc: 'همکاری خوب در گروه' },
+                { date: d(3), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 4, max: 1, desc: 'همکاری خوب در گروه' },
                 { date: d(3), name: 'بازخورد ۳', type: 'بازخورد کلاسی', score: -1, max: 1, desc: 'تذکر دربارهٔ نظم کلاس' },
-                { date: d(4), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 1, max: 1, desc: 'ارائهٔ روشن و منسجم' },
+                { date: d(4), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 5, max: 1, desc: 'ارائهٔ روشن و منسجم' },
               ],
             }
             const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
@@ -5996,25 +5996,27 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               : 0
             const avgLabel = attended.length ? fa(avg20.toFixed(1)) : '—'
             const partLabel = `${fa(attended.length)} از ${fa(events.length)}`
-            const fbPlus = events.filter(e => e.score === 1).length
+            const fbPlus = events.filter(e => (e.score ?? 0) > 0).length
             const fbZero = events.filter(e => e.score === 0).length
-            const fbMinus = events.filter(e => e.score === -1).length
+            const fbMinus = events.filter(e => (e.score ?? 0) < 0).length
+            const fbPlusSum = events.filter(e => (e.score ?? 0) > 0).reduce((s, e) => s + (e.score as number), 0)
+            const fbMinusSum = events.filter(e => (e.score ?? 0) < 0).reduce((s, e) => s + Math.abs(e.score as number), 0)
 
             return (
               <>
                 {detailTab === 'بازخورد کلاسی' ? (
                 <div className="week-summary-banner">
                   <div className="week-summary-item">
-                    <strong className="fb-plus-text">{fa(fbPlus)}</strong>
-                    <span>مثبت (+)</span>
+                    <strong className="fb-plus-text">{fa(fbPlusSum)}+</strong>
+                    <span>{fa(fbPlus)} مورد مثبت</span>
                   </div>
                   <div className="week-summary-item">
                     <strong>{fa(fbZero)}</strong>
                     <span>خنثی (۰)</span>
                   </div>
                   <div className="week-summary-item">
-                    <strong className="danger-text">{fa(fbMinus)}</strong>
-                    <span>منفی (−)</span>
+                    <strong className="danger-text">{fa(fbMinusSum)}−</strong>
+                    <span>{fa(fbMinus)} مورد منفی</span>
                   </div>
                 </div>
                 ) : (
@@ -6048,7 +6050,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                           <th>#</th>
                           <th>تاریخ</th>
                           {detailTab === 'بازخورد کلاسی' ? (
-                            <th>بازخوردها</th>
+                            <>
+                              <th>بازخوردها</th>
+                              <th>امتیاز</th>
+                              <th>توضیحات</th>
+                            </>
                           ) : (
                             <>
                               <th>عنوان</th>
@@ -6073,19 +6079,34 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                               <td>{g.date}</td>
                               <td className="feedback-stack-cell">
                                 <div className="feedback-stack">
+                                  {g.items.map((e, fi) => (
+                                    <div className="feedback-stack-item" key={fi}>
+                                      <strong>{`بازخورد ${fa(fi + 1)}`}</strong>
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="feedback-stack-cell">
+                                <div className="feedback-stack">
                                   {g.items.map((e, fi) => {
-                                    const pol = e.score === 1 ? 'plus' : e.score === -1 ? 'minus' : 'zero'
-                                    const polLabel = e.score === 1 ? '+' : e.score === -1 ? '−' : '۰'
+                                    const val = e.score ?? 0
+                                    const pol = val > 0 ? 'plus' : val < 0 ? 'minus' : 'zero'
+                                    const polLabel = val > 0 ? `${fa(val)}+` : val < 0 ? `${fa(Math.abs(val))}−` : '۰'
                                     return (
-                                    <div className={`feedback-stack-item pol-${pol}`} key={fi}>
-                                      <div className="feedback-stack-top">
-                                        <strong>{`بازخورد ${fa(fi + 1)}`}</strong>
+                                      <div className="feedback-stack-item score-only" key={fi}>
                                         <span className={`feedback-polarity ${pol}`}>{polLabel}</span>
                                       </div>
-                                      <small>{e.desc || '—'}</small>
-                                    </div>
                                     )
                                   })}
+                                </div>
+                              </td>
+                              <td className="feedback-stack-cell">
+                                <div className="feedback-stack">
+                                  {g.items.map((e, fi) => (
+                                    <div className="feedback-stack-item desc-only" key={fi}>
+                                      <small>{e.desc || '—'}</small>
+                                    </div>
+                                  ))}
                                 </div>
                               </td>
                             </tr>
