@@ -6079,7 +6079,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                               <td>{g.date}</td>
                               <td className="feedback-stack-cell">
                                 <div className="feedback-stack">
-                                  {g.items.map((e, fi) => (
+                                  {g.items.map((_, fi) => (
                                     <div className="feedback-stack-item" key={fi}>
                                       <strong>{`بازخورد ${fa(fi + 1)}`}</strong>
                                     </div>
