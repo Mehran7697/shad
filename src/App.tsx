@@ -5432,7 +5432,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
 
-  const collectiveCats = ['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
+  const collectiveCats = ['آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب', 'بازخورد کلاسی']
 
   const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -5729,7 +5729,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     const entries = (() => {
       switch (detailTab) {
         case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
-        case 'پرسش شفاهی': return ['جلسه ۱', 'جلسه ۲', 'جلسه ۳', 'جلسه ۴', 'جلسه ۵']
         case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
         case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
         case 'آزمون': return ['آزمون ۱', 'آزمون ۲', 'آزمون ۳', 'آزمون ۴', 'آزمون ۵']
