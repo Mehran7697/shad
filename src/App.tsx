@@ -5060,9 +5060,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     ? Number(quantScale.slice(7)) || 20
     : quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
 
-  const gradeType = (category === 'آزمون' || category === 'آزمونک')
-    ? category
-    : [category, title.trim()].filter(Boolean).join(' · ') || 'نمره'
+  const gradeType = category || 'نمره'
 
   const openConfirm = () => {
     if (!category || vals.length === 0) return
