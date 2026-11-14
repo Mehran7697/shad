@@ -5799,10 +5799,10 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <button
               type="button"
               className="fifa-edit-btn"
-              onClick={() => setEditModalOpen(true)}
-              aria-label="ویرایش موارد گزارش"
+              onClick={handleDownloadFullReport}
+              aria-label="دانلود گزارش کارت"
             >
-              <Icon name="pencil" size={16} />
+              <Icon name="download" size={16} />
             </button>
             <div className="fifa-art">
               <img
@@ -6201,9 +6201,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
       </div>
     )}
 
-    <div className="sticky-action">
-      <button onClick={handleBack}>'بازگشت به بازه'</button>
-    </div>
     {toast && <div className="toast">{toast}</div>}
   </div>
 }
