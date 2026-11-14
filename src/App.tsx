@@ -4851,7 +4851,7 @@ function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
 }
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const suggestedTypes = ['آزمونک', 'پرسش شفاهی', 'آزمون', 'فعالیت کلاسی']
+  const suggestedTypes = ['آزمونک', 'آزمون', 'فعالیت کلاسی']
   const qualitativeOptions = ['خیلی خوب', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
   const [title, setTitle] = useState('')
@@ -5222,7 +5222,6 @@ type StatCategory = {
 
 const defaultCategories: StatCategory[] = [
   { id: '1', label: 'آزمونک', value: '۱۶' },
-  { id: '2', label: 'پرسش شفاهی', value: '۱۷' },
   { id: '3', label: 'تکالیف', value: '۸۰٪' },
   { id: '4', label: 'فعالیت کلاسی', value: '۱۵' },
   { id: '5', label: 'آزمون', value: '۱۴' },
@@ -5231,7 +5230,6 @@ const defaultCategories: StatCategory[] = [
 
 const categoryOptions = [
   'آزمونک',
-  'پرسش شفاهی',
   'تکالیف',
   'فعالیت کلاسی',
   'آزمون',
@@ -5249,7 +5247,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
 
-  const collectiveCats = ['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
+  const collectiveCats = ['آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
 
   const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -5546,7 +5544,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     const entries = (() => {
       switch (detailTab) {
         case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
-        case 'پرسش شفاهی': return ['پرسش ۱', 'پرسش ۲', 'پرسش ۳', 'پرسش ۴', 'پرسش ۵']
         case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
         case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
         case 'آزمون': return ['آزمون ۱', 'آزمون ۲', 'آزمون ۳', 'آزمون ۴', 'آزمون ۵']
@@ -5658,7 +5655,83 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             </div>
             {visibleStudents.length === 0 ? (
               <div className="report-empty-hint">دانش‌آموزی با این نام پیدا نشد.</div>
-            ) : (
+            ) : detailTab === 'حضور و غیاب' ? (() => {
+              const months = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
+              const attFor = (name: string) => {
+                const si = students.indexOf(name)
+                return months.map((_, mi) => {
+                  const delay = (si * 3 + mi * 2) % 3
+                  const absent = (si * 5 + mi * 3) % 3
+                  return { delay, absent }
+                })
+              }
+              const sumPair = (pairs: { delay: number; absent: number }[]) => ({
+                delay: pairs.reduce((s, p) => s + p.delay, 0),
+                absent: pairs.reduce((s, p) => s + p.absent, 0),
+              })
+              const classMonth = months.map((_, mi) => {
+                const delays = visibleStudents.map(n => attFor(n)[mi].delay)
+                const absents = visibleStudents.map(n => attFor(n)[mi].absent)
+                return {
+                  delay: delays.reduce((a, b) => a + b, 0),
+                  absent: absents.reduce((a, b) => a + b, 0),
+                }
+              })
+              const classTotal = sumPair(classMonth)
+              return (
+                <div className="assignment-table-wrap">
+                  <table className="report-detail-table collective-table att-month-table" dir="rtl">
+                    <thead>
+                      <tr>
+                        <th rowSpan={2}>#</th>
+                        <th rowSpan={2}>دانش‌آموز</th>
+                        {months.map(m => (
+                          <th key={m} colSpan={2} className="month-group-head">{m}</th>
+                        ))}
+                        <th colSpan={2} className="month-group-head total-head">جمع</th>
+                      </tr>
+                      <tr>
+                        {months.flatMap(m => [
+                          <th key={`${m}-d`} className="sub-col">تأخیر</th>,
+                          <th key={`${m}-a`} className="sub-col">غیبت</th>,
+                        ])}
+                        <th className="sub-col">تأخیر</th>
+                        <th className="sub-col">غیبت</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleStudents.map((name, i) => {
+                        const pairs = attFor(name)
+                        const total = sumPair(pairs)
+                        return (
+                          <tr key={name}>
+                            <td>{fa(i + 1)}</td>
+                            <td><strong>{name}</strong></td>
+                            {pairs.flatMap((p, mi) => [
+                              <td key={`${name}-d-${mi}`}>{fa(p.delay)}</td>,
+                              <td key={`${name}-a-${mi}`}>{fa(p.absent)}</td>,
+                            ])}
+                            <td className="avg-cell">{fa(total.delay)}</td>
+                            <td className="avg-cell">{fa(total.absent)}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot className="collective-foot">
+                      <tr>
+                        <td colSpan={2}><strong>جمع کلاس</strong></td>
+                        {classMonth.flatMap((p, mi) => [
+                          <td key={`c-d-${mi}`}>{fa(p.delay)}</td>,
+                          <td key={`c-a-${mi}`}>{fa(p.absent)}</td>,
+                        ])}
+                        <td>{fa(classTotal.delay)}</td>
+                        <td>{fa(classTotal.absent)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )
+            })() : (
               <div className="assignment-table-wrap">
                 <table className="report-detail-table collective-table" dir="rtl">
                   <thead>
@@ -5666,7 +5739,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                       <th>#</th>
                       <th>دانش‌آموز</th>
                       {entries.map(e => <th key={e}>{e}</th>)}
-                      <th>میانگین وزنی</th>
+                      {detailTab !== 'فعالیت کلاسی' && <th>میانگین وزنی</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -5675,17 +5748,19 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                         <td>{fa(i + 1)}</td>
                         <td><strong>{name}</strong></td>
                         {scoresFor(name).map((v, ei) => <td key={ei}>{v}</td>)}
-                        <td className="avg-cell">{rowAvg(name)}</td>
+                        {detailTab !== 'فعالیت کلاسی' && <td className="avg-cell">{rowAvg(name)}</td>}
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot className="collective-foot">
-                    <tr>
-                      <td colSpan={2}><strong>میانگین وزنی کلاس</strong></td>
-                      {entries.map((e, ei) => <td key={e}>{colAvg(ei)}</td>)}
-                      <td>{overallAvg}</td>
-                    </tr>
-                  </tfoot>
+                  {detailTab !== 'فعالیت کلاسی' && (
+                    <tfoot className="collective-foot">
+                      <tr>
+                        <td colSpan={2}><strong>میانگین وزنی کلاس</strong></td>
+                        {entries.map((e, ei) => <td key={e}>{colAvg(ei)}</td>)}
+                        <td>{overallAvg}</td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             )}
@@ -5762,7 +5837,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
 
           <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 14, marginBottom: 10 }}>
-            {['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب'].map(tab => (
+            {['آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب'].map(tab => (
               <button
                 key={tab}
                 type="button"
@@ -5871,13 +5946,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 { date: d(3), name: 'آزمونک فصل ۳', type: 'آزمونک', score: null, max: 3, desc: 'غایب در جلسه' },
                 { date: d(4), name: 'آزمونک مرور', type: 'آزمونک', score: 2, max: 3, desc: 'خوب' },
                 { date: d(5), name: 'آزمونک پایانی', type: 'آزمونک', score: 14, max: 20, desc: 'جامع' },
-              ],
-              'پرسش شفاهی': [
-                { date: d(1), name: 'پرسش شفاهی ۱', type: 'پرسش شفاهی', score: 18, max: 20, desc: 'پاسخ کامل' },
-                { date: d(2), name: 'پرسش شفاهی ۲', type: 'پرسش شفاهی', score: null, max: 20, desc: 'غایب در جلسه' },
-                { date: d(3), name: 'پرسش شفاهی ۳', type: 'پرسش شفاهی', score: 16, max: 20, desc: 'قابل قبول' },
-                { date: d(4), name: 'پرسش شفاهی ۴', type: 'پرسش شفاهی', score: 4, max: 5, desc: 'کوتاه' },
-                { date: d(5), name: 'پرسش شفاهی ۵', type: 'پرسش شفاهی', score: 15, max: 20, desc: 'نیاز به تمرین' },
               ],
               'تکالیف': [
                 { date: d(1), name: 'تکلیف فصل ۱', type: 'تکالیف', score: 17, max: 20, desc: 'تحویل به موقع' },
