@@ -1320,13 +1320,14 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   storage: { title: 'مدیریت حافظه', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
 }
 
-function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, showSearchBtn = false, onSearchClick, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
+function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, rightExtra, showSearchBtn = false, onSearchClick, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
   screen: Screen
   back: () => void
   rightIcon?: IconName | null
   onRightClick?: () => void
   rightLabel?: string
   rightText?: string
+  rightExtra?: import('react').ReactNode
   showSearchBtn?: boolean
   onSearchClick?: () => void
   title?: string
@@ -1373,6 +1374,7 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
       <IconButton icon="chevron" label="بازگشت" onClick={back} />
       <div><strong>{title ?? meta.title}</strong><span>{subtitle ?? meta.subtitle}</span></div>
       <div className="sub-header-actions">
+        {rightExtra}
         {showSearchBtn && (
           <IconButton icon="search" label="جست‌وجو" onClick={onSearchClick} />
         )}
@@ -1385,7 +1387,7 @@ function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel 
           >
             {rightText}
           </button>
-        ) : !showSearchBtn && rightIcon ? (
+        ) : !showSearchBtn && !rightExtra && rightIcon ? (
           <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} />
         ) : null}
       </div>
@@ -5426,7 +5428,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [selected, setSelected] = useState<string | null>(null)
   const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
   const [studentQuery, setStudentQuery] = useState('')
-  const [headerSearch, setHeaderSearch] = useState(false)
   const [detailTab, setDetailTab] = useState('بازخورد کلاسی')
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
@@ -5779,29 +5780,39 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
         back={goBack}
         title="گزارش‌های کلاس"
         subtitle={reportMode === 'collective' ? 'گزارش جمعی همه دانش‌آموزان' : 'انتخاب دانش‌آموز'}
-        showSearchBtn
-        searchOpen={headerSearch}
-        searchValue={studentQuery}
-        onSearchClick={() => setHeaderSearch(true)}
-        onSearchChange={setStudentQuery}
-        onSearchClose={() => setHeaderSearch(false)}
-        searchPlaceholder="جست‌وجوی نام دانش‌آموز..."
-      />
-      <main className="inner-content">
-        {!headerSearch && (
-          <div className="report-topbar">
-            <div className="report-search-row">
-              <Icon name="search" size={16} />
-              <input
-                type="search"
-                placeholder="جست‌وجوی نام دانش‌آموز..."
-                value={studentQuery}
-                onChange={e => setStudentQuery(e.target.value)}
-              />
-            </div>
-            <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
+        rightIcon={null}
+        rightExtra={(
+          <div className="header-mode-toggle" role="group" aria-label="حالت گزارش">
+            <button
+              type="button"
+              className={reportMode === 'individual' ? 'active' : ''}
+              onClick={() => setReportMode('individual')}
+            >
+              فردی
+            </button>
+            <button
+              type="button"
+              className={reportMode === 'collective' ? 'active' : ''}
+              onClick={() => setReportMode('collective')}
+            >
+              جمعی
+            </button>
           </div>
         )}
+      />
+      <main className="inner-content">
+        <div className="report-topbar">
+          <div className="report-search-row">
+            <Icon name="search" size={16} />
+            <input
+              type="search"
+              placeholder="جست‌وجوی نام دانش‌آموز..."
+              value={studentQuery}
+              onChange={e => setStudentQuery(e.target.value)}
+            />
+          </div>
+          <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
+        </div>
         {reportMode === 'individual' ? (
           <>
             <div className="section-heading">
@@ -5958,10 +5969,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </>
         )}
       </main>
-      <div className="sticky-action report-mode-sticky">
-        <button type="button" className={reportMode === 'individual' ? 'active' : ''} onClick={() => setReportMode('individual')}>فردی</button>
-        <button type="button" className={reportMode === 'collective' ? 'active' : ''} onClick={() => setReportMode('collective')}>جمعی</button>
-      </div>
     </div>
   }
 

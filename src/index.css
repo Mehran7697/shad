@@ -4360,3 +4360,28 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   background: var(--surface);
   border-radius: 10px;
 }
+
+
+.header-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #eef3f1;
+}
+.header-mode-toggle button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.header-mode-toggle button.active {
+  background: white;
+  color: var(--green-dark);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
