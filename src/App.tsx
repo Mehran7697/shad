@@ -4630,7 +4630,6 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
           <div className="sub-header" style={{ position: 'static', borderRadius: 12, marginBottom: 12 }}>
             <IconButton icon="chevron" label="بازگشت" onClick={() => goBack && goBack()} />
             <div><strong>برنامه کلاسی</strong><span>علوم تجربی · پایه نهم</span></div>
-            <IconButton icon="more" label="بیشتر" />
           </div>
           <div className="schedule-today-date">امروز، {todayLabel}</div>
       <div className="schedule-table-wrap">
