@@ -5060,6 +5060,10 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
     ? Number(quantScale.slice(7)) || 20
     : quantScale.startsWith('۲۰') ? 20 : quantScale.startsWith('۱۰') ? 10 : 5
 
+  const gradeType = (category === 'آزمون' || category === 'آزمونک')
+    ? category
+    : [category, title.trim()].filter(Boolean).join(' · ') || 'نمره'
+
   const openConfirm = () => {
     if (!category || vals.length === 0) return
     setConfirmDate(pickDate.trim() || now.date)
@@ -5068,7 +5072,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
   }
 
   const handleRegister = () => {
-    const type = [category, title.trim()].filter(Boolean).join(' · ') || 'نمره'
+    const type = gradeType
     if (vals.length === 0) return
     const entry: GradeEntry = {
       id: `${Date.now()}`,
@@ -5186,7 +5190,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         </div>
 
         <div className="section-heading">
-          <strong>{[category, title.trim()].filter(Boolean).join(' · ') || 'نمره'}</strong>
+          <strong>{gradeType}</strong>
           <button
             type="button"
             className="group-score-btn"
@@ -5232,7 +5236,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
       <div className="sticky-action">
         <button type="button" onClick={openConfirm} disabled={!category || vals.length === 0 || saved}>
-          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${[category, title.trim()].filter(Boolean).join(' · ') || 'نمره'}`}
+          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${gradeType}`}
         </button>
       </div>
 
@@ -5262,7 +5266,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
                 <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>همین الان</button>
               </div>
               <p className="group-grade-hint">
-                {fa(filled)} نمره برای «{[category, title.trim()].filter(Boolean).join(' · ') || 'نمره'}» با نوع {scoreKind === 'کمی' ? 'عددی' : 'توصیفی'} ثبت می‌شود.
+                {fa(filled)} نمره برای «{gradeType}» با نوع {scoreKind === 'کمی' ? 'عددی' : 'توصیفی'} ثبت می‌شود.
               </p>
             </div>
             <div className="group-grade-footer">
