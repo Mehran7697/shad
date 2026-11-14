@@ -5236,7 +5236,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
 
       <div className="sticky-action">
         <button type="button" onClick={openConfirm} disabled={!category || vals.length === 0 || saved}>
-          {saved ? <><Icon name="check" /> ثبت شد</> : `ثبت ${gradeType}`}
+          {saved ? <><Icon name="check" /> ثبت شد</> : 'ثبت نمره'}
         </button>
       </div>
 
