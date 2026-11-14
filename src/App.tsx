@@ -5033,7 +5033,7 @@ function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
 }
 
 function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  const suggestedTypes = ['آزمونک', 'آزمون', 'فعالیت کلاسی']
+  const suggestedTypes = ['آزمونک', 'آزمون']
   const qualitativeOptions = ['خیلی خوب', 'نیاز به تلاش بیشتر']
   const quantitativeScales = ['۲۰/۰', '۱۰/۰', '۵/۰']
   const [title, setTitle] = useState('')
