@@ -4297,7 +4297,7 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   }, [])
 
   const active = history.find(h => h.id === activeId) || null
-  const canEdit = !isStudent && active ? Date.now() - active.createdAt <= 24 * 60 * 60 * 1000 : false
+  const canEdit = !isStudent && !!active
 
   const openDetail = (id: string) => {
     const rec = history.find(h => h.id === id)
@@ -4408,7 +4408,7 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           {filteredHistory.map(item => {
             const p = Object.values(item.status).filter(x => x === 'حاضر').length
             const a = Object.values(item.status).filter(x => x === 'غایب').length
-            const editable = Date.now() - item.createdAt <= 24 * 60 * 60 * 1000
+            const editable = !isStudent
             return (
               <button
                 key={item.id}
@@ -4503,9 +4503,6 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
           <div><strong className="red-text">{fa(absent)}</strong><span>غایب</span></div>
           <div><strong>{fa(late)}</strong><span>تأخیر</span></div>
         </div>
-        {view === 'detail' && !canEdit && (
-          <div className="att-readonly-banner">ویرایش فقط تا ۲۴ ساعت پس از ثبت امکان‌پذیر است.</div>
-        )}
         <div className="section-heading">
           <strong>فهرست دانش‌آموزان</strong>
           {(view === 'register' || canEdit) && (
@@ -4522,9 +4519,9 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                   key={s}
                   type="button"
                   className={`${s} ${status[i] === s ? 'active' : ''}`}
-                  disabled={isStudent || (view === 'detail' && !canEdit)}
+                  disabled={isStudent}
                   onClick={() => {
-                    if (isStudent || (view === 'detail' && !canEdit)) return
+                    if (isStudent) return
                     setStatus({ ...status, [i]: s })
                   }}
                 >
