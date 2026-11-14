@@ -4149,3 +4149,45 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   color: var(--ink);
   line-height: 1.5;
 }
+
+
+/* feedback row separators + ellipsis */
+.feedback-stack {
+  gap: 0;
+}
+.feedback-stack-item {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  padding: 8px 6px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+.feedback-stack-item:last-child {
+  border-bottom: 0;
+}
+.feedback-stack-item.desc-only {
+  min-height: 40px;
+}
+.feedback-stack-item.desc-only small {
+  margin-top: 0;
+  font-size: 11px;
+  color: var(--ink);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  max-width: 160px;
+}
+.feedback-stack-cell {
+  vertical-align: top;
+  padding: 0 !important;
+}
+.feedback-stack-cell .feedback-stack {
+  width: 100%;
+}

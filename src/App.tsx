@@ -6047,16 +6047,17 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                     <table className="report-detail-table" dir="rtl">
                       <thead>
                         <tr>
-                          <th>#</th>
-                          <th>تاریخ</th>
                           {detailTab === 'بازخورد کلاسی' ? (
                             <>
+                              <th>تاریخ</th>
                               <th>بازخوردها</th>
                               <th>امتیاز</th>
                               <th>توضیحات</th>
                             </>
                           ) : (
                             <>
+                              <th>#</th>
+                              <th>تاریخ</th>
                               <th>عنوان</th>
                               <th>نمره</th>
                               <th>توضیح</th>
@@ -6073,15 +6074,14 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                             if (g) g.items.push(e)
                             else groups.push({ date: e.date, items: [e] })
                           })
-                          return groups.map((g, gi) => (
+                          return groups.map((g) => (
                             <tr key={g.date}>
-                              <td>{fa(gi + 1)}</td>
                               <td>{g.date}</td>
                               <td className="feedback-stack-cell">
                                 <div className="feedback-stack">
                                   {g.items.map((_, fi) => (
                                     <div className="feedback-stack-item" key={fi}>
-                                      <strong>{`بازخورد ${fa(fi + 1)}`}</strong>
+                                      <strong>{fa(fi + 1)}</strong>
                                     </div>
                                   ))}
                                 </div>
@@ -6103,7 +6103,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                               <td className="feedback-stack-cell">
                                 <div className="feedback-stack">
                                   {g.items.map((e, fi) => (
-                                    <div className="feedback-stack-item desc-only" key={fi}>
+                                    <div className="feedback-stack-item desc-only" key={fi} title={e.desc || ''}>
                                       <small>{e.desc || '—'}</small>
                                     </div>
                                   ))}
