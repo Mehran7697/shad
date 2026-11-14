@@ -821,7 +821,7 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
           <div className="month-card month-page calendar-top-card">
             <div className="month-card-head">
               <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => setMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
-              <strong>تقویم {m.label}</strong>
+              <strong>{m.label}</strong>
               <button type="button" className="month-nav" disabled={monthIdx === months.length - 1} onClick={() => setMonthIdx(i => Math.min(months.length - 1, i + 1))}>بعدی</button>
             </div>
             <div className="month-grid">
