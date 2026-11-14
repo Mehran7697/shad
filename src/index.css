@@ -4100,3 +4100,39 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .feedback-stack-cell {
   text-align: right;
 }
+
+
+.feedback-polarity {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 24px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0 8px;
+}
+.feedback-polarity.plus {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.feedback-polarity.zero {
+  background: #eef1f3;
+  color: var(--muted);
+}
+.feedback-polarity.minus {
+  background: #ffecec;
+  color: #c0392b;
+}
+.feedback-stack-item.pol-plus {
+  border-color: #b9e3d7;
+  background: #f6fcf9;
+}
+.feedback-stack-item.pol-minus {
+  border-color: #f0c2c2;
+  background: #fff8f8;
+}
+.feedback-stack-item.pol-zero {
+  border-color: var(--line);
+}
+.fb-plus-text { color: var(--green-dark) !important; }
