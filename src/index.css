@@ -4044,24 +4044,21 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .att-month-table th:nth-child(2) {
   text-align: right;
 }
-/* تأخیر: زرد | غیبت: قرمز  (ستون‌های داده از 3 به بعد جفت‌جفت) */
-.att-month-table tbody td:nth-child(2n+3),
-.att-month-table tfoot td:nth-child(2n+3) {
+/* فقط جمع‌ها رنگی: آخرین ستون‌ها + ردیف جمع کلاس */
+.att-month-table tbody td.total-delay,
+.att-month-table tfoot td.total-delay,
+.att-month-table tfoot td.foot-delay {
   background: #fff7e0;
   color: #a76d14;
   font-weight: 700;
 }
-.att-month-table tbody td:nth-child(2n+4),
-.att-month-table tfoot td:nth-child(2n+4) {
+.att-month-table tbody td.total-absent,
+.att-month-table tfoot td.total-absent,
+.att-month-table tfoot td.foot-absent {
   background: #ffecec;
   color: #c0392b;
   font-weight: 700;
 }
-.att-month-table thead .sub-col:nth-child(2n+1) {
-  background: #fff7e0;
-  color: #a76d14;
-}
-.att-month-table thead .sub-col:nth-child(2n) {
-  background: #ffecec;
-  color: #c0392b;
+.att-month-table thead th.month-group-head.total-head {
+  background: var(--green-soft);
 }

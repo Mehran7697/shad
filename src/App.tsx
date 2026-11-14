@@ -5708,11 +5708,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                             <td>{fa(i + 1)}</td>
                             <td><strong>{name}</strong></td>
                             {pairs.flatMap((p, mi) => [
-                              <td key={`${name}-d-${mi}`}>{fa(p.delay)}</td>,
-                              <td key={`${name}-a-${mi}`}>{fa(p.absent)}</td>,
+                              <td key={`${name}-d-${mi}`}>{p.delay ? fa(p.delay) : '—'}</td>,
+                              <td key={`${name}-a-${mi}`}>{p.absent ? fa(p.absent) : '—'}</td>,
                             ])}
-                            <td className="avg-cell">{fa(total.delay)}</td>
-                            <td className="avg-cell">{fa(total.absent)}</td>
+                            <td className="avg-cell total-delay">{total.delay ? fa(total.delay) : '—'}</td>
+                            <td className="avg-cell total-absent">{total.absent ? fa(total.absent) : '—'}</td>
                           </tr>
                         )
                       })}
@@ -5721,11 +5721,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                       <tr>
                         <td colSpan={2}><strong>جمع کلاس</strong></td>
                         {classMonth.flatMap((p, mi) => [
-                          <td key={`c-d-${mi}`}>{fa(p.delay)}</td>,
-                          <td key={`c-a-${mi}`}>{fa(p.absent)}</td>,
+                          <td key={`c-d-${mi}`} className="foot-delay">{p.delay ? fa(p.delay) : '—'}</td>,
+                          <td key={`c-a-${mi}`} className="foot-absent">{p.absent ? fa(p.absent) : '—'}</td>,
                         ])}
-                        <td>{fa(classTotal.delay)}</td>
-                        <td>{fa(classTotal.absent)}</td>
+                        <td className="foot-delay total-delay">{classTotal.delay ? fa(classTotal.delay) : '—'}</td>
+                        <td className="foot-absent total-absent">{classTotal.absent ? fa(classTotal.absent) : '—'}</td>
                       </tr>
                     </tfoot>
                   </table>
