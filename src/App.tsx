@@ -5225,7 +5225,7 @@ const defaultCategories: StatCategory[] = [
   { id: '3', label: 'تکالیف تحویل داده', value: '۸۰٪' },
   { id: '4', label: 'فعالیت کلاسی', value: '۱۵' },
   { id: '5', label: 'آزمون', value: '۱۴' },
-  { id: '6', label: 'حضور و غیاب', value: '۹۰٪' },
+  { id: '6', label: 'حضور', value: '۹۰٪' },
 ]
 
 const categoryOptions = [
@@ -5997,7 +5997,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             const avgLabel = attended.length ? fa(avg20.toFixed(1)) : '—'
             const partLabel = `${fa(attended.length)} از ${fa(events.length)}`
             const fbPlus = events.filter(e => (e.score ?? 0) > 0).length
-            const fbZero = events.filter(e => e.score === 0).length
             const fbMinus = events.filter(e => (e.score ?? 0) < 0).length
             const fbPlusSum = events.filter(e => (e.score ?? 0) > 0).reduce((s, e) => s + (e.score as number), 0)
             const fbMinusSum = events.filter(e => (e.score ?? 0) < 0).reduce((s, e) => s + Math.abs(e.score as number), 0)
@@ -6009,10 +6008,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                   <div className="week-summary-item">
                     <strong className="fb-plus-text">{fa(fbPlusSum)}+</strong>
                     <span>{fa(fbPlus)} مورد مثبت</span>
-                  </div>
-                  <div className="week-summary-item">
-                    <strong>{fa(fbZero)}</strong>
-                    <span>خنثی (۰)</span>
                   </div>
                   <div className="week-summary-item">
                     <strong className="danger-text">{fa(fbMinusSum)}−</strong>
