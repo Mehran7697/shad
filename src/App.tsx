@@ -4584,14 +4584,13 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
   }).format(new Date())
   const isTeacher = role === 'teacher'
   const isStudent = role === 'student'
-  return <div className="screen main-section"><QuickLinks navigate={navigate} /><main className="section-content">
+  return <div className="screen main-section"><main className="section-content">
     {screen === 'schedule' && (
       isStudent ? (
         <section className="weekly-schedule student-calendar" dir="rtl">
           <div className="sub-header" style={{ position: 'static', borderRadius: 12, marginBottom: 12 }}>
             <IconButton icon="chevron" label="بازگشت" onClick={() => goBack && goBack()} />
             <div><strong>تقویم درسی</strong><span>علوم تجربی · پایه نهم</span></div>
-            <IconButton icon="more" label="بیشتر" />
           </div>
           <div className="schedule-today-date">امروز، {todayLabel}</div>
           <div className="calendar-grid">
