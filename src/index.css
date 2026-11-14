@@ -4191,3 +4191,60 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .feedback-stack-cell .feedback-stack {
   width: 100%;
 }
+
+
+/* compact feedback-by-date table */
+.report-detail-table.feedback-date-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0;
+}
+.report-detail-table.feedback-date-table th,
+.report-detail-table.feedback-date-table td {
+  padding: 6px 4px;
+  font-size: 11px;
+  vertical-align: top;
+}
+.report-detail-table.feedback-date-table th:nth-child(1),
+.report-detail-table.feedback-date-table td:nth-child(1) {
+  width: 22%;
+  white-space: nowrap;
+  text-align: right;
+  padding-inline: 6px;
+}
+.report-detail-table.feedback-date-table th:nth-child(2),
+.report-detail-table.feedback-date-table td:nth-child(2) {
+  width: 14%;
+  text-align: center;
+}
+.report-detail-table.feedback-date-table th:nth-child(3),
+.report-detail-table.feedback-date-table td:nth-child(3) {
+  width: 16%;
+  text-align: center;
+}
+.report-detail-table.feedback-date-table th:nth-child(4),
+.report-detail-table.feedback-date-table td:nth-child(4) {
+  width: 48%;
+  text-align: right;
+}
+.feedback-date-table .feedback-stack-item {
+  padding: 6px 4px;
+  min-height: 34px;
+  justify-content: center;
+}
+.feedback-date-table .feedback-stack-item strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+.feedback-date-table .feedback-stack-item.desc-only {
+  justify-content: flex-start;
+}
+.feedback-date-table .feedback-stack-item.desc-only small {
+  max-width: 100%;
+}
+.feedback-date-table .feedback-polarity {
+  min-width: 30px;
+  height: 22px;
+  font-size: 12px;
+  padding: 0 6px;
+}

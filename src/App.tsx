@@ -6044,7 +6044,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                     <span>{detailTab === 'بازخورد کلاسی' ? `${fa(new Set(events.map(e => e.date)).size)} روز · ${fa(events.length)} بازخورد` : `${partLabel} شرکت کرده`}</span>
                   </div>
                   <div className="assignment-table-wrap">
-                    <table className="report-detail-table" dir="rtl">
+                    <table className={`report-detail-table${detailTab === 'بازخورد کلاسی' ? ' feedback-date-table' : ''}`} dir="rtl">
                       <thead>
                         <tr>
                           {detailTab === 'بازخورد کلاسی' ? (
