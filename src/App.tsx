@@ -5843,13 +5843,6 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               <strong>گزارش جمعی</strong>
               <span>{fa(visibleStudents.length)} نفر</span>
             </div>
-            <div className="report-kpi-row">
-              <div className="report-kpi"><strong>{overallAvg}</strong><span>میانگین کلاس</span></div>
-              <div className="report-kpi"><strong>{fa(visibleStudents.length)}</strong><span>دانش‌آموز</span></div>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <span className="period-chip">مهر ۱۴۰۵ · همه دروس</span>
-            </div>
             <div className="chips compact scrollable student-detail-tabs" style={{ marginBottom: 10 }}>
               {collectiveCats.map(tab => (
                 <button
