@@ -4044,65 +4044,6 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .exam-answer-panel .upload:disabled, .exam-answer-panel textarea:disabled { opacity: .6; }
 
 
-/* sticky name column (with # column) in horizontally-scrolling report tables */
-.report-detail-table thead th:first-child,
-.report-detail-table tbody td:first-child,
-.report-detail-table tfoot td:first-child {
-  position: sticky;
-  right: 0;
-  z-index: 3;
-  width: 36px;
-}
-.report-detail-table thead th:nth-child(2),
-.report-detail-table tbody td:nth-child(2),
-.report-detail-table tfoot td:nth-child(2) {
-  position: sticky;
-  right: 36px;
-  z-index: 2;
-}
-.report-detail-table thead th:first-child { background: var(--green-soft); color: var(--green-dark); }
-.report-detail-table tbody td:first-child { background: white; }
-.report-detail-table tbody tr:nth-child(even) td:first-child { background: #f7fbfa; }
-.report-detail-table tfoot td:first-child { background: #eef7f4; }
-.report-detail-table thead th:nth-child(2) { background: var(--green-soft); color: var(--green-dark); }
-.report-detail-table tbody td:nth-child(2) { background: white; }
-.report-detail-table tbody tr:nth-child(even) td:nth-child(2) { background: #f7fbfa; }
-.report-detail-table tfoot td:nth-child(2) { background: #eef7f4; }
-.report-detail-table.collective-table .collective-foot td:first-child {
-  position: sticky;
-  right: 0;
-  z-index: 3;
-  background: #eef7f4;
-}
-.att-month-table thead th:first-child,
-.att-month-table tbody td:first-child,
-.att-month-table tfoot td:first-child {
-  position: sticky;
-  right: 0;
-  z-index: 3;
-  width: 36px;
-}
-.att-month-table thead th:nth-child(2),
-.att-month-table tbody td:nth-child(2),
-.att-month-table tfoot td:nth-child(2) {
-  position: sticky;
-  right: 36px;
-  z-index: 2;
-}
-.att-month-table thead th:first-child { background: #f3f8f7; color: var(--green-dark); }
-.att-month-table tbody td:first-child { background: white; }
-.att-month-table tbody tr:nth-child(even) td:first-child { background: #f7fbfa; }
-.att-month-table tfoot td:first-child {
-  position: sticky;
-  right: 0;
-  z-index: 3;
-  width: auto;
-  background: #eef7f4;
-}
-.att-month-table thead th:nth-child(2) { background: #f3f8f7; }
-.att-month-table tbody td:nth-child(2) { background: white; }
-.att-month-table tbody tr:nth-child(even) td:nth-child(2) { background: #f7fbfa; }
-.att-month-table tfoot td:nth-child(2) { background: #eef7f4; }
 .att-month-table {
   border-collapse: separate;
   border-spacing: 0;
