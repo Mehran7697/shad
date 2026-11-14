@@ -779,6 +779,14 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
 }
 
 
+
+let classStarted = false
+let assignmentContext: { subject: string; klass: string } | null = null
+type PublishedExam = { title: string; kind: 'آزمون' | 'آزمونک'; day: string; time: string; startKey: string; at: string }
+/** last exam published from exam-create; shows in Chat until start time */
+let publishedExam: PublishedExam | null = null
+
+
 function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack: () => void; role?: UserRole }) {
   const isStudent = role === 'student'
   const [sheet, setSheet] = useState<'tools' | 'attach' | null>(null)
