@@ -641,7 +641,6 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
     items: CalItem[]
   }
   const months: CalMonth[] = [
-    { label: 'شهریور ۱۴۰۵', days: 31, offset: 0, today: 0, items: [] },
     {
       label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
       items: [
@@ -683,15 +682,127 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
         { day: 7, kind: 'assignment', subject: 'عربی', title: 'کلمه و معنی', due: '۷ آبان' },
         { day: 12, kind: 'exam', subject: 'ریاضی', title: 'آزمونک هندسه', due: '۱۲ آبان' },
         { day: 12, kind: 'event', subject: 'مدرسه', title: 'مسابقه علمی', due: '۱۲ آبان' },
+        { day: 20, kind: 'assignment', subject: 'علوم', title: 'گزارش کار', due: '۲۰ آبان' },
+        { day: 25, kind: 'exam', subject: 'فارسی', title: 'آزمون کلاسی', due: '۲۵ آبان' },
       ],
     },
+    {
+      label: 'آذر ۱۴۰۵', days: 30, offset: 0, today: 0,
+      items: [
+        { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 آذر' },
+        { day: 7, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '7 آذر' },
+        { day: 14, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '14 آذر' },
+        { day: 14, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '14 آذر' },
+        { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 آذر' },
+        { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 آذر' },
+      ],
+    },
+    {
+      label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0,
+      items: [
+        { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 دی' },
+        { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 دی' },
+        { day: 15, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '15 دی' },
+        { day: 15, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '15 دی' },
+        { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 دی' },
+        { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 دی' },
+      ],
+    },
+    {
+      label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0,
+      items: [
+        { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 بهمن' },
+        { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 بهمن' },
+        { day: 16, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '16 بهمن' },
+        { day: 16, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '16 بهمن' },
+        { day: 18, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '18 بهمن' },
+        { day: 21, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '21 بهمن' },
+      ],
+    },
+    {
+      label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0,
+      items: [
+        { day: 10, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '10 اسفند' },
+        { day: 10, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '10 اسفند' },
+        { day: 12, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '12 اسفند' },
+        { day: 12, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '12 اسفند' },
+        { day: 19, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '19 اسفند' },
+        { day: 22, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '22 اسفند' },
+      ],
+    },
+    {
+      label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0,
+      items: [
+        { day: 11, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '11 فروردین' },
+        { day: 11, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '11 فروردین' },
+        { day: 13, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '13 فروردین' },
+        { day: 13, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '13 فروردین' },
+        { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 فروردین' },
+        { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 فروردین' },
+      ],
+    },
+    {
+      label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0,
+      items: [
+        { day: 5, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '5 اردیبهشت' },
+        { day: 5, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '5 اردیبهشت' },
+        { day: 14, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '14 اردیبهشت' },
+        { day: 14, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '14 اردیبهشت' },
+        { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 اردیبهشت' },
+        { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 اردیبهشت' },
+      ],
+    },
+    {
+      label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0,
+      items: [
+        { day: 6, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '6 خرداد' },
+        { day: 6, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '6 خرداد' },
+        { day: 15, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '15 خرداد' },
+        { day: 15, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '15 خرداد' },
+        { day: 18, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '18 خرداد' },
+        { day: 21, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '21 خرداد' },
+      ],
+    },
+    {
+      label: 'تیر ۱۴۰۶', days: 31, offset: 2, today: 0,
+      items: [
+        { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 تیر' },
+        { day: 7, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '7 تیر' },
+        { day: 16, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '16 تیر' },
+        { day: 16, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '16 تیر' },
+        { day: 19, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '19 تیر' },
+        { day: 22, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '22 تیر' },
+      ],
+    },
+    {
+      label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0,
+      items: [
+        { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 مرداد' },
+        { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 مرداد' },
+        { day: 12, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '12 مرداد' },
+        { day: 12, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '12 مرداد' },
+        { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 مرداد' },
+        { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 مرداد' },
+      ],
+    },
+    {
+      label: 'شهریور ۱۴۰۶', days: 31, offset: 1, today: 0,
+      items: [
+        { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 شهریور' },
+        { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 شهریور' },
+        { day: 13, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '13 شهریور' },
+        { day: 13, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '13 شهریور' },
+        { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 شهریور' },
+        { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 شهریور' },
+      ],
+    }
   ]
   const kindLabel: Record<CalKind, string> = {
     assignment: 'تکلیف',
     exam: 'آزمون',
     event: 'رویداد',
   }
-  const [monthIdx, setMonthIdx] = useState(1)
+  const [monthIdx, setMonthIdx] = useState(0)
   const m = months[monthIdx]
   const kindsOnDay = (day: number) => new Set(m.items.filter(it => it.day === day).map(it => it.kind))
   const daysWithItems = [...new Set(m.items.map(it => it.day))].sort((a, b) => a - b)
