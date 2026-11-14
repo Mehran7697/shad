@@ -646,16 +646,43 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
       label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
       items: [
         { day: 4, kind: 'assignment', subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
+        { day: 4, kind: 'assignment', subject: 'علوم', title: 'پرسش کلاسی فصل ۲', due: 'تا امروز' },
+        { day: 4, kind: 'event', subject: 'کلاس', title: 'جلسه آنلاین علوم', due: 'امروز · ۱۰:۰۰' },
         { day: 5, kind: 'assignment', subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
+        { day: 5, kind: 'exam', subject: 'ریاضی', title: 'آزمونک جمع و تفریق', due: '۵ مهر' },
+        { day: 5, kind: 'event', subject: 'مدرسه', title: 'فعالیت پرورشی', due: '۵ مهر' },
+        { day: 8, kind: 'assignment', subject: 'فارسی', title: 'خلاصه درس', due: '۸ مهر' },
+        { day: 8, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '۸ مهر' },
         { day: 12, kind: 'event', subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
+        { day: 12, kind: 'assignment', subject: 'علوم', title: 'تمرین صفحه ۵۲', due: '۱۲ مهر' },
+        { day: 12, kind: 'exam', subject: 'فارسی', title: 'آزمونک املا', due: '۱۲ مهر' },
         { day: 15, kind: 'event', subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
+        { day: 15, kind: 'assignment', subject: 'ریاضی', title: 'مسئله‌های صفحه ۶۰', due: '۱۵ مهر' },
+        { day: 15, kind: 'event', subject: 'کلاس', title: 'بازدید آزمایشگاه', due: '۱۵ مهر' },
+        { day: 18, kind: 'assignment', subject: 'علوم', title: 'کاربرگ فصل ۳', due: '۱۸ مهر' },
+        { day: 18, kind: 'exam', subject: 'عربی', title: 'آزمونک قواعد', due: '۱۸ مهر' },
         { day: 20, kind: 'exam', subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
+        { day: 20, kind: 'assignment', subject: 'ریاضی', title: 'مرور قبل از آزمون', due: '۲۰ مهر' },
+        { day: 20, kind: 'event', subject: 'مدرسه', title: 'همایش علمی', due: '۲۰ مهر' },
+        { day: 24, kind: 'assignment', subject: 'فارسی', title: 'خواندن متن', due: '۲۴ مهر' },
+        { day: 24, kind: 'assignment', subject: 'علوم', title: 'تحقیق کوتاه', due: '۲۴ مهر' },
+        { day: 27, kind: 'exam', subject: 'ریاضی', title: 'آزمون میان‌ماه', due: '۲۷ مهر' },
+        { day: 27, kind: 'event', subject: 'کلاس', title: 'حل تمرین گروهی', due: '۲۷ مهر' },
+        { day: 30, kind: 'assignment', subject: 'عربی', title: 'تمرین پایانی', due: '۳۰ مهر' },
+        { day: 30, kind: 'exam', subject: 'فارسی', title: 'آزمونک درک مطلب', due: '۳۰ مهر' },
+        { day: 30, kind: 'event', subject: 'مدرسه', title: 'جمع‌بندی ماه', due: '۳۰ مهر' },
       ],
     },
     {
       label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
       items: [
         { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
+        { day: 3, kind: 'exam', subject: 'علوم', title: 'آزمونک فصل ۴', due: '۳ آبان' },
+        { day: 3, kind: 'event', subject: 'کلاس', title: 'شروع واحد جدید', due: '۳ آبان' },
+        { day: 7, kind: 'assignment', subject: 'فارسی', title: 'انشا کوتاه', due: '۷ آبان' },
+        { day: 7, kind: 'assignment', subject: 'عربی', title: 'کلمه و معنی', due: '۷ آبان' },
+        { day: 12, kind: 'exam', subject: 'ریاضی', title: 'آزمونک هندسه', due: '۱۲ آبان' },
+        { day: 12, kind: 'event', subject: 'مدرسه', title: 'مسابقه علمی', due: '۱۲ آبان' },
       ],
     },
   ]
@@ -676,51 +703,55 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
   }
 
   return (
-    <div className="screen inner-screen">
+    <div className="screen inner-screen calendar-screen">
       <SubHeader screen="calendar" back={goBack} rightIcon={null} subtitle={`${m.label} · همه دروس`} />
-      <main className="inner-content">
-        <div className="month-card month-page">
-          <div className="month-card-head">
-            <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => setMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
-            <strong>تقویم {m.label}</strong>
-            <button type="button" className="month-nav" disabled={monthIdx === months.length - 1} onClick={() => setMonthIdx(i => Math.min(months.length - 1, i + 1))}>بعدی</button>
+      <main className="inner-content calendar-layout">
+        <div className="calendar-sticky">
+          <div className="month-card month-page calendar-top-card">
+            <div className="month-card-head">
+              <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => setMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
+              <strong>تقویم {m.label}</strong>
+              <button type="button" className="month-nav" disabled={monthIdx === months.length - 1} onClick={() => setMonthIdx(i => Math.min(months.length - 1, i + 1))}>بعدی</button>
+            </div>
+            <div className="month-grid">
+              {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => (
+                <span key={d} className="mg-dayname">{d}</span>
+              ))}
+              {Array.from({ length: m.offset }, (_, i) => (
+                <span key={`e${i}`} className="mg-cell empty" />
+              ))}
+              {Array.from({ length: m.days }, (_, i) => {
+                const day = i + 1
+                const cls = ['mg-cell']
+                if (day === m.today) cls.push('today')
+                const kinds = kindsOnDay(day)
+                if (kinds.has('assignment')) cls.push('has-assignment')
+                if (kinds.has('exam')) cls.push('has-exam')
+                if (kinds.has('event')) cls.push('has-event')
+                if (kinds.size) cls.push('is-clickable')
+                return (
+                  <span
+                    key={day}
+                    className={cls.join(' ')}
+                    role={kinds.size ? 'button' : undefined}
+                    tabIndex={kinds.size ? 0 : undefined}
+                    onClick={() => scrollToDay(day)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') scrollToDay(day) }}
+                  >
+                    {fa(day)}
+                  </span>
+                )
+              })}
+            </div>
+            <div className="month-legend">
+              <strong className="legend-title">راهنما</strong>
+              <span><i className="dot assignment" />تکلیف</span>
+              <span><i className="dot exam" />آزمون</span>
+              <span><i className="dot event" />رویداد</span>
+            </div>
           </div>
-          <div className="month-grid">
-            {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => (
-              <span key={d} className="mg-dayname">{d}</span>
-            ))}
-            {Array.from({ length: m.offset }, (_, i) => (
-              <span key={`e${i}`} className="mg-cell empty" />
-            ))}
-            {Array.from({ length: m.days }, (_, i) => {
-              const day = i + 1
-              const cls = ['mg-cell']
-              if (day === m.today) cls.push('today')
-              const kinds = kindsOnDay(day)
-              if (kinds.has('assignment')) cls.push('has-assignment')
-              if (kinds.has('exam')) cls.push('has-exam')
-              if (kinds.has('event')) cls.push('has-event')
-              if (kinds.size) cls.push('is-clickable')
-              return (
-                <span
-                  key={day}
-                  className={cls.join(' ')}
-                  role={kinds.size ? 'button' : undefined}
-                  tabIndex={kinds.size ? 0 : undefined}
-                  onClick={() => scrollToDay(day)}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') scrollToDay(day) }}
-                >
-                  {fa(day)}
-                </span>
-              )
-            })}
-          </div>
-          <div className="month-legend">
-            <strong className="legend-title">راهنما</strong>
-            <span><i className="dot assignment" />تکلیف</span>
-            <span><i className="dot exam" />آزمون</span>
-            <span><i className="dot event" />رویداد</span>
-          </div>
+        </div>
+        <div className="calendar-scroll">
           <div className="month-tasks">
             {daysWithItems.length === 0 && (
               <div className="report-empty-hint">رویدادی برای این ماه ثبت نشده است.</div>
@@ -746,14 +777,6 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
     </div>
   )
 }
-
-
-
-let classStarted = false
-let assignmentContext: { subject: string; klass: string } | null = null
-type PublishedExam = { title: string; kind: 'آزمون' | 'آزمونک'; day: string; time: string; startKey: string; at: string }
-/** last exam published from exam-create; shows in Chat until start time */
-let publishedExam: PublishedExam | null = null
 
 
 function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack: () => void; role?: UserRole }) {
