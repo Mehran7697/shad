@@ -5972,11 +5972,12 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 { date: d(5), name: 'آزمون پایانی', type: 'آزمون', score: 15, max: 20, desc: 'نهایی' },
               ],
               'بازخورد کلاسی': [
-                { date: d(1), name: 'بازخورد مشارکتی', type: 'بازخورد کلاسی', score: 20, max: 20, desc: 'مشارکت فعال' },
-                { date: d(2), name: 'بازخورد رفتاری', type: 'بازخورد کلاسی', score: 16, max: 20, desc: 'نیاز به تمرکز بیشتر' },
-                { date: d(3), name: 'بازخورد گروهی', type: 'بازخورد کلاسی', score: null, max: 20, desc: 'غایب در جلسه' },
-                { date: d(4), name: 'بازخورد کلاسی', type: 'بازخورد کلاسی', score: 18, max: 20, desc: 'پاسخ‌های خوب' },
-                { date: d(5), name: 'جمع‌بندی هفتگی', type: 'بازخورد کلاسی', score: 17, max: 20, desc: 'روند مثبت' },
+                { date: d(1), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 20, max: 20, desc: 'مشارکت فعال در بحث' },
+                { date: d(1), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 18, max: 20, desc: 'پاسخ کامل به پرسش' },
+                { date: d(2), name: 'بازخورد ۳', type: 'بازخورد کلاسی', score: 16, max: 20, desc: 'نیاز به تمرکز بیشتر' },
+                { date: d(3), name: 'بازخورد ۴', type: 'بازخورد کلاسی', score: null, max: 20, desc: 'غایب در جلسه' },
+                { date: d(3), name: 'بازخورد ۵', type: 'بازخورد کلاسی', score: 17, max: 20, desc: 'همکاری خوب در گروه' },
+                { date: d(4), name: 'بازخورد ۶', type: 'بازخورد کلاسی', score: 19, max: 20, desc: 'ارائهٔ روشن' },
               ],
             }
             const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
@@ -6012,8 +6013,8 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
 
                 <div className="week-days-list">
                   <div className="section-heading" style={{ margin: '4px 0 8px' }}>
-                    <strong>رویدادهای این کلاس</strong>
-                    <span>{partLabel} شرکت کرده</span>
+                    <strong>{detailTab === 'بازخورد کلاسی' ? 'بازخوردهای ثبت‌شده' : 'رویدادهای این کلاس'}</strong>
+                    <span>{detailTab === 'بازخورد کلاسی' ? `${fa(events.length)} مورد` : `${partLabel} شرکت کرده`}</span>
                   </div>
                   <div className="assignment-table-wrap">
                     <table className="report-detail-table" dir="rtl">
