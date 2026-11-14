@@ -576,6 +576,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
           </div>
           <div className="subjects-section">
             <div className="subjects-heading">
+              <Icon name="book" size={18} />
               <strong>دروس من</strong>
             </div>
             <div className="subjects-scroll">
