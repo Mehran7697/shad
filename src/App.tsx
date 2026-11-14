@@ -5222,7 +5222,7 @@ type StatCategory = {
 
 const defaultCategories: StatCategory[] = [
   { id: '1', label: 'آزمونک', value: '۱۶' },
-  { id: '3', label: 'تکالیف', value: '۸۰٪' },
+  { id: '3', label: 'تکالیف تحویل داده', value: '۸۰٪' },
   { id: '4', label: 'فعالیت کلاسی', value: '۱۵' },
   { id: '5', label: 'آزمون', value: '۱۴' },
   { id: '6', label: 'حضور و غیاب', value: '۹۰٪' },
@@ -5243,11 +5243,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
   const [studentQuery, setStudentQuery] = useState('')
   const [headerSearch, setHeaderSearch] = useState(false)
-  const [detailTab, setDetailTab] = useState('آزمونک')
+  const [detailTab, setDetailTab] = useState('بازخورد کلاسی')
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
 
-  const collectiveCats = ['آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
+  const collectiveCats = ['بازخورد کلاسی', 'آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
 
   const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -5547,6 +5547,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
         case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
         case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
         case 'آزمون': return ['آزمون ۱', 'آزمون ۲', 'آزمون ۳', 'آزمون ۴', 'آزمون ۵']
+        case 'بازخورد کلاسی': return ['بازخورد ۱', 'بازخورد ۲', 'بازخورد ۳', 'بازخورد ۴', 'بازخورد ۵']
         default: return ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴', 'هفته ۵']
       }
     })()
@@ -5556,7 +5557,9 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
       const si = students.indexOf(name)
       return entries.map((_, ei) => {
         if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5) % 15))}٪`
-        if (detailTab === 'فعالیت کلاسی') return (si + ei * 2) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+        if (detailTab === 'فعالیت کلاسی' || detailTab === 'بازخورد کلاسی') {
+          return (si + ei * 2) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+        }
         if ((si * 5 + ei * 3 + tabIdx) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
         return `${fa(14 + ((si * 3 + ei * 5 + tabIdx * 2) % 7))}/۲۰`
       })
@@ -5623,7 +5626,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               <button
                 className="student student-row-photo"
                 key={name}
-                onClick={() => { setSelected(name); setDetailTab('آزمونک'); setWeekIndex(0); setPeriodValue(null) }}
+                onClick={() => { setSelected(name); setDetailTab('بازخورد کلاسی'); setWeekIndex(0); setPeriodValue(null) }}
                 style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}
               >
                 <img
@@ -5739,7 +5742,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                       <th>#</th>
                       <th>دانش‌آموز</th>
                       {entries.map(e => <th key={e}>{e}</th>)}
-                      {detailTab !== 'فعالیت کلاسی' && <th>میانگین وزنی</th>}
+                      {detailTab !== 'فعالیت کلاسی' && detailTab !== 'بازخورد کلاسی' && <th>میانگین وزنی</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -5748,11 +5751,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                         <td>{fa(i + 1)}</td>
                         <td><strong>{name}</strong></td>
                         {scoresFor(name).map((v, ei) => <td key={ei}>{v}</td>)}
-                        {detailTab !== 'فعالیت کلاسی' && <td className="avg-cell">{rowAvg(name)}</td>}
+                        {detailTab !== 'فعالیت کلاسی' && detailTab !== 'بازخورد کلاسی' && <td className="avg-cell">{rowAvg(name)}</td>}
                       </tr>
                     ))}
                   </tbody>
-                  {detailTab !== 'فعالیت کلاسی' && (
+                  {detailTab !== 'فعالیت کلاسی' && detailTab !== 'بازخورد کلاسی' && (
                     <tfoot className="collective-foot">
                       <tr>
                         <td colSpan={2}><strong>میانگین وزنی کلاس</strong></td>
@@ -5837,7 +5840,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
 
           <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 14, marginBottom: 10 }}>
-            {['آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب'].map(tab => (
+            {collectiveCats.map(tab => (
               <button
                 key={tab}
                 type="button"
@@ -5967,6 +5970,13 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 { date: d(3), name: 'آزمون عملی', type: 'آزمون', score: null, max: 20, desc: 'غایب در جلسه' },
                 { date: d(4), name: 'آزمون کتبی', type: 'آزمون', score: 18, max: 20, desc: 'خوب' },
                 { date: d(5), name: 'آزمون پایانی', type: 'آزمون', score: 15, max: 20, desc: 'نهایی' },
+              ],
+              'بازخورد کلاسی': [
+                { date: d(1), name: 'بازخورد مشارکتی', type: 'بازخورد کلاسی', score: 20, max: 20, desc: 'مشارکت فعال' },
+                { date: d(2), name: 'بازخورد رفتاری', type: 'بازخورد کلاسی', score: 16, max: 20, desc: 'نیاز به تمرکز بیشتر' },
+                { date: d(3), name: 'بازخورد گروهی', type: 'بازخورد کلاسی', score: null, max: 20, desc: 'غایب در جلسه' },
+                { date: d(4), name: 'بازخورد کلاسی', type: 'بازخورد کلاسی', score: 18, max: 20, desc: 'پاسخ‌های خوب' },
+                { date: d(5), name: 'جمع‌بندی هفتگی', type: 'بازخورد کلاسی', score: 17, max: 20, desc: 'روند مثبت' },
               ],
             }
             const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
