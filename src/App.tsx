@@ -6542,7 +6542,7 @@ function StorageManage({ goBack }: { goBack: () => void }) {
       ],
     },
   ])
-  const [openId, setOpenId] = useState<string | null>(null)
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null)
   const [selected, setSelected] = useState<string[]>([])
   const [toast, setToast] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -6597,6 +6597,88 @@ function StorageManage({ goBack }: { goBack: () => void }) {
     setTimeout(() => setToast(null), 1600)
   }
 
+  const selectedCat = cats.find(cat => cat.id === selectedCatId)
+
+  if (selectedCat) {
+    const categoryFiles = q
+      ? selectedCat.files.filter(file => file.name.includes(q) || file.meta.includes(q))
+      : selectedCat.files
+    const categorySelected = selectedCat.files.length > 0 &&
+      selectedCat.files.every(file => selected.includes(file.id))
+
+    return (
+      <div className="screen inner-screen">
+        <SubHeader
+          screen="storage"
+          back={() => { setSelectedCatId(null); setQuery(''); setSearchOpen(false) }}
+          title={selectedCat.title}
+          subtitle={`${fa(selectedCat.files.length)} مورد · ${fmt(selectedCat.files.reduce((sum, file) => sum + file.size, 0))} گیگ`}
+          rightIcon={null}
+          showSearchBtn
+          searchOpen={searchOpen}
+          searchValue={query}
+          onSearchClick={() => setSearchOpen(true)}
+          onSearchChange={setQuery}
+          onSearchClose={() => { setSearchOpen(false); setQuery('') }}
+          searchPlaceholder="جست‌وجو در این بخش..."
+        />
+        <main className="inner-content form-page">
+          <div className="storage-section-head">
+            <strong>فایل‌های {selectedCat.title}</strong>
+            <button
+              type="button"
+              className="storage-select-all"
+              onClick={() => toggleCatFiles(selectedCat)}
+              disabled={!selectedCat.files.length}
+            >
+              {categorySelected ? 'لغو انتخاب همه' : 'انتخاب همه'}
+            </button>
+          </div>
+          {categoryFiles.length === 0 ? (
+            <div className="empty compact-empty">
+              <Icon name="search" size={32} />
+              <strong>{selectedCat.files.length ? 'نتیجه‌ای پیدا نشد' : 'این بخش خالی است'}</strong>
+              <span>{selectedCat.files.length ? 'عبارت جست‌وجو را تغییر دهید.' : 'فایلی در این دسته‌بندی ذخیره نشده است.'}</span>
+            </div>
+          ) : (
+            <div className="storage-list">
+              <div className="storage-group open">
+                <div className="storage-files">
+                  {categoryFiles.map(file => {
+                    const checked = selected.includes(file.id)
+                    return (
+                      <button
+                        type="button"
+                        key={file.id}
+                        className={`storage-file-row ${checked ? 'checked' : ''}`}
+                        onClick={() => toggleFile(file.id)}
+                      >
+                        <span className={`storage-check ${checked ? 'on' : ''}`} />
+                        <div>
+                          <strong>{file.name}</strong>
+                          <small>{file.meta}</small>
+                        </div>
+                        <span className="storage-row-size">{fmt(file.size)} گیگ</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+        {selectedCat.files.length > 0 && (
+          <div className="sticky-action">
+            <button disabled={!selected.length} onClick={removeSelected}>
+              {selected.length ? `حذف ${fa(selected.length)} مورد انتخاب‌شده` : 'حذف انتخاب‌شده‌ها'}
+            </button>
+          </div>
+        )}
+        {toast && <div className="toast">{toast}</div>}
+      </div>
+    )
+  }
+
   return (
     <div className="screen inner-screen">
       <SubHeader
@@ -6642,15 +6724,14 @@ function StorageManage({ goBack }: { goBack: () => void }) {
         ) : (
           <div className="storage-list">
             {visibleCats.map(cat => {
-              const open = openId === cat.id
               const catSize = cat.files.reduce((s, f) => s + f.size, 0)
               const catSelected = cat.files.length > 0 && cat.files.every(f => selected.includes(f.id))
               return (
-                <div className={`storage-group ${open ? 'open' : ''}`} key={cat.id}>
+                <div className="storage-group" key={cat.id}>
                   <button
                     type="button"
                     className={`storage-row ${catSelected ? 'checked' : ''}`}
-                    onClick={() => setOpenId(open ? null : cat.id)}
+                    onClick={() => { setSelectedCatId(cat.id); setQuery(''); setSearchOpen(false) }}
                   >
                     <span
                       className={`storage-check ${catSelected ? 'on' : ''}`}
@@ -6662,32 +6743,8 @@ function StorageManage({ goBack }: { goBack: () => void }) {
                       <small>{cat.files.length ? `${fa(cat.files.length)} مورد` : 'خالی'}</small>
                     </div>
                     <span className="storage-row-size">{fmt(catSize)} گیگ</span>
-                    <span className={`storage-chevron ${open ? 'open' : ''}`} aria-hidden="true">▾</span>
+                    <span className="storage-chevron" aria-hidden="true">‹</span>
                   </button>
-                  {open && (
-                    <div className="storage-files">
-                      {cat.files.length === 0 ? (
-                        <div className="storage-empty-hint">موردی برای حذف در این بخش نیست.</div>
-                      ) : cat.files.map(file => {
-                        const checked = selected.includes(file.id)
-                        return (
-                          <button
-                            type="button"
-                            key={file.id}
-                            className={`storage-file-row ${checked ? 'checked' : ''}`}
-                            onClick={() => toggleFile(file.id)}
-                          >
-                            <span className={`storage-check ${checked ? 'on' : ''}`} />
-                            <div>
-                              <strong>{file.name}</strong>
-                              <small>{file.meta}</small>
-                            </div>
-                            <span className="storage-row-size">{fmt(file.size)} گیگ</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
                 </div>
               )
             })}
