@@ -4062,3 +4062,41 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .att-month-table thead th.month-group-head.total-head {
   background: var(--green-soft);
 }
+
+
+/* feedback grouped under date row */
+.feedback-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: right;
+}
+.feedback-stack-item {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafcfc;
+}
+.feedback-stack-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.feedback-stack-top strong {
+  font-size: 11px;
+}
+.feedback-score {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.feedback-stack-item small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.feedback-stack-cell {
+  text-align: right;
+}

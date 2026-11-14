@@ -5974,10 +5974,11 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
               'بازخورد کلاسی': [
                 { date: d(1), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 20, max: 20, desc: 'مشارکت فعال در بحث' },
                 { date: d(1), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 18, max: 20, desc: 'پاسخ کامل به پرسش' },
-                { date: d(2), name: 'بازخورد ۳', type: 'بازخورد کلاسی', score: 16, max: 20, desc: 'نیاز به تمرکز بیشتر' },
-                { date: d(3), name: 'بازخورد ۴', type: 'بازخورد کلاسی', score: null, max: 20, desc: 'غایب در جلسه' },
-                { date: d(3), name: 'بازخورد ۵', type: 'بازخورد کلاسی', score: 17, max: 20, desc: 'همکاری خوب در گروه' },
-                { date: d(4), name: 'بازخورد ۶', type: 'بازخورد کلاسی', score: 19, max: 20, desc: 'ارائهٔ روشن' },
+                { date: d(2), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 16, max: 20, desc: 'نیاز به تمرکز بیشتر' },
+                { date: d(3), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: null, max: 20, desc: 'غایب در جلسه' },
+                { date: d(3), name: 'بازخورد ۲', type: 'بازخورد کلاسی', score: 17, max: 20, desc: 'همکاری خوب در گروه' },
+                { date: d(3), name: 'بازخورد ۳', type: 'بازخورد کلاسی', score: 15, max: 20, desc: 'تذکر دربارهٔ نظم' },
+                { date: d(4), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 19, max: 20, desc: 'ارائهٔ روشن' },
               ],
             }
             const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
@@ -6014,7 +6015,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                 <div className="week-days-list">
                   <div className="section-heading" style={{ margin: '4px 0 8px' }}>
                     <strong>{detailTab === 'بازخورد کلاسی' ? 'بازخوردهای ثبت‌شده' : 'رویدادهای این کلاس'}</strong>
-                    <span>{detailTab === 'بازخورد کلاسی' ? `${fa(events.length)} مورد` : `${partLabel} شرکت کرده`}</span>
+                    <span>{detailTab === 'بازخورد کلاسی' ? `${fa(new Set(events.map(e => e.date)).size)} روز · ${fa(events.length)} بازخورد` : `${partLabel} شرکت کرده`}</span>
                   </div>
                   <div className="assignment-table-wrap">
                     <table className="report-detail-table" dir="rtl">
@@ -6022,14 +6023,53 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
                         <tr>
                           <th>#</th>
                           <th>تاریخ</th>
-                          <th>عنوان</th>
-                          <th>نمره</th>
-                          <th>توضیح</th>
-                          <th>صوت</th>
+                          {detailTab === 'بازخورد کلاسی' ? (
+                            <th>بازخوردها</th>
+                          ) : (
+                            <>
+                              <th>عنوان</th>
+                              <th>نمره</th>
+                              <th>توضیح</th>
+                              <th>صوت</th>
+                            </>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
-                        {events.map((e, i) => (
+                        {detailTab === 'بازخورد کلاسی' ? (() => {
+                          const groups: { date: string; items: typeof events }[] = []
+                          events.forEach(e => {
+                            const g = groups.find(x => x.date === e.date)
+                            if (g) g.items.push(e)
+                            else groups.push({ date: e.date, items: [e] })
+                          })
+                          return groups.map((g, gi) => (
+                            <tr key={g.date}>
+                              <td>{fa(gi + 1)}</td>
+                              <td>{g.date}</td>
+                              <td className="feedback-stack-cell">
+                                <div className="feedback-stack">
+                                  {g.items.map((e, fi) => (
+                                    <div className="feedback-stack-item" key={fi}>
+                                      <div className="feedback-stack-top">
+                                        <strong>{`بازخورد ${fa(fi + 1)}`}</strong>
+                                        {e.score === null
+                                          ? <span className="status-pill wait">غایب</span>
+                                          : <span className="feedback-score">{`${fa(e.score)}/${fa(e.max)}`}</span>}
+                                        {e.score !== null && (
+                                          <button type="button" className="table-action-btn view" onClick={() => setToast('پخش صوت')}>
+                                            <Icon name="play" size={14} />
+                                          </button>
+                                        )}
+                                      </div>
+                                      <small>{e.desc}</small>
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        })() : events.map((e, i) => (
                           <tr key={i}>
                             <td>{fa(i + 1)}</td>
                             <td>{e.date}</td>
