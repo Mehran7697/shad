@@ -5188,7 +5188,7 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
         </div>
 
         <div className="section-heading">
-          <strong>{gradeType}</strong>
+          <strong>نمره</strong>
           <button
             type="button"
             className="group-score-btn"
