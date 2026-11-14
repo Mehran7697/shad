@@ -631,38 +631,45 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
 }
 
 function CalendarPage({ goBack }: { goBack: () => void }) {
+  type CalKind = 'assignment' | 'exam' | 'event'
+  type CalItem = { day: number; kind: CalKind; subject: string; title: string; due: string }
   type CalMonth = {
     label: string
     days: number
     offset: number
     today: number
-    nowDays: number[]
-    nextDays: number[]
-    nowTasks: { subject: string; title: string; due: string }[]
-    nextTasks: { subject: string; title: string; due: string }[]
+    items: CalItem[]
   }
   const months: CalMonth[] = [
-    { label: 'شهریور ۱۴۰۵', days: 31, offset: 0, today: 0, nowDays: [], nextDays: [], nowTasks: [], nextTasks: [] },
+    { label: 'شهریور ۱۴۰۵', days: 31, offset: 0, today: 0, items: [] },
     {
-      label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4, nowDays: [4, 5], nextDays: [12, 15, 20],
-      nowTasks: [
-        { subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
-        { subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
-      ],
-      nextTasks: [
-        { subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
-        { subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
-        { subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
+      label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
+      items: [
+        { day: 4, kind: 'assignment', subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
+        { day: 5, kind: 'assignment', subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
+        { day: 12, kind: 'event', subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
+        { day: 15, kind: 'event', subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
+        { day: 20, kind: 'exam', subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
       ],
     },
     {
-      label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0, nowDays: [], nextDays: [3],
-      nowTasks: [],
-      nextTasks: [{ subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' }],
+      label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
+      items: [
+        { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
+      ],
     },
   ]
+  const kindLabel: Record<CalKind, string> = {
+    assignment: 'تکلیف',
+    exam: 'آزمون',
+    event: 'رویداد',
+  }
   const [monthIdx, setMonthIdx] = useState(1)
   const m = months[monthIdx]
+  const kindsOnDay = (day: number) => {
+    const set = new Set(m.items.filter(it => it.day === day).map(it => it.kind))
+    return set
+  }
   return (
     <div className="screen inner-screen">
       <SubHeader screen="calendar" back={goBack} rightIcon={null} subtitle={`${m.label} · همه دروس`} />
@@ -684,43 +691,39 @@ function CalendarPage({ goBack }: { goBack: () => void }) {
               const day = i + 1
               const cls = ['mg-cell']
               if (day === m.today) cls.push('today')
-              if (m.nowDays.includes(day)) cls.push('has-now')
-              if (m.nextDays.includes(day)) cls.push('has-next')
+              const kinds = kindsOnDay(day)
+              if (kinds.has('assignment')) cls.push('has-assignment')
+              if (kinds.has('exam')) cls.push('has-exam')
+              if (kinds.has('event')) cls.push('has-event')
               return <span key={day} className={cls.join(' ')}>{fa(day)}</span>
             })}
           </div>
           <div className="month-legend">
-            <span><i className="dot now" />در حال انجام</span>
-            <span><i className="dot next" />پیش رو</span>
+            <strong className="legend-title">راهنما</strong>
+            <span><i className="dot assignment" />تکلیف</span>
+            <span><i className="dot exam" />آزمون</span>
+            <span><i className="dot event" />رویداد</span>
           </div>
           <div className="month-tasks">
-            {m.nowTasks.length + m.nextTasks.length === 0 && (
+            {m.items.length === 0 && (
               <div className="report-empty-hint">رویدادی برای این ماه ثبت نشده است.</div>
             )}
-            {m.nowTasks.length > 0 && (
-              <div className="mt-group">
-                <em>الان</em>
-                {m.nowTasks.map(t => (
-                  <span key={t.title}>
-                    <i className="dot now" />
-                    <b>{t.subject}</b> · {t.title}
-                    <small>{t.due}</small>
-                  </span>
-                ))}
-              </div>
-            )}
-            {m.nextTasks.length > 0 && (
-              <div className="mt-group">
-                <em>پیش رو</em>
-                {m.nextTasks.map(t => (
-                  <span key={t.title}>
-                    <i className="dot next" />
-                    <b>{t.subject}</b> · {t.title}
-                    <small>{t.due}</small>
-                  </span>
-                ))}
-              </div>
-            )}
+            {(['assignment', 'exam', 'event'] as CalKind[]).map(kind => {
+              const list = m.items.filter(it => it.kind === kind)
+              if (!list.length) return null
+              return (
+                <div className={`mt-group kind-${kind}`} key={kind}>
+                  <em>{kindLabel[kind]}</em>
+                  {list.map(it => (
+                    <span key={`${it.day}-${it.title}`}>
+                      <i className={`dot ${kind}`} />
+                      <b>{it.subject}</b> · {it.title}
+                      <small>{it.due}</small>
+                    </span>
+                  ))}
+                </div>
+              )
+            })}
           </div>
         </div>
       </main>
