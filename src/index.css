@@ -1117,6 +1117,7 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: white;
+  box-shadow: inset -10px 0 8px -8px rgba(0, 0, 0, .12);
 }
 .assignment-table {
   width: 100%;
@@ -4020,6 +4021,68 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .exam-answer-panel .upload:disabled, .exam-answer-panel textarea:disabled { opacity: .6; }
 
 
+/* sticky student-name column in horizontally-scrolling report tables */
+.report-detail-table thead th:nth-child(2),
+.report-detail-table tbody td:nth-child(2),
+.report-detail-table tfoot td:nth-child(2) {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+.report-detail-table thead th:nth-child(2) { background: var(--green-soft); color: var(--green-dark); z-index: 3; }
+.report-detail-table tbody td:nth-child(2) { background: white; }
+.report-detail-table tbody tr:nth-child(even) td:nth-child(2) { background: #f7fbfa; }
+.report-detail-table tfoot td:nth-child(2) { background: #eef7f4; }
+.report-detail-table.collective-table thead th:nth-child(2),
+.report-detail-table.collective-table tbody td:nth-child(2) { background: var(--green-soft); }
+.report-detail-table.collective-table tbody td:nth-child(2) { background: white; }
+.report-detail-table.collective-table tbody tr:nth-child(even) td:nth-child(2) { background: #f7fbfa; }
+.report-detail-table.collective-table .collective-foot td:first-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: #eef7f4;
+}
+.att-month-table thead th:nth-child(2),
+.att-month-table tbody td:nth-child(2),
+.att-month-table tfoot td:nth-child(2) {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+.att-month-table thead th:nth-child(2) { background: #f3f8f7; z-index: 3; }
+.att-month-table tbody td:nth-child(2) { background: white; }
+.att-month-table tbody tr:nth-child(even) td:nth-child(2) { background: #f7fbfa; }
+.att-month-table tfoot td:nth-child(2) { background: #eef7f4; }
+.period-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--green-dark);
+  background: var(--green-soft);
+  border: 1px solid #d5eee6;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.report-kpi-row {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 10px;
+  flex-wrap: wrap;
+}
+.report-kpi {
+  flex: 1;
+  min-width: 0;
+  background: #f7fbfa;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: center;
+}
+.report-kpi strong { display: block; font-size: 13px; color: var(--green-dark); font-weight: 800; }
+.report-kpi span { font-size: 9px; color: var(--muted); font-weight: 600; }
 /* collective attendance months table */
 .att-month-table {
   border-collapse: separate;
@@ -4374,9 +4437,10 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   border: 0;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 7px 14px;
+  min-height: 36px;
   border-radius: 999px;
   cursor: pointer;
 }

@@ -5432,7 +5432,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
 
-  const collectiveCats = ['بازخورد کلاسی', 'آزمونک', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
+  const collectiveCats = ['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
 
   const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -5842,6 +5842,13 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
             <div className="section-heading">
               <strong>گزارش جمعی</strong>
               <span>{fa(visibleStudents.length)} نفر</span>
+            </div>
+            <div className="report-kpi-row">
+              <div className="report-kpi"><strong>{overallAvg}</strong><span>میانگین کلاس</span></div>
+              <div className="report-kpi"><strong>{fa(visibleStudents.length)}</strong><span>دانش‌آموز</span></div>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <span className="period-chip">مهر ۱۴۰۵ · همه دروس</span>
             </div>
             <div className="chips compact scrollable student-detail-tabs" style={{ marginBottom: 10 }}>
               {collectiveCats.map(tab => (
