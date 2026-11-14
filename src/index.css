@@ -312,6 +312,40 @@
 .calendar-banner small { font-size: 8px; color: var(--muted); }
 .calendar-banner .banner-cta { flex: none; font-size: 9px; font-weight: 700; color: var(--green-dark); background: white; border: 1px solid #d5eee6; border-radius: 9px; padding: 5px 9px; }
 .calendar-banner > svg { flex: none; width: 15px; color: #9aa5aa; transform: rotate(180deg); }
+.cal-split { display: flex; gap: 10px; align-items: stretch; margin-bottom: 4px; }
+.cal-split .calendar-banner { flex: 1; width: auto; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 6px; padding: 11px; }
+.cal-split .calendar-banner .banner-cta { margin-top: auto; align-self: stretch; text-align: center; }
+.month-card { width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid #cfe9e0; border-radius: 15px; background: linear-gradient(120deg, var(--green-soft), #f6fcfa); box-shadow: 0 4px 12px rgb(17 156 120 / .08); }
+.month-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.month-card-head strong { font-size: 11px; color: var(--ink); }
+.month-card-head span { flex: none; font-size: 8.5px; font-weight: 700; color: var(--green-dark); background: white; border: 1px solid #d5eee6; border-radius: 9px; padding: 3px 8px; }
+.month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 2px; }
+.mg-dayname { font-size: 7.5px; font-weight: 700; text-align: center; color: var(--muted); padding-bottom: 2px; }
+.mg-cell { height: 17px; display: grid; place-items: center; font-size: 8.5px; color: var(--ink); background: white; border: 1px solid #eaf2ef; border-radius: 6px; }
+.mg-cell.empty { background: transparent; border: 0; }
+.mg-cell.today { background: var(--green); border-color: var(--green); color: white; font-weight: 800; }
+.mg-cell.has-now { border-bottom: 2px solid #f59e0b; }
+.mg-cell.has-next { border-bottom: 2px solid #3b82f6; }
+.month-tasks { display: flex; flex-direction: column; gap: 6px; }
+.mt-group { display: flex; flex-direction: column; gap: 3px; }
+.mt-group em { font-style: normal; font-size: 8px; font-weight: 800; color: var(--muted); }
+.mt-group > span { display: flex; align-items: center; gap: 5px; font-size: 8.5px; color: var(--ink); background: white; border: 1px solid #eaf2ef; border-radius: 8px; padding: 4px 6px; }
+.mt-group .dot { flex: none; width: 6px; height: 6px; border-radius: 50%; }
+.mt-group .dot.now { background: #f59e0b; }
+.mt-group .dot.next { background: #3b82f6; }
+.month-page { padding: 14px; gap: 12px; }
+.month-page .month-grid { gap: 6px 5px; }
+.month-page .mg-dayname { font-size: 9.5px; padding-bottom: 4px; }
+.month-page .mg-cell { height: 34px; font-size: 12px; border-radius: 10px; }
+.month-page .mt-group > span { padding: 9px 10px; font-size: 10.5px; border-radius: 10px; }
+.month-page .mt-group > span b { font-weight: 800; color: var(--green-dark); }
+.month-page .mt-group > span small { margin-inline-start: auto; font-size: 9px; font-weight: 700; color: var(--muted); }
+.month-page .mt-group em { font-size: 10px; }
+.month-legend { display: flex; align-items: center; gap: 14px; }
+.month-legend span { display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; color: var(--muted); }
+.month-legend .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; }
+.month-legend .dot.now { background: #f59e0b; }
+.month-legend .dot.next { background: #3b82f6; }
 .class-card { width: 100%; display: flex; align-items: center; gap: 11px; background: white; border: 0; border-bottom: 1px solid var(--line); padding: 12px; text-align: right; }
 .class-card:first-of-type { border-radius: 16px 16px 0 0; }.class-card:last-of-type { border: 0; border-radius: 0 0 16px 16px; }
 .class-icon { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 13px; color: #3988b7; background: #e9f5fb; }.class-icon.c1 { color: #8762b1; background: #f3ecfa; }.class-icon.c2 { color: #c07a31; background: #fff3e6; }
@@ -1145,6 +1179,18 @@
   white-space: nowrap;
 }
 .report-detail-table tr:last-child td { border-bottom: 0; }
+
+.report-detail-table.collective-table { min-width: 700px; }
+.report-detail-table.collective-table th:first-child,
+.report-detail-table.collective-table td:first-child { width: 5%; text-align: center; }
+.report-detail-table.collective-table th:nth-child(2),
+.report-detail-table.collective-table td:nth-child(2) { width: 19%; text-align: right; }
+.report-detail-table.collective-table th:nth-child(n+3),
+.report-detail-table.collective-table td:nth-child(n+3) { width: 12.6%; text-align: center; font-size: 10.5px; }
+.report-detail-table.collective-table td strong { font-weight: 700; }
+.report-detail-table.collective-table .collective-foot td { background: #eef7f4; border-top: 2px solid var(--green); border-bottom: 0; color: var(--green-dark); font-weight: 800; text-align: center; font-size: 10.5px; }
+.report-detail-table.collective-table .collective-foot td:first-child { text-align: right; }
+.report-detail-table.collective-table .collective-foot td:first-child strong { font-size: 11px; }
 .assignment-student-cell {
   display: flex;
   align-items: center;
@@ -3544,6 +3590,14 @@
 .download-btn.pdf {
   color: #8a6410;
 }
+.report-topbar { display: flex; align-items: center; gap: 8px; margin: 2px 0 14px; }
+.report-topbar .report-search-row { flex: 1; min-width: 0; }
+.export-mini { flex: none; height: 42px; padding: 0 15px; border: 1px solid var(--green); border-radius: 12px; background: var(--green-soft); color: var(--green-dark); font-size: 10.5px; font-weight: 700; transition: .17s; }
+.export-mini:active { transform: scale(.97); }
+.report-empty-hint { text-align: center; color: var(--muted); font-size: 11px; padding: 18px 0; }
+.report-mode-sticky { gap: 10px; }
+.report-mode-sticky button { border: 1px solid var(--green); background: white; color: var(--green-dark); box-shadow: none; }
+.report-mode-sticky button.active { background: var(--green); color: white; box-shadow: 0 4px 12px rgb(17 156 120 / .2); }
 .report-continue-btn {
   width: 100%;
   margin-top: 10px;

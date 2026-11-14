@@ -149,6 +149,7 @@ type Screen =
   | 'chat'
   | 'conversation'
   | 'schedule'
+  | 'calendar'
   | 'calls'
   | 'more'
   | 'materials'
@@ -557,13 +558,22 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       )}
       {active === 'مدرسه من' && (
         <div className="school-home" style={{ padding: '0 15px' }}>
-          <button className="calendar-banner" onClick={() => navigate('schedule')}>
-            <div>
-              <strong>برنامه کلاسی و تقویم</strong>
-              <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
-            </div>
-            <span className="banner-cta">مشاهده</span>
-          </button>
+          <div className="cal-split">
+            <button className="calendar-banner" onClick={() => navigate('schedule')}>
+              <div>
+                <strong>برنامه کلاسی</strong>
+                <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
+              </div>
+              <span className="banner-cta">مشاهده</span>
+            </button>
+            <button className="calendar-banner" onClick={() => navigate('calendar')}>
+              <div>
+                <strong>تقویم</strong>
+                <small>مهر ۱۴۰۵ · ۲ مورد الان · ۲ پیش رو</small>
+              </div>
+              <span className="banner-cta">مشاهده</span>
+            </button>
+          </div>
           <div className="subjects-section">
             <div className="subjects-heading">
               <strong>دروس من</strong>
@@ -618,6 +628,73 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
     </main>
     <MySchoolNav navigate={navigate} active={active} setActive={setActive} />
   </div>
+}
+
+function CalendarPage({ goBack }: { goBack: () => void }) {
+  const nowTasks = [
+    { subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
+    { subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
+  ]
+  const nextTasks = [
+    { subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
+    { subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
+    { subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
+  ]
+  return (
+    <div className="screen inner-screen">
+      <SubHeader screen="calendar" back={goBack} rightIcon={null} />
+      <main className="inner-content">
+        <div className="month-card month-page">
+          <div className="month-card-head">
+            <strong>تقویم مهر ۱۴۰۵</strong>
+            <span>{fa(nowTasks.length + nextTasks.length)} رویداد · همه دروس</span>
+          </div>
+          <div className="month-grid">
+            {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => (
+              <span key={d} className="mg-dayname">{d}</span>
+            ))}
+            {Array.from({ length: 3 }, (_, i) => (
+              <span key={`e${i}`} className="mg-cell empty" />
+            ))}
+            {Array.from({ length: 30 }, (_, i) => {
+              const day = i + 1
+              const cls = ['mg-cell']
+              if (day === 4) cls.push('today')
+              if (day === 4 || day === 5) cls.push('has-now')
+              if (day === 12 || day === 15 || day === 20) cls.push('has-next')
+              return <span key={day} className={cls.join(' ')}>{fa(day)}</span>
+            })}
+          </div>
+          <div className="month-legend">
+            <span><i className="dot now" />در حال انجام</span>
+            <span><i className="dot next" />پیش رو</span>
+          </div>
+          <div className="month-tasks">
+            <div className="mt-group">
+              <em>الان</em>
+              {nowTasks.map(t => (
+                <span key={t.title}>
+                  <i className="dot now" />
+                  <b>{t.subject}</b> · {t.title}
+                  <small>{t.due}</small>
+                </span>
+              ))}
+            </div>
+            <div className="mt-group">
+              <em>پیش رو</em>
+              {nextTasks.map(t => (
+                <span key={t.title}>
+                  <i className="dot next" />
+                  <b>{t.subject}</b> · {t.title}
+                  <small>{t.due}</small>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
 }
 
 let classStarted = false
@@ -1015,6 +1092,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
 }
 
 const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> = {
+  calendar: { title: 'تقویم', subtitle: 'مهر ۱۴۰۵ · همه دروس' },
   materials: { title: 'منابع کلاسی', subtitle: 'کلاس علوم تجربی' },
   assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   'assignment-create': { title: 'ایجاد تکلیف', subtitle: 'فعالیت جدید برای کلاس' },
@@ -5133,9 +5211,21 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
   const [selected, setSelected] = useState<string | null>(null)
+  const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
+  const [studentQuery, setStudentQuery] = useState('')
   const [detailTab, setDetailTab] = useState('آزمونک')
   const [weekIndex, setWeekIndex] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
+
+  const collectiveCats = ['آزمونک', 'پرسش شفاهی', 'تکالیف', 'فعالیت کلاسی', 'آزمون', 'حضور و غیاب']
+  const collectiveRows: string[][] = [
+    ['۱۶/۲۰', '۱۸/۲۰', 'خیلی خوب', 'خیلی خوب', '۱۷/۲۰', '۹۵٪'],
+    ['نیاز به تلاش بیشتر', '۱۶/۲۰', 'خیلی خوب', 'خیلی خوب', '۱۹/۲۰', '۹۲٪'],
+    ['۱۸/۲۰', '۱۸/۲۰', '۱۹/۲۰', 'نیاز به تلاش بیشتر', '۱۶/۲۰', '۸۸٪'],
+    ['۱۷/۲۰', '۲۰/۲۰', 'خیلی خوب', 'خیلی خوب', '۱۸/۲۰', '۱۰۰٪'],
+    ['خیلی خوب', '۱۵/۲۰', '۱۷/۲۰', 'خیلی خوب', '۲۰/۲۰', '۹۷٪'],
+    ['۱۵/۲۰', '۱۶/۲۰', 'نیاز به تلاش بیشتر', 'نیاز به تلاش بیشتر', 'خیلی خوب', '۹۳٪'],
+  ]
 
   const [cardStats, setCardStats] = useState<StatCategory[]>(defaultCategories)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -5210,7 +5300,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
     goBack()
   }
 
-  if (!periodValue && exportPage) {
+  if (exportPage) {
     const allMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
     const studentMatches = students.filter(n => !filterStudentQuery.trim() || n.includes(filterStudentQuery.trim()))
     const toggleCategory = (c: string) => {
@@ -5428,38 +5518,120 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
 
   // 1) First: student list
   if (!selected) {
+    const visibleStudents = students.filter(n => !studentQuery.trim() || n.includes(studentQuery.trim()))
+    const rowFor = (name: string) => collectiveRows[students.indexOf(name) % collectiveRows.length]
+    const avgRaw = (ci: number) => {
+      let sum = 0
+      let n = 0
+      visibleStudents.forEach(name => {
+        const v = rowFor(name)[ci]
+        const ascii = v.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+        if (ascii.includes('/') || ascii.includes('٪')) {
+          const num = parseFloat(ascii)
+          if (!Number.isNaN(num)) {
+            sum += num
+            n++
+          }
+        }
+      })
+      return n ? sum / n : null
+    }
+    const collectiveAvg = (ci: number) => {
+      const a = avgRaw(ci)
+      if (a === null) return '—'
+      const isPct = visibleStudents.some(name => rowFor(name)[ci].includes('٪'))
+      const v = fa(a.toFixed(1).replace('.', '٫'))
+      return isPct ? `${v}٪` : `${v}/۲۰`
+    }
     return <div className="screen inner-screen">
       <SubHeader
         screen="gradebook"
         back={goBack}
         title="گزارش‌های کلاس"
-        subtitle="انتخاب دانش‌آموز"
+        subtitle={reportMode === 'collective' ? 'گزارش جمعی همه دانش‌آموزان' : 'انتخاب دانش‌آموز'}
       />
       <main className="inner-content">
-        <div className="section-heading">
-          <strong>دانش‌آموزان</strong>
-          <span>{fa(students.length)} نفر</span>
-        </div>
-        {students.map((name) => (
-          <button
-            className="student student-row-photo"
-            key={name}
-            onClick={() => { setSelected(name); setDetailTab('آزمونک'); setWeekIndex(0); setPeriodValue(null) }}
-            style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}
-          >
-            <img
-              className="student-photo"
-              src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
-              alt={name}
+        <div className="report-topbar">
+          <div className="report-search-row">
+            <Icon name="search" size={16} />
+            <input
+              type="search"
+              placeholder="جست‌وجوی نام دانش‌آموز..."
+              value={studentQuery}
+              onChange={e => setStudentQuery(e.target.value)}
             />
-            <strong>{name}</strong>
-          </button>
-        ))}
+          </div>
+          <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
+        </div>
+        {reportMode === 'individual' ? (
+          <>
+            <div className="section-heading">
+              <strong>دانش‌آموزان</strong>
+              <span>{fa(visibleStudents.length)} نفر</span>
+            </div>
+            {visibleStudents.length === 0 ? (
+              <div className="report-empty-hint">دانش‌آموزی با این نام پیدا نشد.</div>
+            ) : visibleStudents.map((name) => (
+              <button
+                className="student student-row-photo"
+                key={name}
+                onClick={() => { setSelected(name); setDetailTab('آزمونک'); setWeekIndex(0); setPeriodValue(null) }}
+                style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}
+              >
+                <img
+                  className="student-photo"
+                  src={`https://images.irantarh.com/pr:sharp/rs:fill:0:375:0/plain/s3:/uploads/designs/1401/07/25/ax-irani/41.jpg`}
+                  alt={name}
+                />
+                <strong>{name}</strong>
+              </button>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="section-heading">
+              <strong>گزارش جمعی</strong>
+              <span>{fa(visibleStudents.length)} نفر</span>
+            </div>
+            {visibleStudents.length === 0 ? (
+              <div className="report-empty-hint">دانش‌آموزی با این نام پیدا نشد.</div>
+            ) : (
+              <div className="assignment-table-wrap">
+                <table className="report-detail-table collective-table" dir="rtl">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>دانش‌آموز</th>
+                      {collectiveCats.map(c => <th key={c}>{c}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleStudents.map((name, i) => {
+                      const vals = rowFor(name)
+                      return (
+                        <tr key={name}>
+                          <td>{fa(i + 1)}</td>
+                          <td><strong>{name}</strong></td>
+                          {collectiveCats.map((c, ci) => <td key={c}>{vals[ci]}</td>)}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  <tfoot className="collective-foot">
+                    <tr>
+                      <td colSpan={2}><strong>میانگین وزنی نمرات</strong></td>
+                      {collectiveCats.map((c, ci) => <td key={c}>{collectiveAvg(ci)}</td>)}
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </>
+        )}
       </main>
-      <div className="sticky-action">
-        <button type="button" className="report-continue-btn" style={{ margin: 0 }} onClick={() => setExportPage(true)}>
-          دریافت خروجی
-        </button>
+      <div className="sticky-action report-mode-sticky">
+        <button type="button" className={reportMode === 'individual' ? 'active' : ''} onClick={() => setReportMode('individual')}>فردی</button>
+        <button type="button" className={reportMode === 'collective' ? 'active' : ''} onClick={() => setReportMode('collective')}>جمعی</button>
       </div>
     </div>
   }
@@ -6027,6 +6199,7 @@ export default function App() {
     {screen === 'home' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'school' && <MySchool navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'calendar' && <CalendarPage goBack={goBack}/>}
     {screen === 'chat' && <Chat navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
