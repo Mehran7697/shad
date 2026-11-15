@@ -411,6 +411,29 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
   const admRecent = adminRecentClasses.filter(c => adminClasses.includes(c)).slice(0, 3)
+  const [admSearchOpen, setAdmSearchOpen] = useState(false)
+  const [admSearchQ, setAdmSearchQ] = useState('')
+  const admQuery = admSearchQ.trim()
+  type AdmResult = { kind: 'کلاس' | 'معلم' | 'دانش‌آموز'; name: string; sub: string; go: () => void }
+  const admResults: AdmResult[] = []
+  if (admQuery) {
+    const q = toEn(admQuery)
+    adminClasses.forEach(c => {
+      if (c.includes(admQuery) || toEn(c).includes(q)) {
+        admResults.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
+      }
+    })
+    adminTeachers.forEach((t, ti) => {
+      if (t.name.includes(admQuery)) {
+        admResults.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { adminStartTeacher = ti; adminStartTab = 'معلمان'; navigate('admin') } })
+      }
+    })
+    adminClasses.forEach(c => (classStudents[c] || []).forEach(name => {
+      if (name.includes(admQuery)) {
+        admResults.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+      }
+    }))
+  }
   const admEvents: { title: string; label: string; kind: CalKind; due: string; day: number; mi: number }[] = []
   for (let k = admMonthIdx; k < Math.min(calendarMonths.length, admMonthIdx + 2) && admEvents.length < 4; k++) {
     const mm = calendarMonths[k]
@@ -441,7 +464,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       {role === 'admin' && (
         <div className="home-toolbar">
           <button className="icon-button toolbar-button" aria-label="منو"><Icon name="menu" /></button>
-          <button className="icon-button toolbar-button" aria-label="جست‌وجو"><Icon name="search" /></button>
+          <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => { setAdmSearchQ(''); setAdmSearchOpen(true) }}><Icon name="search" /></button>
         </div>
       )}
       {active === 'خانه' && (
@@ -715,6 +738,40 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       {(active === 'محتوای آموزشی' || active === 'سکوی آموزشی') && contentPlaceholder}
     </main>
     <MySchoolNav navigate={navigate} active={active} setActive={setActive} />
+    {admSearchOpen && (
+      <div className="overlay group-grade-overlay" onClick={() => setAdmSearchOpen(false)}>
+        <section className="bottom-sheet adm-search-sheet" onClick={e => e.stopPropagation()}>
+          <div className="sheet-handle" />
+          <div className="sheet-title">
+            <div>
+              <strong>جست‌وجوی مدرسه</strong>
+              <span>امکان جست‌وجوی نام دانش‌آموز، معلم و کلاس</span>
+            </div>
+            <IconButton icon="close" label="بستن" onClick={() => setAdmSearchOpen(false)} />
+          </div>
+          <label className="field adm-search-field">
+            <span>جست‌وجو</span>
+            <input value={admSearchQ} onChange={e => setAdmSearchQ(e.target.value)} autoFocus placeholder="نام دانش‌آموز، معلم یا کلاس..." />
+          </label>
+          <div className="adm-search-hints">
+            {['دانش‌آموز', 'معلم', 'کلاس'].map(h => <span key={h}>{h}</span>)}
+          </div>
+          {!admQuery && <div className="report-empty-hint">برای جست‌وجو، نام مورد نظر را بنویسید.</div>}
+          {admQuery && admResults.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
+          {admResults.length > 0 && (
+            <div className="adm-search-results">
+              {admResults.map((r, i) => (
+                <button type="button" key={`${r.kind}-${r.name}-${i}`} onClick={r.go}>
+                  <span className={`adm-search-chip k-${r.kind === 'کلاس' ? 'class' : r.kind === 'معلم' ? 'teacher' : 'student'}`}>{r.kind}</span>
+                  <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
+                  <Icon name="chevron" size={16} />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    )}
   </div>
 }
 
@@ -6621,6 +6678,8 @@ let adminAnnouncementStore: AdminAnnouncement[] = []
 let adminStartTab: string | null = null
 let adminStartMonth: number | null = null
 let adminStartDay: number | null = null
+let adminStartCls: string | null = null
+let adminStartTeacher: number | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
 function touchAdminClass(c: string) {
   adminRecentClasses = [c, ...adminRecentClasses.filter(x => x !== c)].slice(0, 6)
@@ -6645,9 +6704,17 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     adminStartTab = null
     return ((start && (adminTabs as readonly string[]).includes(start) ? start : 'داشبورد') as (typeof adminTabs)[number])
   })
-  const [cls, setCls] = useState(adminClasses[0])
+  const [cls, setCls] = useState(() => {
+    const c = adminStartCls
+    adminStartCls = null
+    return c && adminClasses.includes(c) ? c : adminClasses[0]
+  })
   const [dateIdx, setDateIdx] = useState(0)
-  const [teacherIdx, setTeacherIdx] = useState(-1)
+  const [teacherIdx, setTeacherIdx] = useState(() => {
+    const t = adminStartTeacher
+    adminStartTeacher = null
+    return t !== null && t >= 0 && t < adminTeachers.length ? t : -1
+  })
 
   const now = nowShamsi()
   const [nowJy, nowJm, nowJd] = toEn(now.date).split('/').map(Number)

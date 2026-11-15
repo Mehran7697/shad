@@ -534,6 +534,33 @@
 .feedback-score-chip.positive { background: var(--green); }
 .feedback-score-chip.negative { background: var(--danger); }
 
+/* admin school search (toolbar search button) */
+.adm-search-sheet { padding-bottom: 18px; }
+.adm-search-field { margin-top: 4px; }
+.adm-search-field input { text-align: right; }
+.adm-search-hints { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 10px; }
+.adm-search-hints span {
+  font-size: 9.5px; font-weight: 700; color: var(--green-dark);
+  background: var(--green-soft); border: 1px solid #d5eee6;
+  border-radius: 999px; padding: 4px 10px;
+}
+.adm-search-results { display: flex; flex-direction: column; gap: 7px; max-height: 46vh; overflow-y: auto; }
+.adm-search-results button {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px;
+  background: #fbfdfc; text-align: right; cursor: pointer; transition: .15s;
+}
+.adm-search-results button:active { transform: scale(.98); background: var(--green-soft); }
+.adm-search-results .admin-row-copy { flex: 1; min-width: 0; }
+.adm-search-chip {
+  flex: none; min-width: 54px; height: 24px; padding: 0 9px; border-radius: 999px;
+  display: inline-grid; place-items: center;
+  font-size: 9.5px; font-weight: 800; color: white;
+}
+.adm-search-chip.k-class { background: linear-gradient(135deg, #12c48b, #0b8f6a); }
+.adm-search-chip.k-teacher { background: #3f8efc; }
+.adm-search-chip.k-student { background: #f59f2b; }
+
 .score-stepper { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .score-step-btn { width: 46px; height: 46px; border: 0; border-radius: 14px; display: grid; place-items: center; color: white; transition: .18s; }
 .score-step-btn:active { transform: scale(.92); }
