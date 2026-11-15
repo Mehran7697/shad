@@ -583,6 +583,44 @@
 .adm-search-chip.k-student { background: #f59f2b; }
 .adm-search-chip.k-parent { background: #8b5cf6; }
 
+/* admin hamburger drawer (toolbar menu button) */
+.admin-drawer-overlay {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgb(13 32 29 / .48);
+  display: flex; justify-content: flex-start;
+  animation: fadeIn .18s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.admin-drawer {
+  width: 82%; max-width: 320px; height: 100%;
+  background: #fbfdfc; box-shadow: -14px 0 34px rgb(0 0 0 / .2);
+  padding: 20px 14px; display: flex; flex-direction: column; gap: 14px;
+  animation: drawerIn .22s cubic-bezier(.2, .8, .3, 1);
+}
+.admin-drawer-head {
+  display: flex; align-items: center; gap: 11px;
+  padding: 2px 4px 13px; border-bottom: 1px solid var(--line);
+}
+.admin-drawer-head > div { display: flex; flex-direction: column; gap: 2px; }
+.admin-drawer-head strong { font-size: 14px; color: var(--ink); }
+.admin-drawer-head small { font-size: 10.5px; color: var(--muted); }
+.admin-drawer-items { display: flex; flex-direction: column; gap: 3px; overflow-y: auto; }
+.admin-drawer-items button {
+  display: flex; align-items: center; gap: 12px;
+  height: 45px; padding: 0 12px; border: 0; border-radius: 13px;
+  background: transparent; color: var(--ink); font-size: 13px;
+  text-align: right; cursor: pointer; transition: .15s;
+}
+.admin-drawer-items button span { display: grid; place-items: center; color: var(--green-dark); flex: none; }
+.admin-drawer-items button strong { font-weight: 700; }
+.admin-drawer-items button:active { background: var(--green-soft); transform: scale(.98); }
+.admin-drawer-items button.is-accent {
+  margin-top: auto; background: linear-gradient(120deg, var(--green-soft), #f6fcfa);
+  border: 1px solid #d5eee6; color: var(--green-dark);
+}
+.admin-drawer-items button.is-accent span { color: var(--green); }
+
 .score-stepper { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .score-step-btn { width: 46px; height: 46px; border: 0; border-radius: 14px; display: grid; place-items: center; color: white; transition: .18s; }
 .score-step-btn:active { transform: scale(.92); }

@@ -412,6 +412,18 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
   const admRecent = adminRecentClasses.filter(c => adminClasses.includes(c)).slice(0, 3)
+  const [admMenuOpen, setAdmMenuOpen] = useState(false)
+  const admMenuItems: { t: string; i: IconName; go: () => void; accent?: boolean }[] = [
+    { t: 'داشبورد', i: 'grid', go: () => { adminStartTab = 'داشبورد'; navigate('admin') } },
+    { t: 'کلاس‌ها', i: 'classes', go: () => { adminStartTab = 'کلاس‌ها'; navigate('admin') } },
+    { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; navigate('admin') } },
+    { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; navigate('admin') } },
+    { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
+    { t: 'حضور و غیاب', i: 'attendance', go: () => { adminStartTab = 'حضور و غیاب'; navigate('admin') } },
+    { t: 'تقویم رویدادها', i: 'calendar', go: () => { adminStartTab = 'تقویم رویدادها'; navigate('admin') } },
+    { t: 'اعلان‌ها', i: 'send', go: () => { adminStartTab = 'اعلان‌ها'; navigate('admin') } },
+    { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
+  ]
   const admEvents: { title: string; label: string; kind: CalKind; due: string; day: number; mi: number }[] = []
   for (let k = admMonthIdx; k < Math.min(calendarMonths.length, admMonthIdx + 2) && admEvents.length < 4; k++) {
     const mm = calendarMonths[k]
@@ -441,7 +453,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
     <main className="msg-list" style={{ paddingTop: 10 }}>
       {role === 'admin' && (
         <div className="home-toolbar">
-          <button className="icon-button toolbar-button" aria-label="منو"><Icon name="menu" /></button>
+          <button className="icon-button toolbar-button" aria-label="منو" onClick={() => setAdmMenuOpen(true)}><Icon name="menu" /></button>
           <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => navigate('search')}><Icon name="search" /></button>
         </div>
       )}
@@ -716,6 +728,27 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       {(active === 'محتوای آموزشی' || active === 'سکوی آموزشی') && contentPlaceholder}
     </main>
     <MySchoolNav navigate={navigate} active={active} setActive={setActive} />
+    {admMenuOpen && (
+      <div className="admin-drawer-overlay" onClick={() => setAdmMenuOpen(false)}>
+        <nav className="admin-drawer" onClick={e => e.stopPropagation()}>
+          <div className="admin-drawer-head">
+            <span className="admin-avatar big">م</span>
+            <div>
+              <strong>مدیر مدرسه</strong>
+              <small>مدیریت مدرسه نمونه</small>
+            </div>
+          </div>
+          <div className="admin-drawer-items">
+            {admMenuItems.map(x => (
+              <button type="button" key={x.t} className={x.accent ? 'is-accent' : ''} onClick={() => { setAdmMenuOpen(false); x.go() }}>
+                <span><Icon name={x.i} size={19} /></span>
+                <strong>{x.t}</strong>
+              </button>
+            ))}
+          </div>
+        </nav>
+      </div>
+    )}
   </div>
 }
 
@@ -735,7 +768,11 @@ type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | '
 /** separate Telegram-like search page with tag filters (admin) */
 function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [q, setQ] = useState('')
-  const [tag, setTag] = useState<SearchTag>('همه')
+  const [tag, setTag] = useState<SearchTag>(() => {
+    const t = adminStartSearchTag
+    adminStartSearchTag = null
+    return t ?? 'همه'
+  })
   const query = q.trim()
   const en = toEn(query)
   const hit = (s: string) => !query || s.includes(query) || toEn(s).includes(en)
@@ -6694,6 +6731,7 @@ let adminStartMonth: number | null = null
 let adminStartDay: number | null = null
 let adminStartCls: string | null = null
 let adminStartTeacher: number | null = null
+let adminStartSearchTag: SearchTag | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
 function touchAdminClass(c: string) {
   adminRecentClasses = [c, ...adminRecentClasses.filter(x => x !== c)].slice(0, 6)
