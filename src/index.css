@@ -4664,3 +4664,43 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 }
 
 .mg-cell.sel { border-color: var(--green); box-shadow: 0 0 0 2px rgb(17 156 120 / .18); font-weight: 800; }
+/* admin management: classes / teachers / students */
+.admin-class-card {
+  background: white; border: 1px solid var(--line); border-radius: 17px;
+  padding: 13px 14px; margin-bottom: 10px;
+  display: flex; flex-direction: column; gap: 11px;
+}
+.admin-class-head { display: flex; align-items: center; gap: 11px; }
+.admin-class-head .admin-row-copy { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.admin-class-head .admin-row-copy strong { font-size: 13.5px; color: var(--ink); }
+.admin-class-head .admin-row-copy small { font-size: 10px; color: var(--muted); }
+.admin-class-badge {
+  flex: none; width: 44px; height: 44px; border-radius: 13px;
+  display: grid; place-items: center; color: white;
+  background: linear-gradient(135deg, #12c48b, #0b8f6a);
+  font-size: 13px; font-weight: 800;
+}
+.admin-class-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.admin-class-actions button {
+  height: 32px; border: 1px solid #d5eee6; border-radius: 10px;
+  background: #f7fcfa; color: var(--green-dark); font-size: 10.5px; font-weight: 700;
+  transition: .15s;
+}
+.admin-class-actions button:active { transform: scale(.96); background: var(--green-soft); }
+
+.admin-row-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.admin-row-copy strong { font-size: 12.5px; color: var(--ink); }
+.admin-row-copy small { font-size: 10px; color: var(--muted); }
+.admin-row-btn {
+  flex: none; height: 28px; padding: 0 12px; border: 1px solid #d5eee6;
+  border-radius: 999px; background: #f7fcfa; color: var(--green-dark);
+  font-size: 10.5px; font-weight: 700;
+}
+
+.subject-card .admin-class-tile {
+  width: 68px; height: 86px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; background: linear-gradient(150deg, #19c78f, #0b8f6a);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
+}
+.subject-card .admin-class-tile strong { color: white; font-size: 19px; font-weight: 800; }

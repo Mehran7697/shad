@@ -449,7 +449,9 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
             </div>
             <div className="edu-quick-grid">
               {[
-                { t: 'دروس من', i: 'book' as IconName, action: () => navigate('classroom') },
+                role === 'admin'
+                  ? { t: 'کلاس‌ها', i: 'classes' as IconName, action: () => { adminStartTab = 'کلاس‌ها'; navigate('admin') } }
+                  : { t: 'دروس من', i: 'book' as IconName, action: () => navigate('classroom') },
                 { t: 'بانک سوال', i: 'exam' as IconName, action: () => navigate('exam') },
                 { t: 'فیلم آموزشی', i: 'video' as IconName, action: () => {} },
                 { t: 'بازی آموزشی', i: 'ball' as IconName, action: () => {} },
@@ -586,16 +588,24 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
           </div>
           <div className="subjects-section">
             <div className="subjects-heading">
-              <Icon name="book" size={18} />
-              <strong>دروس من</strong>
+              <Icon name={role === 'admin' ? 'classes' : 'book'} size={18} />
+              <strong>{role === 'admin' ? 'کلاس‌ها' : 'دروس من'}</strong>
             </div>
             <div className="subjects-scroll">
-              {subjects.map(subject => (
-                <button className="subject-card" key={subject.name} onClick={() => navigate('classroom')}>
-                  <img src={subject.image} alt={subject.name} />
-                  <strong>{subject.name}</strong>
-                </button>
-              ))}
+              {role === 'admin'
+                ? adminClasses.map(c => (
+                  <button className="subject-card" key={c} onClick={() => { adminStartTab = 'کلاس‌ها'; navigate('admin') }}>
+                    <div className="admin-class-tile"><strong>{c}</strong></div>
+                    <strong>کلاس {c}</strong>
+                  </button>
+                ))
+                : subjects.map(subject => (
+                  <button className="subject-card" key={subject.name} onClick={() => navigate('classroom')}>
+                    <img src={subject.image} alt={subject.name} />
+                    <strong>{subject.name}</strong>
+                  </button>
+                ))
+              }
             </div>
           </div>
           <div className="section-heading" style={{ marginTop: 14 }}>
@@ -4704,9 +4714,13 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
         {(isStudent
           ? [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'}]
           : isAdmin
-            ? [{t:'سرویس آموزش',i:'grid',s:'admin'},{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
+            ? [{t:'سرویس آموزش',i:'grid',s:'admin',tab:'داشبورد'},{t:'کلاس‌ها',i:'classes',s:'admin',tab:'کلاس‌ها'},{t:'معلمان',i:'person',s:'admin',tab:'معلمان'},{t:'دانش‌آموزان',i:'users',s:'admin',tab:'دانش‌آموزان'},{t:'حضور و غیاب',i:'attendance',s:'admin',tab:'حضور و غیاب'}]
             : [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
-        ).map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}
+        ).map(x => (
+          <button key={x.t} onClick={() => { if ('tab' in x) adminStartTab = x.tab; navigate(x.s as Screen) }}>
+            <span><Icon name={x.i as IconName} /></span><strong>{x.t}</strong>
+          </button>
+        ))}
       </div>
       <div className="settings-list">
         <button><Icon name="settings"/><div><strong>تنظیمات</strong><span>حساب، حریم خصوصی و اعلان‌ها</span></div><Icon name="chevron"/></button>
@@ -6500,7 +6514,8 @@ const adminSchedules: Record<string, (AdminSlot | null)[][]> = {
 type AdminAnnouncement = { id: string; audience: string; target: string; title: string; text: string; time: string; count: number }
 let adminAnnouncementStore: AdminAnnouncement[] = []
 
-const adminTabs = ['داشبورد', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
+let adminStartTab: string | null = null
+const adminTabs = ['داشبورد', 'کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
 
 const adminEventSubjects = ['مدرسه', 'کلاس', 'ریاضی', 'علوم تجربی', 'فارسی', 'عربی']
 const adminAudiences = ['همه', 'دبیران', 'دانش‌آموزان', 'کلاس خاص', 'رویداد خاص']
@@ -6515,7 +6530,11 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const dates = adminDateList()
   const [, setTick] = useState(0)
   const rerender = () => setTick(x => x + 1)
-  const [tab, setTab] = useState<(typeof adminTabs)[number]>('داشبورد')
+  const [tab, setTab] = useState<(typeof adminTabs)[number]>(() => {
+    const start = adminStartTab
+    adminStartTab = null
+    return ((start && (adminTabs as readonly string[]).includes(start) ? start : 'داشبورد') as (typeof adminTabs)[number])
+  })
   const [cls, setCls] = useState(adminClasses[0])
   const [dateIdx, setDateIdx] = useState(0)
   const [teacherIdx, setTeacherIdx] = useState(-1)
@@ -6537,6 +6556,9 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [annTitle, setAnnTitle] = useState('')
   const [annText, setAnnText] = useState('')
   const [annSent, setAnnSent] = useState(false)
+  const [mgSheet, setMgSheet] = useState<'class' | 'teacher' | 'student' | null>(null)
+  const [newName, setNewName] = useState('')
+  const [newSubject, setNewSubject] = useState('علوم تجربی')
 
   const date = dates[dateIdx]
   const clsIdx = adminClasses.indexOf(cls)
@@ -6621,6 +6643,41 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     rerender()
   }
 
+  const addManagedClass = () => {
+    const raw = toEn(newName).trim()
+    if (!raw || adminClasses.includes(raw)) return
+    const name = fa(raw)
+    adminClasses.push(name)
+    classStudents[name] = []
+    adminSchedules[name] = defaultAdminSchedule(adminClasses.length - 1)
+    setCls(name)
+    setNewName('')
+    setMgSheet(null)
+    rerender()
+  }
+
+  const addManagedTeacher = () => {
+    const name = newName.trim()
+    if (!name || adminTeachers.some(t => t.name === name)) return
+    adminTeachers.push({ name, subject: newSubject, initial: name[0] })
+    setNewName('')
+    setMgSheet(null)
+    rerender()
+  }
+
+  const addManagedStudent = () => {
+    const name = newName.trim()
+    if (!name) return
+    if (!classStudents[cls]) classStudents[cls] = []
+    if (classStudents[cls].includes(name)) return
+    classStudents[cls].push(name)
+    setNewName('')
+    setMgSheet(null)
+    rerender()
+  }
+
+  const effTeacherIdx = teacherIdx >= adminTeachers.length ? -1 : teacherIdx
+
   return (
     <div className="screen inner-screen admin-screen">
       <SubHeader screen="admin" back={goBack} rightIcon={null} subtitle={`${date.weekday} · ${date.date}`} />
@@ -6642,7 +6699,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             </div>
             <div className="section-heading"><strong>دسترسی سریع</strong></div>
             <div className="admin-quick">
-              {([['حضور و غیاب', 'attendance'], ['حضور معلمان', 'clock'], ['تقویم رویدادها', 'calendar'], ['برنامه کلاسی', 'classes'], ['اعلان‌ها', 'send']] as [string, IconName][]).map(([t, ic]) => (
+              {([['کلاس‌ها', 'classes'], ['معلمان', 'person'], ['دانش‌آموزان', 'users'], ['حضور و غیاب', 'attendance'], ['حضور معلمان', 'clock'], ['تقویم رویدادها', 'calendar'], ['برنامه کلاسی', 'board'], ['اعلان‌ها', 'send']] as [string, IconName][]).map(([t, ic]) => (
                 <button key={t} type="button" onClick={() => setTab(t as (typeof adminTabs)[number])}>
                   <span><Icon name={ic} /></span><strong>{t}</strong>
                 </button>
@@ -6674,6 +6731,121 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                 {a.text && <p>{a.text}</p>}
               </div>
             ))}
+          </>
+        )}
+
+        {/* ================= کلاس‌ها ================= */}
+        {tab === 'کلاس‌ها' && (
+          <>
+            <div className="section-heading">
+              <strong>کلاس‌های مدرسه</strong>
+              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setMgSheet('class') }}>افزودن کلاس</button>
+            </div>
+            {adminClasses.map((c, ci) => {
+              const students = classStudents[c] || []
+              const presentToday = students.filter((_, si) => attStatusOf(ci, si, 0) !== 'غایب').length
+              const slots = (adminSchedules[c] || []).flat().filter(Boolean).length
+              return (
+                <div className="admin-class-card" key={c}>
+                  <div className="admin-class-head">
+                    <span className="admin-class-badge">{c}</span>
+                    <div className="admin-row-copy">
+                      <strong>کلاس {c}</strong>
+                      <small>{fa(students.length)} دانش‌آموز · کارگردانی: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-event-del"
+                      aria-label="حذف کلاس"
+                      onClick={() => {
+                        const idx = adminClasses.indexOf(c)
+                        if (idx >= 0) adminClasses.splice(idx, 1)
+                        delete classStudents[c]
+                        delete adminSchedules[c]
+                        if (cls === c) setCls(adminClasses[0] || '۹۰۱')
+                        rerender()
+                      }}
+                    >×</button>
+                  </div>
+                  <div className="admin-kpis">
+                    <div className="admin-kpi"><strong>{students.length ? `${fa(Math.round((presentToday / students.length) * 100))}٪` : '—'}</strong><span>حضور امروز</span></div>
+                    <div className="admin-kpi"><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
+                    <div className="admin-kpi"><strong>{fa(slots)}</strong><span>بازه برنامه هفته</span></div>
+                  </div>
+                  <div className="admin-class-actions">
+                    <button type="button" onClick={() => { setCls(c); setTab('دانش‌آموزان') }}>دانش‌آموزان</button>
+                    <button type="button" onClick={() => { setCls(c); setTab('حضور و غیاب') }}>حضور و غیاب</button>
+                    <button type="button" onClick={() => { setCls(c); setTab('برنامه کلاسی') }}>برنامه کلاسی</button>
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
+
+        {/* ================= معلمان ================= */}
+        {tab === 'معلمان' && (
+          <>
+            <div className="section-heading">
+              <strong>دبیران مدرسه</strong>
+              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setNewSubject('علوم تجربی'); setMgSheet('teacher') }}>افزودن دبیر</button>
+            </div>
+            {adminTeachers.length === 0 && <div className="report-empty-hint">دبیری ثبت نشده است.</div>}
+            {adminTeachers.map((t, ti) => (
+              <div className="admin-student-row" key={t.name}>
+                <div className="admin-avatar">{t.initial}</div>
+                <div className="admin-row-copy"><strong>{t.name}</strong><small>{t.subject}</small></div>
+                <button type="button" className="admin-row-btn" onClick={() => { setTeacherIdx(ti); setTab('حضور معلمان') }}>حضور</button>
+                <button
+                  type="button"
+                  className="admin-event-del"
+                  aria-label="حذف دبیر"
+                  onClick={() => {
+                    adminTeachers.splice(ti, 1)
+                    if (teacherIdx === ti) setTeacherIdx(-1)
+                    rerender()
+                  }}
+                >×</button>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ================= دانش‌آموزان ================= */}
+        {tab === 'دانش‌آموزان' && (
+          <>
+            <div className="two-fields">
+              <label className="field"><span>کلاس</span>
+                <select value={cls} onChange={e => setCls(e.target.value)}>
+                  {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="section-heading">
+              <strong>دانش‌آموزان کلاس {cls}</strong>
+              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setMgSheet('student') }}>افزودن</button>
+            </div>
+            {(classStudents[cls] || []).length === 0 && <div className="report-empty-hint">دانش‌آموزی در این کلاس ثبت نشده است.</div>}
+            {(classStudents[cls] || []).map((name, si) => {
+              const st = date.holiday ? null : attStatusOf(clsIdx, si, dateIdx)
+              return (
+                <div className="admin-student-row" key={name}>
+                  <div className="admin-avatar">{name[0]}</div>
+                  <div className="admin-row-copy"><strong>{name}</strong><small>کلاس {cls}</small></div>
+                  {st && <span className={`admin-status-chip st-${st === 'حاضر' ? 'ok' : st === 'تأخیر' ? 'late' : 'abs'}`}>{st}</span>}
+                  <button
+                    type="button"
+                    className="admin-event-del"
+                    aria-label="حذف دانش‌آموز"
+                    onClick={() => {
+                      const arr = classStudents[cls]
+                      const idx = arr.indexOf(name)
+                      if (idx >= 0) { arr.splice(idx, 1); rerender() }
+                    }}
+                  >×</button>
+                </div>
+              )
+            })}
           </>
         )}
 
@@ -6764,7 +6936,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
           <>
             <div className="two-fields">
               <label className="field"><span>دبیر</span>
-                <select value={teacherIdx} onChange={e => setTeacherIdx(Number(e.target.value))}>
+                <select value={effTeacherIdx} onChange={e => setTeacherIdx(Number(e.target.value))}>
                   <option value={-1}>همه دبیران</option>
                   {adminTeachers.map((t, i) => <option key={t.name} value={i}>{t.name}</option>)}
                 </select>
@@ -6776,9 +6948,9 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               </label>
             </div>
             {date.holiday && <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>}
-            {teacherIdx >= 0 ? (
+            {effTeacherIdx >= 0 ? (
               (() => {
-                const tm = teacherMonthly[teacherIdx]
+                const tm = teacherMonthly[effTeacherIdx]
                 const td = tm.today
                 return (
                   <div className="admin-teacher-card">
@@ -6979,6 +7151,38 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
           </>
         )}
       </main>
+
+      {/* ===== sheet: مدیریت (کلاس/دبیر/دانش‌آموز) ===== */}
+      {mgSheet && (
+        <div className="overlay group-grade-overlay" onClick={() => setMgSheet(null)}>
+          <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>{mgSheet === 'class' ? 'افزودن کلاس' : mgSheet === 'teacher' ? 'افزودن دبیر' : `افزودن دانش‌آموز به کلاس ${cls}`}</strong>
+                <span>{mgSheet === 'class' ? 'مثلاً ۹۰۴' : mgSheet === 'teacher' ? 'نام و درس دبیر' : 'نام و نام خانوادگی'}</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setMgSheet(null)} />
+            </div>
+            <label className="field"><span>{mgSheet === 'class' ? 'نام کلاس' : 'نام'}</span>
+              <input value={newName} onChange={e => setNewName(e.target.value)} autoFocus placeholder={mgSheet === 'class' ? '۹۰۴' : 'نام و نام خانوادگی'} />
+            </label>
+            {mgSheet === 'teacher' && (
+              <label className="field"><span>درس</span>
+                <select value={newSubject} onChange={e => setNewSubject(e.target.value)}>
+                  {adminScheduleSubjects.map(s => <option key={s.subject} value={s.subject}>{s.subject}</option>)}
+                </select>
+              </label>
+            )}
+            <button
+              type="button"
+              className="admin-primary-btn"
+              disabled={!newName.trim()}
+              onClick={mgSheet === 'class' ? addManagedClass : mgSheet === 'teacher' ? addManagedTeacher : addManagedStudent}
+            >افزودن</button>
+          </div>
+        </div>
+      )}
 
       {/* ===== sheet: ثبت رویداد در تقویم ===== */}
       {evSheet && (
