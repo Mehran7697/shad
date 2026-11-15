@@ -1023,6 +1023,8 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
   const [scoreValue, setScoreValue] = useState('0')
   const [scoreDesc, setScoreDesc] = useState('')
   const [scoreSuccess, setScoreSuccess] = useState(false)
+  const [sendToChat, setSendToChat] = useState(false)
+  const [feedbackMsgs, setFeedbackMsgs] = useState<{ id: number; name: string; initials: string; n: number; desc: string; time: string }[]>([])
   const [showCallPopup, setShowCallPopup] = useState(false)
   const [bagOpen, setBagOpen] = useState(false)
   const [activityOpen, setActivityOpen] = useState(true)
@@ -1072,12 +1074,24 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
   
   const handleScoreSubmit = () => {
     if (selectedStudent) {
+      const n = Number(scoreValue) || 0
+      if (sendToChat) {
+        setFeedbackMsgs(prev => [...prev, {
+          id: Date.now(),
+          name: selectedStudent.name,
+          initials: selectedStudent.initials,
+          n,
+          desc: scoreDesc.trim(),
+          time: nowShamsi().time,
+        }])
+      }
       setScoreSuccess(true)
       setTimeout(() => {
         setScoreSuccess(false)
         setSelectedStudent(null)
         setScoreDesc('')
         setScoreValue('0')
+        setSendToChat(false)
       }, 1500)
     }
   }
@@ -1189,6 +1203,24 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
       )}
       <div className="message-row received"><div className="message-bubble voice"><button aria-label="پخش پیام صوتی"><span>▶</span></button><div className="wave"><i/><i/><i/><i/><i/><i/><i/><i/></div><small>۰:۳۷</small><span>۱۰:۴۱</span></div></div>
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
+      {feedbackMsgs.map(f => (
+        <div className="message-row sent feedback-chat-row" key={f.id}>
+          <button
+            type="button"
+            className="message-bubble feedback-chat-bubble"
+            onClick={() => { setScoreValue(String(f.n)); setScoreDesc(f.desc); setSendToChat(false); setSelectedStudent({ name: f.name, initials: f.initials }) }}
+          >
+            <div className="feedback-chat-main">
+              <strong>
+                <span className={`feedback-score-chip ${f.n >= 0 ? 'positive' : 'negative'}`}>{f.n >= 0 ? `+${fa(f.n)}` : `−${fa(String(Math.abs(f.n)))}`}</span>
+                به {f.name} {fa(String(Math.abs(f.n)))} امتیاز {f.n >= 0 ? 'مثبت' : 'منفی'} داده شد
+              </strong>
+              {f.desc && <small>{f.desc}</small>}
+            </div>
+            <span className="feedback-chat-time">{f.time}</span>
+          </button>
+        </div>
+      ))}
     </main>
     <div className="composer-wrap">
       <div className="composer">
@@ -1324,6 +1356,11 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
             <label className="field">
               <span>توضیح دلخواه</span>
               <textarea rows={2} value={scoreDesc} onChange={e => setScoreDesc(e.target.value)} placeholder="علت ثبت امتیاز را بنویسید..." />
+            </label>
+            <label className="send-to-chat-row">
+              <input type="checkbox" checked={sendToChat} onChange={e => setSendToChat(e.target.checked)} />
+              <span className="send-to-chat-box" aria-hidden="true">{sendToChat && <Icon name="check" size={13} />}</span>
+              <span className="send-to-chat-text">ارسال بازخورد در چت</span>
             </label>
             <button type="button" className={`submit-score-btn ${(Number(scoreValue) || 0) >= 0 ? 'positive' : 'negative'}`} onClick={handleScoreSubmit}>
               ثبت امتیاز {(Number(scoreValue) || 0) >= 0 ? `مثبت (+${fa(scoreValue)})` : `منفی (${fa(scoreValue)})`}
