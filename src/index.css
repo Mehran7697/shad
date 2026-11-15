@@ -509,27 +509,27 @@
 .send-to-chat-row input:checked + .send-to-chat-box { background: var(--green); border-color: var(--green); }
 .send-to-chat-row .send-to-chat-text { font-size: 11.5px; font-weight: 600; color: var(--ink); }
 
-/* score-feedback interactive bubble in chat */
-.feedback-chat-row { margin-top: 4px; }
-.feedback-chat-bubble {
-  width: fit-content; max-width: 82%; margin-left: 0;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
-  border: 1px solid #d5eee6; border-radius: 16px 16px 4px 16px;
-  background: linear-gradient(120deg, #f2fbf8, #ffffff);
-  padding: 10px 12px; text-align: right; cursor: pointer; transition: .17s;
+/* score-feedback pill in chat — styled like the day divider (امروز) */
+.message-row.feedback-chat-row { display: flex; justify-content: center; margin: 6px 0 15px; }
+.sent .feedback-chat-bubble {
+  width: fit-content; max-width: 88%;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border: 0; border-radius: 14px;
+  background: #e2ebea; background-image: none; box-shadow: none;
+  padding: 7px 14px; text-align: center; cursor: pointer; transition: .17s;
 }
-.feedback-chat-bubble:active { transform: scale(.98); }
-.feedback-chat-bubble .feedback-chat-main { display: flex; flex-direction: column; gap: 4px; }
+.sent .feedback-chat-bubble:active { transform: scale(.96); }
+.feedback-chat-bubble .feedback-chat-main { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .feedback-chat-bubble strong {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 12px; font-weight: 700; color: var(--ink);
+  display: flex; align-items: center; gap: 6px;
+  font-size: 9.5px; font-weight: 700; color: var(--ink);
 }
-.feedback-chat-bubble small { font-size: 10.5px; color: var(--muted); }
-.feedback-chat-bubble .feedback-chat-time { font-size: 9.5px; color: var(--muted); align-self: flex-end; }
+.feedback-chat-bubble small { font-size: 9px; color: var(--muted); }
+.feedback-chat-bubble .feedback-chat-time { font-size: 8.5px; color: var(--muted); text-align: center; }
 .feedback-score-chip {
-  flex: none; min-width: 30px; height: 21px; padding: 0 8px; border-radius: 999px;
+  flex: none; min-width: 26px; height: 18px; padding: 0 7px; border-radius: 999px;
   display: inline-grid; place-items: center;
-  color: white; font-size: 11px; font-weight: 800;
+  color: white; font-size: 9.5px; font-weight: 800;
 }
 .feedback-score-chip.positive { background: var(--green); }
 .feedback-score-chip.negative { background: var(--danger); }
