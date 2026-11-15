@@ -4480,8 +4480,8 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 
 /* ===================== admin panel (سرویس آموزش · مدیر) ===================== */
 .admin-entry-banner {
-  width: 100%; display: flex; align-items: center; gap: 11px;
-  margin: 10px 0 4px; padding: 13px 14px; border: 1px solid #cfe9e0;
+  width: auto; display: flex; align-items: center; gap: 11px;
+  margin: 10px 15px 4px; padding: 12px 14px; border: 1px solid #cfe9e0;
   border-radius: 16px; background: linear-gradient(120deg, var(--green-soft), #f6fcfa);
   text-align: right; cursor: pointer; transition: .17s;
 }
@@ -4492,8 +4492,7 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   background: linear-gradient(135deg, #12c48b, #0b8f6a);
 }
 .admin-entry-banner > div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.admin-entry-banner strong { font-size: 13px; color: var(--ink); }
-.admin-entry-banner small { font-size: 10px; color: var(--muted); }
+.admin-entry-banner strong { font-size: 14px; color: var(--ink); }
 
 .admin-tabs {
   display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;

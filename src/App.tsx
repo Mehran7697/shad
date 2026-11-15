@@ -440,10 +440,9 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
     <main className="msg-list" style={{ paddingTop: 10 }}>
       {role === 'admin' && (
         <button type="button" className="admin-entry-banner" onClick={() => navigate('admin')}>
-          <span className="admin-entry-icon"><Icon name="settings" size={20} /></span>
+          <span className="admin-entry-icon"><Icon name="chart" size={20} /></span>
           <div>
-            <strong>سرویس آموزش · پنل مدیریت</strong>
-            <small>داشبورد، حضور و غیاب، تقویم، برنامه کلاسی و اعلان‌ها</small>
+            <strong>گزارش مدرسه</strong>
           </div>
           <Icon name="chevron" size={16} />
         </button>
