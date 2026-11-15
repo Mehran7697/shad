@@ -166,6 +166,7 @@ type Screen =
   | 'grade-register'
   | 'reports'
   | 'admin'
+  | 'search'
   | 'auth'
 
 type IconName =
@@ -411,29 +412,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
   const admRecent = adminRecentClasses.filter(c => adminClasses.includes(c)).slice(0, 3)
-  const [admSearchOpen, setAdmSearchOpen] = useState(false)
-  const [admSearchQ, setAdmSearchQ] = useState('')
-  const admQuery = admSearchQ.trim()
-  type AdmResult = { kind: 'کلاس' | 'معلم' | 'دانش‌آموز'; name: string; sub: string; go: () => void }
-  const admResults: AdmResult[] = []
-  if (admQuery) {
-    const q = toEn(admQuery)
-    adminClasses.forEach(c => {
-      if (c.includes(admQuery) || toEn(c).includes(q)) {
-        admResults.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
-      }
-    })
-    adminTeachers.forEach((t, ti) => {
-      if (t.name.includes(admQuery)) {
-        admResults.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { adminStartTeacher = ti; adminStartTab = 'معلمان'; navigate('admin') } })
-      }
-    })
-    adminClasses.forEach(c => (classStudents[c] || []).forEach(name => {
-      if (name.includes(admQuery)) {
-        admResults.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
-      }
-    }))
-  }
   const admEvents: { title: string; label: string; kind: CalKind; due: string; day: number; mi: number }[] = []
   for (let k = admMonthIdx; k < Math.min(calendarMonths.length, admMonthIdx + 2) && admEvents.length < 4; k++) {
     const mm = calendarMonths[k]
@@ -464,7 +442,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       {role === 'admin' && (
         <div className="home-toolbar">
           <button className="icon-button toolbar-button" aria-label="منو"><Icon name="menu" /></button>
-          <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => { setAdmSearchQ(''); setAdmSearchOpen(true) }}><Icon name="search" /></button>
+          <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => navigate('search')}><Icon name="search" /></button>
         </div>
       )}
       {active === 'خانه' && (
@@ -738,40 +716,76 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       {(active === 'محتوای آموزشی' || active === 'سکوی آموزشی') && contentPlaceholder}
     </main>
     <MySchoolNav navigate={navigate} active={active} setActive={setActive} />
-    {admSearchOpen && (
-      <div className="overlay group-grade-overlay" onClick={() => setAdmSearchOpen(false)}>
-        <section className="bottom-sheet adm-search-sheet" onClick={e => e.stopPropagation()}>
-          <div className="sheet-handle" />
-          <div className="sheet-title">
-            <div>
-              <strong>جست‌وجوی مدرسه</strong>
-              <span>امکان جست‌وجوی نام دانش‌آموز، معلم و کلاس</span>
-            </div>
-            <IconButton icon="close" label="بستن" onClick={() => setAdmSearchOpen(false)} />
-          </div>
-          <label className="field adm-search-field">
-            <span>جست‌وجو</span>
-            <input value={admSearchQ} onChange={e => setAdmSearchQ(e.target.value)} autoFocus placeholder="نام دانش‌آموز، معلم یا کلاس..." />
-          </label>
-          <div className="adm-search-hints">
-            {['دانش‌آموز', 'معلم', 'کلاس'].map(h => <span key={h}>{h}</span>)}
-          </div>
-          {!admQuery && <div className="report-empty-hint">برای جست‌وجو، نام مورد نظر را بنویسید.</div>}
-          {admQuery && admResults.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
-          {admResults.length > 0 && (
-            <div className="adm-search-results">
-              {admResults.map((r, i) => (
-                <button type="button" key={`${r.kind}-${r.name}-${i}`} onClick={r.go}>
-                  <span className={`adm-search-chip k-${r.kind === 'کلاس' ? 'class' : r.kind === 'معلم' ? 'teacher' : 'student'}`}>{r.kind}</span>
-                  <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
-                  <Icon name="chevron" size={16} />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+  </div>
+}
+
+const searchParentFirsts = ['زهرا', 'حیدر', 'مریم', 'کاظم', 'الهام', 'بهزاد', 'فرشته', 'مجید', 'سمیه', 'اکبر', 'نرگس', 'مصطفی']
+/** deterministic mock parent name for a student */
+function parentNameOf(student: string) {
+  let h = 0
+  for (let i = 0; i < student.length; i++) h = (h * 31 + student.charCodeAt(i)) >>> 0
+  const parts = student.split(' ')
+  const family = parts.length > 1 ? parts.slice(1).join(' ') : student
+  return `${searchParentFirsts[h % searchParentFirsts.length]} ${family}`
+}
+
+type SearchTag = 'همه' | 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'
+type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; go: () => void }
+
+/** separate Telegram-like search page with tag filters (admin) */
+function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  const [q, setQ] = useState('')
+  const [tag, setTag] = useState<SearchTag>('همه')
+  const query = q.trim()
+  const en = toEn(query)
+  const hit = (s: string) => !query || s.includes(query) || toEn(s).includes(en)
+  const rows: SearchRow[] = []
+  adminClasses.forEach(c => (classStudents[c] || []).forEach(name => {
+    if ((tag === 'همه' || tag === 'دانش‌آموز') && hit(name)) {
+      rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+    }
+    const p = parentNameOf(name)
+    if ((tag === 'همه' || tag === 'والدین') && hit(p)) {
+      rows.push({ kind: 'والدین', name: p, sub: `والدین ${name} · کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+    }
+  }))
+  adminTeachers.forEach((t, ti) => {
+    if ((tag === 'همه' || tag === 'معلم') && hit(t.name)) {
+      rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { adminStartTeacher = ti; adminStartTab = 'معلمان'; navigate('admin') } })
+    }
+  })
+  adminClasses.forEach(c => {
+    if ((tag === 'همه' || tag === 'کلاس') && hit(c)) {
+      rows.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
+    }
+  })
+  const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
+
+  return <div className="screen school-search-screen" dir="rtl">
+    <header className="school-search-head">
+      <div className="school-search-bar">
+        <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
+        <span className="school-search-ic"><Icon name="search" size={18} /></span>
+        <input value={q} onChange={e => setQ(e.target.value)} autoFocus placeholder="جست‌وجوی دانش‌آموز، معلم، والدین..." />
+        {q && <button type="button" className="school-search-clear" aria-label="پاک کردن" onClick={() => setQ('')}><Icon name="close" size={15} /></button>}
       </div>
-    )}
+    </header>
+    <div className="school-search-tags">
+      {(['همه', 'دانش‌آموز', 'معلم', 'والدین', 'کلاس'] as SearchTag[]).map(t => (
+        <button type="button" key={t} className={tag === t ? 'active' : ''} onClick={() => setTag(t)}>{t}</button>
+      ))}
+    </div>
+    <main className="msg-list school-search-list">
+      <div className="school-search-count">{query ? `${fa(rows.length)} نتیجه` : `${fa(rows.length)} مورد`}</div>
+      {rows.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
+      {rows.map((r, i) => (
+        <button type="button" className="school-search-row" key={`${r.kind}-${r.name}-${i}`} onClick={r.go}>
+          <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
+          <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
+          <Icon name="chevron" size={16} />
+        </button>
+      ))}
+    </main>
   </div>
 }
 
@@ -7847,6 +7861,7 @@ export default function App() {
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
     {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
     {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
+    {screen === 'search' && <SchoolSearch navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
     {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
     {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
