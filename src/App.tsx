@@ -420,7 +420,9 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
     { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; navigate('admin') } },
     { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
     { t: 'حضور و غیاب', i: 'attendance', go: () => { adminStartTab = 'حضور و غیاب'; navigate('admin') } },
+    { t: 'حضور معلمان', i: 'clock', go: () => { adminStartTab = 'حضور معلمان'; navigate('admin') } },
     { t: 'تقویم رویدادها', i: 'calendar', go: () => { adminStartTab = 'تقویم رویدادها'; navigate('admin') } },
+    { t: 'برنامه کلاسی', i: 'board', go: () => { adminStartTab = 'برنامه کلاسی'; navigate('admin') } },
     { t: 'اعلان‌ها', i: 'send', go: () => { adminStartTab = 'اعلان‌ها'; navigate('admin') } },
     { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
   ]
@@ -6917,11 +6919,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   return (
     <div className="screen inner-screen admin-screen">
       <SubHeader screen="admin" back={goBack} rightIcon={null} subtitle={`${date.weekday} · ${date.date}`} />
-      <div className="admin-tabs" dir="rtl">
-        {adminTabs.map(t => (
-          <button key={t} type="button" className={`admin-tab${tab === t ? ' active' : ''}`} onClick={() => setTab(t)}>{t}</button>
-        ))}
-      </div>
       <main className="inner-content">
 
         {/* ================= داشبورد ================= */}
