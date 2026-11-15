@@ -406,6 +406,21 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
     { name: 'عربی', image: `${import.meta.env.BASE_URL}arabic-book-cover.png` },
   ]
 
+  // admin (مدیر): تقویم، کلاس‌های اخیر و رویدادها
+  const admNowParts = toEn(nowShamsi().date).split('/').map(Number)
+  const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
+  const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
+  const admRecent = adminRecentClasses.filter(c => adminClasses.includes(c)).slice(0, 3)
+  const admEvents: { title: string; label: string; kind: CalKind; due: string; day: number; mi: number }[] = []
+  for (let k = admMonthIdx; k < Math.min(calendarMonths.length, admMonthIdx + 2) && admEvents.length < 4; k++) {
+    const mm = calendarMonths[k]
+    for (const it of mm.items) {
+      if (admEvents.length >= 4) break
+      if (k === admMonthIdx && it.day < admNowParts[2]) continue
+      admEvents.push({ title: it.title, label: `${fa(it.day)} ${adminMonthShort(mm.label)}`, kind: it.kind, due: it.due, day: it.day, mi: k })
+    }
+  }
+
   const contentPlaceholder = (
     <div className="school-home">
       <div className="display-banner">
@@ -570,79 +585,135 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       )}
       {active === 'مدرسه من' && (
         <div className="school-home" style={{ padding: '0 15px' }}>
-          <div className="cal-split">
-            <button className="calendar-banner" onClick={() => navigate('schedule')}>
-              <div>
-                <strong>برنامه کلاسی</strong>
-                <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
+          {role === 'admin' ? (
+            <>
+              {/* تقویم */}
+              <div className="month-card month-page calendar-top-card" style={{ marginTop: 10 }}>
+                <div className="month-card-head">
+                  <button type="button" className="month-nav" disabled={admMonthIdx === 0} onClick={() => setAdmMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
+                  <strong>{calendarMonths[admMonthIdx].label}</strong>
+                  <button type="button" className="month-nav" disabled={admMonthIdx === calendarMonths.length - 1} onClick={() => setAdmMonthIdx(i => Math.min(calendarMonths.length - 1, i + 1))}>بعدی</button>
+                </div>
+                <div className="month-grid">
+                  {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => <span key={d} className="mg-dayname">{d}</span>)}
+                  {Array.from({ length: calendarMonths[admMonthIdx].offset }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
+                  {Array.from({ length: calendarMonths[admMonthIdx].days }, (_, i) => {
+                    const day = i + 1
+                    const kinds = calendarMonths[admMonthIdx].items.filter(it => it.day === day).map(it => it.kind)
+                    const cellCls = ['mg-cell', 'is-clickable']
+                    if (kinds.includes('assignment')) cellCls.push('has-assignment')
+                    if (kinds.includes('exam')) cellCls.push('has-exam')
+                    if (kinds.includes('event')) cellCls.push('has-event')
+                    if (admIsNowMonth(calendarMonths[admMonthIdx]) && day === admNowParts[2]) cellCls.push('today')
+                    return (
+                      <button type="button" key={day} className={cellCls.join(' ')} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{fa(day)}</button>
+                    )
+                  })}
+                </div>
               </div>
-              <span className="banner-cta">مشاهده</span>
-            </button>
-            <button className="calendar-banner" onClick={() => navigate('calendar')}>
-              <div>
-                <strong>تقویم</strong>
-                <small>مهر ۱۴۰۵ · ۲ مورد الان · ۲ پیش رو</small>
+              {/* کلاس‌های اخیر */}
+              <div className="section-heading" style={{ marginTop: 14 }}>
+                <strong>کلاس‌های اخیر</strong>
+                <button type="button" className="admin-add-btn" onClick={() => { adminStartTab = 'کلاس‌ها'; navigate('admin') }}>مشاهده همه</button>
               </div>
-              <span className="banner-cta">مشاهده</span>
-            </button>
-          </div>
-          <div className="subjects-section">
-            <div className="subjects-heading">
-              <Icon name={role === 'admin' ? 'classes' : 'book'} size={18} />
-              <strong>{role === 'admin' ? 'کلاس‌ها' : 'دروس من'}</strong>
-            </div>
-            <div className="subjects-scroll">
-              {role === 'admin'
-                ? adminClasses.map(c => (
-                  <button className="subject-card" key={c} onClick={() => { adminStartTab = 'کلاس‌ها'; navigate('admin') }}>
+              <div className="subjects-scroll">
+                {admRecent.length === 0 && <div className="report-empty-hint">هنوز کلاسی بازدید نشده است.</div>}
+                {admRecent.map(c => (
+                  <button className="subject-card" key={c} onClick={() => { touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') }}>
                     <div className="admin-class-tile"><strong>{c}</strong></div>
                     <strong>کلاس {c}</strong>
                   </button>
-                ))
-                : subjects.map(subject => (
-                  <button className="subject-card" key={subject.name} onClick={() => navigate('classroom')}>
-                    <img src={subject.image} alt={subject.name} />
-                    <strong>{subject.name}</strong>
-                  </button>
-                ))
-              }
-            </div>
-          </div>
-          <div className="section-heading" style={{ marginTop: 14 }}>
-            <strong>تکالیف این هفته</strong>
-            <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => { assignmentContext = null; navigate('assignments') }}>مشاهده همه</button>
-          </div>
-          <button className="resource" onClick={() => navigate('assignment')}>
-            <span className="resource-icon green"><Icon name="book" /></span>
-            <div>
-              <strong>تمرین فصل سوم علوم تجربی</strong>
-              <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
-              <span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span>
-            </div>
-            <Icon name="chevron" />
-          </button>
-          <button className="resource" onClick={() => navigate('assignment')}>
-            <span className="resource-icon blue"><Icon name="book" /></span>
-            <div>
-              <strong>گزارش آزمایش فشار هوا</strong>
-              <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
-              <span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span>
-            </div>
-            <Icon name="chevron" />
-          </button>
-          <div className="section-heading" style={{ marginTop: 14 }}>
-            <strong>آزمون‌های این هفته</strong>
-            <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => navigate('exam')}>مشاهده همه</button>
-          </div>
-          <button className="resource" onClick={() => navigate('exam')}>
-            <span className="resource-icon orange"><Icon name="exam" /></span>
-            <div>
-              <strong>آزمون میان‌ترم علوم تجربی</strong>
-              <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
-              <span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span>
-            </div>
-            <Icon name="chevron" />
-          </button>
+                ))}
+              </div>
+              {/* رویدادها */}
+              <div className="section-heading" style={{ marginTop: 14 }}>
+                <strong>رویدادها</strong>
+                <button type="button" className="admin-add-btn" onClick={() => navigate('calendar')}>مشاهده همه</button>
+              </div>
+              {admEvents.length === 0 && <div className="report-empty-hint">رویدادی پیش‌رو ثبت نشده است.</div>}
+              {admEvents.map(ev => (
+                <button className="resource" key={`${ev.mi}-${ev.day}-${ev.title}`} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = ev.mi; adminStartDay = ev.day; navigate('admin') }}>
+                  <span className={`resource-icon ${ev.kind === 'exam' ? 'orange' : ev.kind === 'assignment' ? 'blue' : 'green'}`}>
+                    <Icon name={ev.kind === 'exam' ? 'exam' : ev.kind === 'assignment' ? 'book' : 'calendar'} />
+                  </span>
+                  <div>
+                    <strong>{ev.title}</strong>
+                    <small>{adminKindLabels[ev.kind]} · {ev.label}</small>
+                    <span>{ev.due}</span>
+                  </div>
+                  <Icon name="chevron" />
+                </button>
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="cal-split">
+                <button className="calendar-banner" onClick={() => navigate('schedule')}>
+                  <div>
+                    <strong>برنامه کلاسی</strong>
+                    <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
+                  </div>
+                  <span className="banner-cta">مشاهده</span>
+                </button>
+                <button className="calendar-banner" onClick={() => navigate('calendar')}>
+                  <div>
+                    <strong>تقویم</strong>
+                    <small>مهر ۱۴۰۵ · ۲ مورد الان · ۲ پیش رو</small>
+                  </div>
+                  <span className="banner-cta">مشاهده</span>
+                </button>
+              </div>
+              <div className="subjects-section">
+                <div className="subjects-heading">
+                  <Icon name="book" size={18} />
+                  <strong>دروس من</strong>
+                </div>
+                <div className="subjects-scroll">
+                  {subjects.map(subject => (
+                    <button className="subject-card" key={subject.name} onClick={() => navigate('classroom')}>
+                      <img src={subject.image} alt={subject.name} />
+                      <strong>{subject.name}</strong>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="section-heading" style={{ marginTop: 14 }}>
+                <strong>تکالیف این هفته</strong>
+                <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => { assignmentContext = null; navigate('assignments') }}>مشاهده همه</button>
+              </div>
+              <button className="resource" onClick={() => navigate('assignment')}>
+                <span className="resource-icon green"><Icon name="book" /></span>
+                <div>
+                  <strong>تمرین فصل سوم علوم تجربی</strong>
+                  <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
+                  <span>مهلت تحویل: دوشنبه، ۲۰:۰۰ · ۰ از ۲۸ تحویل</span>
+                </div>
+                <Icon name="chevron" />
+              </button>
+              <button className="resource" onClick={() => navigate('assignment')}>
+                <span className="resource-icon blue"><Icon name="book" /></span>
+                <div>
+                  <strong>گزارش آزمایش فشار هوا</strong>
+                  <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
+                  <span>مهلت تحویل: چهارشنبه، ۱۸:۰۰ · ۱۲ از ۲۸ تحویل</span>
+                </div>
+                <Icon name="chevron" />
+              </button>
+              <div className="section-heading" style={{ marginTop: 14 }}>
+                <strong>آزمون‌های این هفته</strong>
+                <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => navigate('exam')}>مشاهده همه</button>
+              </div>
+              <button className="resource" onClick={() => navigate('exam')}>
+                <span className="resource-icon orange"><Icon name="exam" /></span>
+                <div>
+                  <strong>آزمون میان‌ترم علوم تجربی</strong>
+                  <small>گروه درسی: علوم تجربی · کلاس ۹۰۱</small>
+                  <span>زمان شروع: فردا · ۰۹:۰۰ · مدت: ۳۰ دقیقه</span>
+                </div>
+                <Icon name="chevron" />
+              </button>
+            </>
+          )}
         </div>
       )}
       {(active === 'محتوای آموزشی' || active === 'سکوی آموزشی') && contentPlaceholder}
@@ -6515,6 +6586,12 @@ type AdminAnnouncement = { id: string; audience: string; target: string; title: 
 let adminAnnouncementStore: AdminAnnouncement[] = []
 
 let adminStartTab: string | null = null
+let adminStartMonth: number | null = null
+let adminStartDay: number | null = null
+let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
+function touchAdminClass(c: string) {
+  adminRecentClasses = [c, ...adminRecentClasses.filter(x => x !== c)].slice(0, 6)
+}
 const adminTabs = ['داشبورد', 'کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
 
 const adminEventSubjects = ['مدرسه', 'کلاس', 'ریاضی', 'علوم تجربی', 'فارسی', 'عربی']
@@ -6543,8 +6620,14 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [nowJy, nowJm, nowJd] = toEn(now.date).split('/').map(Number)
   const isNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[nowJm - 1]) && mm.label.includes(fa(nowJy))
   const todayMonthIdx = Math.max(0, calendarMonths.findIndex(isNowMonth))
-  const [monthIdx, setMonthIdx] = useState(todayMonthIdx)
-  const [selDay, setSelDay] = useState(() => (isNowMonth(calendarMonths[todayMonthIdx]) ? nowJd : 1))
+  const [monthIdx, setMonthIdx] = useState(() => {
+    if (adminStartMonth !== null) { const mi = adminStartMonth; adminStartMonth = null; return mi }
+    return todayMonthIdx
+  })
+  const [selDay, setSelDay] = useState(() => {
+    if (adminStartDay !== null) { const d = adminStartDay; adminStartDay = null; return d }
+    return isNowMonth(calendarMonths[monthIdx]) ? nowJd : 1
+  })
   const [evSheet, setEvSheet] = useState(false)
   const [evKind, setEvKind] = useState<CalKind>('event')
   const [evSubject, setEvSubject] = useState('مدرسه')
@@ -6651,6 +6734,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     classStudents[name] = []
     adminSchedules[name] = defaultAdminSchedule(adminClasses.length - 1)
     setCls(name)
+    touchAdminClass(name)
     setNewName('')
     setMgSheet(null)
     rerender()
@@ -6773,9 +6857,9 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                     <div className="admin-kpi"><strong>{fa(slots)}</strong><span>بازه برنامه هفته</span></div>
                   </div>
                   <div className="admin-class-actions">
-                    <button type="button" onClick={() => { setCls(c); setTab('دانش‌آموزان') }}>دانش‌آموزان</button>
-                    <button type="button" onClick={() => { setCls(c); setTab('حضور و غیاب') }}>حضور و غیاب</button>
-                    <button type="button" onClick={() => { setCls(c); setTab('برنامه کلاسی') }}>برنامه کلاسی</button>
+                    <button type="button" onClick={() => { setCls(c); touchAdminClass(c); setTab('دانش‌آموزان') }}>دانش‌آموزان</button>
+                    <button type="button" onClick={() => { setCls(c); touchAdminClass(c); setTab('حضور و غیاب') }}>حضور و غیاب</button>
+                    <button type="button" onClick={() => { setCls(c); touchAdminClass(c); setTab('برنامه کلاسی') }}>برنامه کلاسی</button>
                   </div>
                 </div>
               )
