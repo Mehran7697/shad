@@ -1157,6 +1157,24 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
     </div>}
     <main className="messages">
       <div className="day"><span>امروز</span></div>
+      {feedbackMsgs.map(f => (
+        <div className="message-row sent feedback-chat-row" key={f.id}>
+          <button
+            type="button"
+            className="message-bubble feedback-chat-bubble"
+            onClick={() => { setScoreValue(String(f.n)); setScoreDesc(f.desc); setSendToChat(false); setSelectedStudent({ name: f.name, initials: f.initials }) }}
+          >
+            <div className="feedback-chat-main">
+              <strong>
+                <span className={`feedback-score-chip ${f.n >= 0 ? 'positive' : 'negative'}`}>{f.n >= 0 ? `+${fa(f.n)}` : `−${fa(String(Math.abs(f.n)))}`}</span>
+                به {f.name} {fa(String(Math.abs(f.n)))} امتیاز {f.n >= 0 ? 'مثبت' : 'منفی'} داده شد
+              </strong>
+              {f.desc && <small>{f.desc}</small>}
+            </div>
+            <span className="feedback-chat-time">{f.time}</span>
+          </button>
+        </div>
+      ))}
       <div className="message-row received"><div className="message-bubble"><strong className="sender">خانم کریمی</strong><p>سلام بچه‌ها، وقتتون بخیر. فایل تمرین فصل سوم رو براتون فرستادم.</p><span>۱۰:۲۸</span></div></div>
       <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="file" /></div><div><strong>تمرین فصل سوم علوم.pdf</strong><small>۲٫۴ مگابایت · PDF</small></div>{!isStudent && <button type="button" className={`bookmark-btn ${savedIds['chat-pdf'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
             if (savedIds['chat-pdf']) {
@@ -1203,24 +1221,6 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
       )}
       <div className="message-row received"><div className="message-bubble voice"><button aria-label="پخش پیام صوتی"><span>▶</span></button><div className="wave"><i/><i/><i/><i/><i/><i/><i/><i/></div><small>۰:۳۷</small><span>۱۰:۴۱</span></div></div>
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
-      {feedbackMsgs.map(f => (
-        <div className="message-row sent feedback-chat-row" key={f.id}>
-          <button
-            type="button"
-            className="message-bubble feedback-chat-bubble"
-            onClick={() => { setScoreValue(String(f.n)); setScoreDesc(f.desc); setSendToChat(false); setSelectedStudent({ name: f.name, initials: f.initials }) }}
-          >
-            <div className="feedback-chat-main">
-              <strong>
-                <span className={`feedback-score-chip ${f.n >= 0 ? 'positive' : 'negative'}`}>{f.n >= 0 ? `+${fa(f.n)}` : `−${fa(String(Math.abs(f.n)))}`}</span>
-                به {f.name} {fa(String(Math.abs(f.n)))} امتیاز {f.n >= 0 ? 'مثبت' : 'منفی'} داده شد
-              </strong>
-              {f.desc && <small>{f.desc}</small>}
-            </div>
-            <span className="feedback-chat-time">{f.time}</span>
-          </button>
-        </div>
-      ))}
     </main>
     <div className="composer-wrap">
       <div className="composer">
