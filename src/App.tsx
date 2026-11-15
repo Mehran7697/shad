@@ -165,6 +165,7 @@ type Screen =
   | 'storage'
   | 'grade-register'
   | 'reports'
+  | 'admin'
   | 'auth'
 
 type IconName =
@@ -398,7 +399,6 @@ function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void
 
 function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [active, setActive] = useState(role !== 'student' ? 'مدرسه من' : 'خانه')
-  void role
   const subjects = [
     { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
     { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
@@ -423,6 +423,16 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       <QuickLinks navigate={navigate} active="آموزش" />
     </div>
     <main className="msg-list" style={{ paddingTop: 10 }}>
+      {role === 'admin' && (
+        <button type="button" className="admin-entry-banner" onClick={() => navigate('admin')}>
+          <span className="admin-entry-icon"><Icon name="settings" size={20} /></span>
+          <div>
+            <strong>سرویس آموزش · پنل مدیریت</strong>
+            <small>داشبورد، حضور و غیاب، تقویم، برنامه کلاسی و اعلان‌ها</small>
+          </div>
+          <Icon name="chevron" size={16} />
+        </button>
+      )}
       {active === 'خانه' && (
         <div className="edu-home">
           <div className="edu-hero">
@@ -631,173 +641,174 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   </div>
 }
 
-function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
-  type CalKind = 'assignment' | 'exam' | 'event'
-  type CalItem = { day: number; kind: CalKind; subject: string; title: string; due: string }
-  type CalMonth = {
-    label: string
-    days: number
-    offset: number
-    today: number
-    items: CalItem[]
+type CalKind = 'assignment' | 'exam' | 'event'
+type CalItem = { day: number; kind: CalKind; subject: string; title: string; due: string; admin?: boolean }
+type CalMonth = {
+  label: string
+  days: number
+  offset: number
+  today: number
+  items: CalItem[]
+}
+const calendarMonths: CalMonth[] = [
+  {
+    label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
+    items: [
+      { day: 4, kind: 'assignment', subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
+      { day: 4, kind: 'assignment', subject: 'علوم', title: 'پرسش کلاسی فصل ۲', due: 'تا امروز' },
+      { day: 4, kind: 'event', subject: 'کلاس', title: 'جلسه آنلاین علوم', due: 'امروز · ۱۰:۰۰' },
+      { day: 5, kind: 'assignment', subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
+      { day: 5, kind: 'exam', subject: 'ریاضی', title: 'آزمونک جمع و تفریق', due: '۵ مهر' },
+      { day: 5, kind: 'event', subject: 'مدرسه', title: 'فعالیت پرورشی', due: '۵ مهر' },
+      { day: 8, kind: 'assignment', subject: 'فارسی', title: 'خلاصه درس', due: '۸ مهر' },
+      { day: 8, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '۸ مهر' },
+      { day: 12, kind: 'event', subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
+      { day: 12, kind: 'assignment', subject: 'علوم', title: 'تمرین صفحه ۵۲', due: '۱۲ مهر' },
+      { day: 12, kind: 'exam', subject: 'فارسی', title: 'آزمونک املا', due: '۱۲ مهر' },
+      { day: 15, kind: 'event', subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
+      { day: 15, kind: 'assignment', subject: 'ریاضی', title: 'مسئله‌های صفحه ۶۰', due: '۱۵ مهر' },
+      { day: 15, kind: 'event', subject: 'کلاس', title: 'بازدید آزمایشگاه', due: '۱۵ مهر' },
+      { day: 18, kind: 'assignment', subject: 'علوم', title: 'کاربرگ فصل ۳', due: '۱۸ مهر' },
+      { day: 18, kind: 'exam', subject: 'عربی', title: 'آزمونک قواعد', due: '۱۸ مهر' },
+      { day: 20, kind: 'exam', subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
+      { day: 20, kind: 'assignment', subject: 'ریاضی', title: 'مرور قبل از آزمون', due: '۲۰ مهر' },
+      { day: 20, kind: 'event', subject: 'مدرسه', title: 'همایش علمی', due: '۲۰ مهر' },
+      { day: 24, kind: 'assignment', subject: 'فارسی', title: 'خواندن متن', due: '۲۴ مهر' },
+      { day: 24, kind: 'assignment', subject: 'علوم', title: 'تحقیق کوتاه', due: '۲۴ مهر' },
+      { day: 27, kind: 'exam', subject: 'ریاضی', title: 'آزمون میان‌ماه', due: '۲۷ مهر' },
+      { day: 27, kind: 'event', subject: 'کلاس', title: 'حل تمرین گروهی', due: '۲۷ مهر' },
+      { day: 30, kind: 'assignment', subject: 'عربی', title: 'تمرین پایانی', due: '۳۰ مهر' },
+      { day: 30, kind: 'exam', subject: 'فارسی', title: 'آزمونک درک مطلب', due: '۳۰ مهر' },
+      { day: 30, kind: 'event', subject: 'مدرسه', title: 'جمع‌بندی ماه', due: '۳۰ مهر' },
+    ],
+  },
+  {
+    label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
+    items: [
+      { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
+      { day: 3, kind: 'exam', subject: 'علوم', title: 'آزمونک فصل ۴', due: '۳ آبان' },
+      { day: 3, kind: 'event', subject: 'کلاس', title: 'شروع واحد جدید', due: '۳ آبان' },
+      { day: 7, kind: 'assignment', subject: 'فارسی', title: 'انشا کوتاه', due: '۷ آبان' },
+      { day: 7, kind: 'assignment', subject: 'عربی', title: 'کلمه و معنی', due: '۷ آبان' },
+      { day: 12, kind: 'exam', subject: 'ریاضی', title: 'آزمونک هندسه', due: '۱۲ آبان' },
+      { day: 12, kind: 'event', subject: 'مدرسه', title: 'مسابقه علمی', due: '۱۲ آبان' },
+      { day: 20, kind: 'assignment', subject: 'علوم', title: 'گزارش کار', due: '۲۰ آبان' },
+      { day: 25, kind: 'exam', subject: 'فارسی', title: 'آزمون کلاسی', due: '۲۵ آبان' },
+    ],
+  },
+  {
+    label: 'آذر ۱۴۰۵', days: 30, offset: 0, today: 0,
+    items: [
+      { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 آذر' },
+      { day: 7, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '7 آذر' },
+      { day: 14, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '14 آذر' },
+      { day: 14, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '14 آذر' },
+      { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 آذر' },
+      { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 آذر' },
+    ],
+  },
+  {
+    label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0,
+    items: [
+      { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 دی' },
+      { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 دی' },
+      { day: 15, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '15 دی' },
+      { day: 15, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '15 دی' },
+      { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 دی' },
+      { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 دی' },
+    ],
+  },
+  {
+    label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0,
+    items: [
+      { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 بهمن' },
+      { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 بهمن' },
+      { day: 16, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '16 بهمن' },
+      { day: 16, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '16 بهمن' },
+      { day: 18, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '18 بهمن' },
+      { day: 21, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '21 بهمن' },
+    ],
+  },
+  {
+    label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0,
+    items: [
+      { day: 10, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '10 اسفند' },
+      { day: 10, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '10 اسفند' },
+      { day: 12, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '12 اسفند' },
+      { day: 12, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '12 اسفند' },
+      { day: 19, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '19 اسفند' },
+      { day: 22, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '22 اسفند' },
+    ],
+  },
+  {
+    label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0,
+    items: [
+      { day: 11, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '11 فروردین' },
+      { day: 11, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '11 فروردین' },
+      { day: 13, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '13 فروردین' },
+      { day: 13, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '13 فروردین' },
+      { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 فروردین' },
+      { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 فروردین' },
+    ],
+  },
+  {
+    label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0,
+    items: [
+      { day: 5, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '5 اردیبهشت' },
+      { day: 5, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '5 اردیبهشت' },
+      { day: 14, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '14 اردیبهشت' },
+      { day: 14, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '14 اردیبهشت' },
+      { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 اردیبهشت' },
+      { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 اردیبهشت' },
+    ],
+  },
+  {
+    label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0,
+    items: [
+      { day: 6, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '6 خرداد' },
+      { day: 6, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '6 خرداد' },
+      { day: 15, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '15 خرداد' },
+      { day: 15, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '15 خرداد' },
+      { day: 18, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '18 خرداد' },
+      { day: 21, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '21 خرداد' },
+    ],
+  },
+  {
+    label: 'تیر ۱۴۰۶', days: 31, offset: 2, today: 0,
+    items: [
+      { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 تیر' },
+      { day: 7, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '7 تیر' },
+      { day: 16, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '16 تیر' },
+      { day: 16, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '16 تیر' },
+      { day: 19, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '19 تیر' },
+      { day: 22, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '22 تیر' },
+    ],
+  },
+  {
+    label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0,
+    items: [
+      { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 مرداد' },
+      { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 مرداد' },
+      { day: 12, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '12 مرداد' },
+      { day: 12, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '12 مرداد' },
+      { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 مرداد' },
+      { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 مرداد' },
+    ],
+  },
+  {
+    label: 'شهریور ۱۴۰۶', days: 31, offset: 1, today: 0,
+    items: [
+      { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 شهریور' },
+      { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 شهریور' },
+      { day: 13, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '13 شهریور' },
+      { day: 13, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '13 شهریور' },
+      { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 شهریور' },
+      { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 شهریور' },
+    ],
   }
-  const months: CalMonth[] = [
-    {
-      label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
-      items: [
-        { day: 4, kind: 'assignment', subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
-        { day: 4, kind: 'assignment', subject: 'علوم', title: 'پرسش کلاسی فصل ۲', due: 'تا امروز' },
-        { day: 4, kind: 'event', subject: 'کلاس', title: 'جلسه آنلاین علوم', due: 'امروز · ۱۰:۰۰' },
-        { day: 5, kind: 'assignment', subject: 'علوم', title: 'گزارش آزمایش', due: 'تا ۵ مهر' },
-        { day: 5, kind: 'exam', subject: 'ریاضی', title: 'آزمونک جمع و تفریق', due: '۵ مهر' },
-        { day: 5, kind: 'event', subject: 'مدرسه', title: 'فعالیت پرورشی', due: '۵ مهر' },
-        { day: 8, kind: 'assignment', subject: 'فارسی', title: 'خلاصه درس', due: '۸ مهر' },
-        { day: 8, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '۸ مهر' },
-        { day: 12, kind: 'event', subject: 'فارسی', title: 'انشا', due: '۱۲ مهر' },
-        { day: 12, kind: 'assignment', subject: 'علوم', title: 'تمرین صفحه ۵۲', due: '۱۲ مهر' },
-        { day: 12, kind: 'exam', subject: 'فارسی', title: 'آزمونک املا', due: '۱۲ مهر' },
-        { day: 15, kind: 'event', subject: 'عربی', title: 'حفظ', due: '۱۵ مهر' },
-        { day: 15, kind: 'assignment', subject: 'ریاضی', title: 'مسئله‌های صفحه ۶۰', due: '۱۵ مهر' },
-        { day: 15, kind: 'event', subject: 'کلاس', title: 'بازدید آزمایشگاه', due: '۱۵ مهر' },
-        { day: 18, kind: 'assignment', subject: 'علوم', title: 'کاربرگ فصل ۳', due: '۱۸ مهر' },
-        { day: 18, kind: 'exam', subject: 'عربی', title: 'آزمونک قواعد', due: '۱۸ مهر' },
-        { day: 20, kind: 'exam', subject: 'علوم', title: 'آزمون فصل ۳', due: '۲۰ مهر' },
-        { day: 20, kind: 'assignment', subject: 'ریاضی', title: 'مرور قبل از آزمون', due: '۲۰ مهر' },
-        { day: 20, kind: 'event', subject: 'مدرسه', title: 'همایش علمی', due: '۲۰ مهر' },
-        { day: 24, kind: 'assignment', subject: 'فارسی', title: 'خواندن متن', due: '۲۴ مهر' },
-        { day: 24, kind: 'assignment', subject: 'علوم', title: 'تحقیق کوتاه', due: '۲۴ مهر' },
-        { day: 27, kind: 'exam', subject: 'ریاضی', title: 'آزمون میان‌ماه', due: '۲۷ مهر' },
-        { day: 27, kind: 'event', subject: 'کلاس', title: 'حل تمرین گروهی', due: '۲۷ مهر' },
-        { day: 30, kind: 'assignment', subject: 'عربی', title: 'تمرین پایانی', due: '۳۰ مهر' },
-        { day: 30, kind: 'exam', subject: 'فارسی', title: 'آزمونک درک مطلب', due: '۳۰ مهر' },
-        { day: 30, kind: 'event', subject: 'مدرسه', title: 'جمع‌بندی ماه', due: '۳۰ مهر' },
-      ],
-    },
-    {
-      label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
-      items: [
-        { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
-        { day: 3, kind: 'exam', subject: 'علوم', title: 'آزمونک فصل ۴', due: '۳ آبان' },
-        { day: 3, kind: 'event', subject: 'کلاس', title: 'شروع واحد جدید', due: '۳ آبان' },
-        { day: 7, kind: 'assignment', subject: 'فارسی', title: 'انشا کوتاه', due: '۷ آبان' },
-        { day: 7, kind: 'assignment', subject: 'عربی', title: 'کلمه و معنی', due: '۷ آبان' },
-        { day: 12, kind: 'exam', subject: 'ریاضی', title: 'آزمونک هندسه', due: '۱۲ آبان' },
-        { day: 12, kind: 'event', subject: 'مدرسه', title: 'مسابقه علمی', due: '۱۲ آبان' },
-        { day: 20, kind: 'assignment', subject: 'علوم', title: 'گزارش کار', due: '۲۰ آبان' },
-        { day: 25, kind: 'exam', subject: 'فارسی', title: 'آزمون کلاسی', due: '۲۵ آبان' },
-      ],
-    },
-    {
-      label: 'آذر ۱۴۰۵', days: 30, offset: 0, today: 0,
-      items: [
-        { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 آذر' },
-        { day: 7, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '7 آذر' },
-        { day: 14, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '14 آذر' },
-        { day: 14, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '14 آذر' },
-        { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 آذر' },
-        { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 آذر' },
-      ],
-    },
-    {
-      label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0,
-      items: [
-        { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 دی' },
-        { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 دی' },
-        { day: 15, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '15 دی' },
-        { day: 15, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '15 دی' },
-        { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 دی' },
-        { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 دی' },
-      ],
-    },
-    {
-      label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0,
-      items: [
-        { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 بهمن' },
-        { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 بهمن' },
-        { day: 16, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '16 بهمن' },
-        { day: 16, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '16 بهمن' },
-        { day: 18, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '18 بهمن' },
-        { day: 21, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '21 بهمن' },
-      ],
-    },
-    {
-      label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0,
-      items: [
-        { day: 10, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '10 اسفند' },
-        { day: 10, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '10 اسفند' },
-        { day: 12, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '12 اسفند' },
-        { day: 12, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '12 اسفند' },
-        { day: 19, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '19 اسفند' },
-        { day: 22, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '22 اسفند' },
-      ],
-    },
-    {
-      label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0,
-      items: [
-        { day: 11, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '11 فروردین' },
-        { day: 11, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '11 فروردین' },
-        { day: 13, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '13 فروردین' },
-        { day: 13, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '13 فروردین' },
-        { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 فروردین' },
-        { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 فروردین' },
-      ],
-    },
-    {
-      label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0,
-      items: [
-        { day: 5, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '5 اردیبهشت' },
-        { day: 5, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '5 اردیبهشت' },
-        { day: 14, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '14 اردیبهشت' },
-        { day: 14, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '14 اردیبهشت' },
-        { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 اردیبهشت' },
-        { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 اردیبهشت' },
-      ],
-    },
-    {
-      label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0,
-      items: [
-        { day: 6, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '6 خرداد' },
-        { day: 6, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '6 خرداد' },
-        { day: 15, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '15 خرداد' },
-        { day: 15, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '15 خرداد' },
-        { day: 18, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '18 خرداد' },
-        { day: 21, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '21 خرداد' },
-      ],
-    },
-    {
-      label: 'تیر ۱۴۰۶', days: 31, offset: 2, today: 0,
-      items: [
-        { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 تیر' },
-        { day: 7, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '7 تیر' },
-        { day: 16, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '16 تیر' },
-        { day: 16, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '16 تیر' },
-        { day: 19, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '19 تیر' },
-        { day: 22, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '22 تیر' },
-      ],
-    },
-    {
-      label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0,
-      items: [
-        { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 مرداد' },
-        { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 مرداد' },
-        { day: 12, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '12 مرداد' },
-        { day: 12, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '12 مرداد' },
-        { day: 20, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '20 مرداد' },
-        { day: 23, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '23 مرداد' },
-      ],
-    },
-    {
-      label: 'شهریور ۱۴۰۶', days: 31, offset: 1, today: 0,
-      items: [
-        { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 شهریور' },
-        { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 شهریور' },
-        { day: 13, kind: 'exam', subject: 'علوم', title: 'آزمونک دوره‌ای', due: '13 شهریور' },
-        { day: 13, kind: 'assignment', subject: 'فارسی', title: 'تکلیف نوشتاری', due: '13 شهریور' },
-        { day: 21, kind: 'event', subject: 'مدرسه', title: 'برنامه مناسبتی', due: '21 شهریور' },
-        { day: 24, kind: 'assignment', subject: 'عربی', title: 'تمرین ترجمه', due: '24 شهریور' },
-      ],
-    }
-  ]
+]
+function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
+  const months = calendarMonths
   const kindLabel: Record<CalKind, string> = {
     assignment: 'تکلیف',
     exam: 'آزمون',
@@ -1319,6 +1330,7 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   gradebook: { title: 'ثبت نمره', subtitle: 'علوم تجربی · نیم‌ترم اول' },
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   storage: { title: 'مدیریت حافظه', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
+  admin: { title: 'سرویس آموزش', subtitle: 'پنل مدیریت مدرسه' },
 }
 
 function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, rightExtra, showSearchBtn = false, onSearchClick, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
@@ -4585,7 +4597,6 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
   const isTeacher = role === 'teacher'
   const isStudent = role === 'student'
   const isAdmin = role === 'admin'
-  const canManage = !isStudent
   return <div className="screen main-section"><main className="section-content">
     {screen === 'schedule' && (
       isStudent ? (
@@ -4690,9 +4701,11 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
         </div>
       </div>
       <div className="more-grid">
-        {(canManage
-          ? [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
-          : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'}]
+        {(isStudent
+          ? [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'}]
+          : isAdmin
+            ? [{t:'سرویس آموزش',i:'grid',s:'admin'},{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
+            : [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
         ).map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}
       </div>
       <div className="settings-list">
@@ -6383,6 +6396,656 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
   </div>
 }
 
+// ===================== سرویس آموزش · پنل مدیریت (نقش مدیر) =====================
+
+const jalaliMonthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+
+type AdminDateInfo = { date: string; jy: number; jm: number; jd: number; weekday: string; holiday: boolean; label: string }
+
+/** last `count` shamsi days, most recent first */
+function adminDateList(count = 25): AdminDateInfo[] {
+  const out: AdminDateInfo[] = []
+  const base = new Date()
+  for (let i = 0; i < count; i++) {
+    const g = new Date(base.getFullYear(), base.getMonth(), base.getDate() - i)
+    const s = shamsiOf(g)
+    const [jy, jm, jd] = toEn(s.date).split('/').map(Number)
+    const weekday = faDayFull[(g.getDay() + 1) % 7]
+    out.push({
+      date: s.date,
+      jy, jm, jd, weekday,
+      holiday: weekday === 'جمعه',
+      label: `${weekday} · ${fa(jd)} ${jalaliMonthNames[jm - 1]}`,
+    })
+  }
+  return out
+}
+
+/** deterministic pseudo-random in [0,1) from integer keys */
+const seedRand = (...nums: number[]) => {
+  const x = Math.sin(nums.reduce((a, b) => a * 97 + b, 7) + 0.37) * 43758.5453
+  return x - Math.floor(x)
+}
+
+const adminClasses = ['۹۰۱', '۹۰۲', '۹۰۳']
+
+const classStudents: Record<string, string[]> = {
+  '۹۰۱': ['علی احمدی', 'فاطمه محمدی', 'آراد حسینی', 'یسنا کریمی', 'امیررضا صالحی', 'مبینا اکبری'],
+  '۹۰۲': ['سینا رحیمی', 'نازنین موسوی', 'پارسا کاظمی', 'هستی نوری', 'بهنام صفری', 'غزل امیری'],
+  '۹۰۳': ['کیان توکلی', 'رویا شریفی', 'سامان قاسمی', 'الهام جعفری', 'مهدی عباسی', 'نیلوفر یوسفی'],
+}
+
+const adminTeachers = [
+  { name: 'سارا کریمی', subject: 'علوم تجربی', initial: 'س' },
+  { name: 'رضا محمدی', subject: 'ریاضی', initial: 'ر' },
+  { name: 'مریم حسینی', subject: 'فارسی', initial: 'م' },
+  { name: 'نرگس رضایی', subject: 'عربی', initial: 'ن' },
+]
+
+type AttStatus = 'حاضر' | 'غایب' | 'تأخیر'
+function attStatusOf(clsIdx: number, stuIdx: number, dateIdx: number): AttStatus {
+  const r = seedRand(11, clsIdx, stuIdx, dateIdx)
+  if (r < 0.09) return 'غایب'
+  if (r < 0.18) return 'تأخیر'
+  return 'حاضر'
+}
+
+type TeacherDay = { status: 'حاضر' | 'غایب' | 'مرخصی' | 'تعطیل'; arrive: string; leave: string; minutes: number; classes: number }
+function teacherDayOf(tIdx: number, dateIdx: number, holiday: boolean): TeacherDay {
+  if (holiday) return { status: 'تعطیل', arrive: '—', leave: '—', minutes: 0, classes: 0 }
+  const r = seedRand(23, tIdx, dateIdx)
+  if (r < 0.07) return { status: 'غایب', arrive: '—', leave: '—', minutes: 0, classes: 0 }
+  if (r < 0.13) return { status: 'مرخصی', arrive: '—', leave: '—', minutes: 0, classes: 0 }
+  const fmtT = (m: number) => fa(`${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`)
+  const arriveMin = 7 * 60 + 40 + Math.floor(seedRand(31, tIdx, dateIdx) * 40)
+  const dur = 4 * 60 + 10 + Math.floor(seedRand(41, tIdx, dateIdx) * 110)
+  return {
+    status: 'حاضر',
+    arrive: fmtT(arriveMin),
+    leave: fmtT(arriveMin + dur),
+    minutes: dur,
+    classes: 1 + Math.floor(seedRand(51, tIdx, dateIdx) * 3),
+  }
+}
+
+type AdminSlot = { subject: string; teacher: string } | null
+const adminScheduleSubjects: { subject: string; teacher: string }[] = [
+  { subject: 'ریاضی', teacher: 'رضا محمدی' },
+  { subject: 'علوم تجربی', teacher: 'سارا کریمی' },
+  { subject: 'فارسی', teacher: 'مریم حسینی' },
+  { subject: 'عربی', teacher: 'نرگس رضایی' },
+  { subject: 'ورزش', teacher: 'امیر نادری' },
+  { subject: 'هنر', teacher: 'شیرین موحد' },
+]
+function defaultAdminSchedule(clsIdx: number): (AdminSlot | null)[][] {
+  const grid: (AdminSlot | null)[][] = []
+  for (let d = 0; d < 5; d++) {
+    const row: (AdminSlot | null)[] = []
+    for (let t = 0; t < scheduleTimes.length; t++) {
+      const r = seedRand(61, clsIdx, d, t)
+      if (r < 0.14) { row.push(null); continue }
+      const s = adminScheduleSubjects[Math.floor(seedRand(71, clsIdx, d, t) * adminScheduleSubjects.length)]
+      row.push({ subject: s.subject, teacher: s.teacher })
+    }
+    grid.push(row)
+  }
+  return grid
+}
+const adminSchedules: Record<string, (AdminSlot | null)[][]> = {
+  '۹۰۱': defaultAdminSchedule(0),
+  '۹۰۲': defaultAdminSchedule(1),
+  '۹۰۳': defaultAdminSchedule(2),
+}
+
+type AdminAnnouncement = { id: string; audience: string; target: string; title: string; text: string; time: string; count: number }
+let adminAnnouncementStore: AdminAnnouncement[] = []
+
+const adminTabs = ['داشبورد', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
+
+const adminEventSubjects = ['مدرسه', 'کلاس', 'ریاضی', 'علوم تجربی', 'فارسی', 'عربی']
+const adminAudiences = ['همه', 'دبیران', 'دانش‌آموزان', 'کلاس خاص', 'رویداد خاص']
+const adminAudienceCounts: Record<string, number> = { 'همه': 70, 'دبیران': 12, 'دانش‌آموزان': 58, 'کلاس خاص': 18, 'رویداد خاص': 24 }
+const adminKindLabels: Record<CalKind, string> = { assignment: 'تکلیف', exam: 'آزمون', event: 'رویداد' }
+
+const adminMinutes = (m: number) => (m ? `${fa(Math.floor(m / 60))} ساعت${m % 60 ? ` و ${fa(m % 60)} دقیقه` : ''}` : '—')
+const adminMonthShort = (label: string) => label.replace(/\s*\d+$/, '').trim()
+
+function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+  void navigate
+  const dates = adminDateList()
+  const [, setTick] = useState(0)
+  const rerender = () => setTick(x => x + 1)
+  const [tab, setTab] = useState<(typeof adminTabs)[number]>('داشبورد')
+  const [cls, setCls] = useState(adminClasses[0])
+  const [dateIdx, setDateIdx] = useState(0)
+  const [teacherIdx, setTeacherIdx] = useState(-1)
+
+  const now = nowShamsi()
+  const [nowJy, nowJm, nowJd] = toEn(now.date).split('/').map(Number)
+  const isNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[nowJm - 1]) && mm.label.includes(fa(nowJy))
+  const todayMonthIdx = Math.max(0, calendarMonths.findIndex(isNowMonth))
+  const [monthIdx, setMonthIdx] = useState(todayMonthIdx)
+  const [selDay, setSelDay] = useState(() => (isNowMonth(calendarMonths[todayMonthIdx]) ? nowJd : 1))
+  const [evSheet, setEvSheet] = useState(false)
+  const [evKind, setEvKind] = useState<CalKind>('event')
+  const [evSubject, setEvSubject] = useState('مدرسه')
+  const [evTitle, setEvTitle] = useState('')
+  const [schedEdit, setSchedEdit] = useState<{ day: number; time: number } | null>(null)
+  const [annAudience, setAnnAudience] = useState(adminAudiences[0])
+  const [annClass, setAnnClass] = useState(adminClasses[0])
+  const [annEvent, setAnnEvent] = useState('')
+  const [annTitle, setAnnTitle] = useState('')
+  const [annText, setAnnText] = useState('')
+  const [annSent, setAnnSent] = useState(false)
+
+  const date = dates[dateIdx]
+  const clsIdx = adminClasses.indexOf(cls)
+  const monthDates = dates.map((d, i) => ({ d, i })).filter(x => x.d.jm === date.jm && x.d.jy === date.jy)
+
+  // ---- derived: attendance (class + month)
+  const attMonthly = classStudents[cls].map((name, si) => {
+    let present = 0, delay = 0, absent = 0
+    monthDates.forEach(({ d, i }) => {
+      if (d.holiday) return
+      const st = attStatusOf(clsIdx, si, i)
+      if (st === 'حاضر') present++
+      else if (st === 'تأخیر') delay++
+      else absent++
+    })
+    const school = monthDates.filter(x => !x.d.holiday).length
+    return { name, present, delay, absent, pct: school ? Math.round(((present + delay) / school) * 100) : 0 }
+  })
+  const attMonthlySum = attMonthly.reduce((a, b) => ({
+    present: a.present + b.present, delay: a.delay + b.delay, absent: a.absent + b.absent,
+  }), { present: 0, delay: 0, absent: 0 })
+
+  // ---- derived: teachers (month)
+  const teacherMonthly = adminTeachers.map((t, ti) => {
+    let minutes = 0, days = 0, classes = 0, absDays = 0, offDays = 0
+    monthDates.forEach(({ d, i }) => {
+      const td = teacherDayOf(ti, i, d.holiday)
+      if (td.status === 'حاضر') { minutes += td.minutes; days++; classes += td.classes }
+      else if (td.status === 'غایب') absDays++
+      else if (td.status === 'مرخصی') offDays++
+    })
+    return { ...t, minutes, days, classes, absDays, offDays, today: teacherDayOf(ti, dateIdx, date.holiday) }
+  })
+
+  // ---- derived: calendar day events
+  const monthObj = calendarMonths[monthIdx]
+  const dayEvents = monthObj.items.filter(it => it.day === selDay)
+  const upcomingEvents = calendarMonths.flatMap(mm =>
+    mm.items.filter(it => it.kind === 'event').map(it => `${it.title} · ${fa(it.day)} ${adminMonthShort(mm.label)}`))
+
+  // ---- derived: dashboard
+  const todayAbsent = adminClasses.reduce((sum, _c, ci) =>
+    sum + classStudents[adminClasses[ci]].filter((_, si) => attStatusOf(ci, si, 0) === 'غایب').length, 0)
+  const dashEvents: { title: string; label: string; kind: CalKind; mi: number; day: number }[] = []
+  for (let k = todayMonthIdx; k < Math.min(calendarMonths.length, todayMonthIdx + 2) && dashEvents.length < 6; k++) {
+    const mm = calendarMonths[k]
+    for (const it of mm.items) {
+      if (dashEvents.length >= 6) break
+      if (k === todayMonthIdx && it.day < nowJd) continue
+      dashEvents.push({ title: it.title, label: `${fa(it.day)} ${adminMonthShort(mm.label)}`, kind: it.kind, mi: k, day: it.day })
+    }
+  }
+
+  const addEvent = () => {
+    if (!evTitle.trim()) return
+    calendarMonths[monthIdx].items.push({
+      day: selDay, kind: evKind, subject: evSubject,
+      title: evTitle.trim(), due: `${fa(selDay)} ${adminMonthShort(monthObj.label)}`, admin: true,
+    })
+    setEvTitle('')
+    setEvSheet(false)
+    rerender()
+  }
+
+  const sendAnnouncement = () => {
+    if (!annTitle.trim() && !annText.trim()) return
+    const target = annAudience === 'کلاس خاص'
+      ? `کلاس ${annClass}`
+      : annAudience === 'رویداد خاص' ? (annEvent || 'رویداد انتخاب‌نشده') : annAudience
+    adminAnnouncementStore = [
+      {
+        id: `${Date.now()}`, audience: annAudience, target,
+        title: annTitle.trim() || 'اعلان', text: annText.trim(),
+        time: nowShamsi().time, count: adminAudienceCounts[annAudience],
+      },
+      ...adminAnnouncementStore,
+    ]
+    setAnnTitle('')
+    setAnnText('')
+    setAnnSent(true)
+    window.setTimeout(() => setAnnSent(false), 2000)
+    rerender()
+  }
+
+  return (
+    <div className="screen inner-screen admin-screen">
+      <SubHeader screen="admin" back={goBack} rightIcon={null} subtitle={`${date.weekday} · ${date.date}`} />
+      <div className="admin-tabs" dir="rtl">
+        {adminTabs.map(t => (
+          <button key={t} type="button" className={`admin-tab${tab === t ? ' active' : ''}`} onClick={() => setTab(t)}>{t}</button>
+        ))}
+      </div>
+      <main className="inner-content">
+
+        {/* ================= داشبورد ================= */}
+        {tab === 'داشبورد' && (
+          <>
+            <div className="admin-kpis">
+              <div className="admin-kpi"><strong>{fa(adminClasses.length)}</strong><span>کلاس فعال</span></div>
+              <div className="admin-kpi"><strong>{fa(adminClasses.reduce((s, c) => s + classStudents[c].length, 0))}</strong><span>دانش‌آموز</span></div>
+              <div className="admin-kpi"><strong>{fa(adminTeachers.length)}</strong><span>دبیر</span></div>
+              <div className="admin-kpi warn"><strong>{fa(todayAbsent)}</strong><span>غیبت امروز</span></div>
+            </div>
+            <div className="section-heading"><strong>دسترسی سریع</strong></div>
+            <div className="admin-quick">
+              {([['حضور و غیاب', 'attendance'], ['حضور معلمان', 'clock'], ['تقویم رویدادها', 'calendar'], ['برنامه کلاسی', 'classes'], ['اعلان‌ها', 'send']] as [string, IconName][]).map(([t, ic]) => (
+                <button key={t} type="button" onClick={() => setTab(t as (typeof adminTabs)[number])}>
+                  <span><Icon name={ic} /></span><strong>{t}</strong>
+                </button>
+              ))}
+            </div>
+            <div className="section-heading"><strong>رویدادهای پیش‌رو</strong></div>
+            {dashEvents.length === 0 && <div className="report-empty-hint">رویدادی برای ماه‌های پیش‌رو ثبت نشده است.</div>}
+            {dashEvents.map(ev => (
+              <button
+                key={`${ev.mi}-${ev.day}-${ev.title}`}
+                type="button"
+                className="admin-event-row"
+                onClick={() => { setMonthIdx(ev.mi); setSelDay(ev.day); setTab('تقویم رویدادها') }}
+              >
+                <i className={`dot ${ev.kind}`} />
+                <div><strong>{ev.title}</strong><small>{adminKindLabels[ev.kind]} · {ev.label}</small></div>
+                <Icon name="chevron" size={16} />
+              </button>
+            ))}
+            <div className="section-heading"><strong>اعلان‌های اخیر</strong></div>
+            {adminAnnouncementStore.length === 0 && <div className="report-empty-hint">هنوز اعلانی ارسال نشده است.</div>}
+            {adminAnnouncementStore.slice(0, 3).map(a => (
+              <div className="admin-ann-item" key={a.id}>
+                <div className="admin-ann-head">
+                  <span className="admin-aud-chip">{a.target}</span>
+                  <small>{a.time} · {fa(a.count)} گیرنده</small>
+                </div>
+                <strong>{a.title}</strong>
+                {a.text && <p>{a.text}</p>}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ================= حضور و غیاب ================= */}
+        {tab === 'حضور و غیاب' && (
+          <>
+            <div className="two-fields">
+              <label className="field"><span>کلاس</span>
+                <select value={cls} onChange={e => setCls(e.target.value)}>
+                  {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
+              <label className="field"><span>تاریخ</span>
+                <select value={dateIdx} onChange={e => setDateIdx(Number(e.target.value))}>
+                  {dates.map((d, i) => <option key={d.date} value={i}>{d.label}</option>)}
+                </select>
+              </label>
+            </div>
+            {date.holiday ? (
+              <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>
+            ) : (
+              <>
+                <div className="admin-day-summary">
+                  {(['حاضر', 'تأخیر', 'غایب'] as AttStatus[]).map(st => (
+                    <div key={st} className={`admin-day-count st-${st === 'حاضر' ? 'ok' : st === 'تأخیر' ? 'late' : 'abs'}`}>
+                      <strong>{fa(classStudents[cls].filter((_, si) => attStatusOf(clsIdx, si, dateIdx) === st).length)}</strong>
+                      <span>{st}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="section-heading"><strong>وضعیت روز انتخاب‌شده</strong></div>
+                {classStudents[cls].map((name, si) => {
+                  const st = attStatusOf(clsIdx, si, dateIdx)
+                  return (
+                    <div className="admin-student-row" key={name}>
+                      <div className="admin-avatar">{name[0]}</div>
+                      <strong>{name}</strong>
+                      <span className={`admin-status-chip st-${st === 'حاضر' ? 'ok' : st === 'تأخیر' ? 'late' : 'abs'}`}>{st}</span>
+                    </div>
+                  )
+                })}
+              </>
+            )}
+            <div className="section-heading" style={{ marginTop: 16 }}><strong>جمع ماه {jalaliMonthNames[date.jm - 1]}</strong></div>
+            <div className="assignment-table-wrap">
+              <table className="report-detail-table att-month-table" dir="rtl">
+                <thead>
+                  <tr>
+                    <th rowSpan={2}>#</th>
+                    <th rowSpan={2}>دانش‌آموز</th>
+                    <th colSpan={4} className="month-group-head total-head">حضور ماه</th>
+                  </tr>
+                  <tr>
+                    <th className="sub-col">حاضر</th>
+                    <th className="sub-col">تأخیر</th>
+                    <th className="sub-col">غیبت</th>
+                    <th className="sub-col">درصد</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attMonthly.map((r, i) => (
+                    <tr key={r.name}>
+                      <td>{fa(i + 1)}</td>
+                      <td><strong>{r.name}</strong></td>
+                      <td>{fa(r.present)}</td>
+                      <td>{r.delay ? fa(r.delay) : '—'}</td>
+                      <td className="total-absent">{r.absent ? fa(r.absent) : '—'}</td>
+                      <td>{fa(r.pct)}٪</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={2}><strong>جمع کلاس</strong></td>
+                    <td>{fa(attMonthlySum.present)}</td>
+                    <td>{attMonthlySum.delay ? fa(attMonthlySum.delay) : '—'}</td>
+                    <td className="foot-absent">{attMonthlySum.absent ? fa(attMonthlySum.absent) : '—'}</td>
+                    <td>{fa(Math.round(attMonthly.reduce((a, b) => a + b.pct, 0) / attMonthly.length))}٪</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* ================= حضور معلمان ================= */}
+        {tab === 'حضور معلمان' && (
+          <>
+            <div className="two-fields">
+              <label className="field"><span>دبیر</span>
+                <select value={teacherIdx} onChange={e => setTeacherIdx(Number(e.target.value))}>
+                  <option value={-1}>همه دبیران</option>
+                  {adminTeachers.map((t, i) => <option key={t.name} value={i}>{t.name}</option>)}
+                </select>
+              </label>
+              <label className="field"><span>تاریخ</span>
+                <select value={dateIdx} onChange={e => setDateIdx(Number(e.target.value))}>
+                  {dates.map((d, i) => <option key={d.date} value={i}>{d.label}</option>)}
+                </select>
+              </label>
+            </div>
+            {date.holiday && <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>}
+            {teacherIdx >= 0 ? (
+              (() => {
+                const tm = teacherMonthly[teacherIdx]
+                const td = tm.today
+                return (
+                  <div className="admin-teacher-card">
+                    <div className="admin-teacher-head">
+                      <div className="admin-avatar big">{tm.initial}</div>
+                      <div><strong>{tm.name}</strong><span>{tm.subject}</span></div>
+                      <span className={`admin-status-chip st-${td.status === 'حاضر' ? 'ok' : td.status === 'مرخصی' ? 'late' : 'abs'}`}>{td.status}</span>
+                    </div>
+                    <div className="admin-kpis">
+                      <div className="admin-kpi"><strong>{td.arrive}</strong><span>ورود</span></div>
+                      <div className="admin-kpi"><strong>{td.leave}</strong><span>خروج</span></div>
+                      <div className="admin-kpi"><strong>{adminMinutes(td.minutes)}</strong><span>مدت حضور روز</span></div>
+                      <div className="admin-kpi"><strong>{fa(td.classes)}</strong><span>کلاس روز</span></div>
+                    </div>
+                    <div className="admin-kpis">
+                      <div className="admin-kpi"><strong>{adminMinutes(tm.minutes)}</strong><span>حضور این ماه</span></div>
+                      <div className="admin-kpi"><strong>{fa(tm.days)}</strong><span>روز کاری</span></div>
+                      <div className="admin-kpi"><strong>{fa(tm.classes)}</strong><span>کلاس‌ها</span></div>
+                      <div className="admin-kpi warn"><strong>{fa(tm.absDays + tm.offDays)}</strong><span>غیبت / مرخصی</span></div>
+                    </div>
+                  </div>
+                )
+              })()
+            ) : (
+              <div className="assignment-table-wrap">
+                <table className="report-detail-table att-month-table" dir="rtl">
+                  <thead>
+                    <tr><th>دبیر</th><th>وضعیت روز</th><th>ورود</th><th>خروج</th><th>حضور ماه</th><th>کلاس‌ها</th></tr>
+                  </thead>
+                  <tbody>
+                    {teacherMonthly.map(tm => (
+                      <tr key={tm.name}>
+                        <td><strong>{tm.name}</strong></td>
+                        <td>{tm.today.status}</td>
+                        <td>{tm.today.arrive}</td>
+                        <td>{tm.today.leave}</td>
+                        <td>{adminMinutes(tm.minutes)}</td>
+                        <td>{fa(tm.classes)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={4}><strong>جمع کل دبیران</strong></td>
+                      <td>{adminMinutes(teacherMonthly.reduce((a, b) => a + b.minutes, 0))}</td>
+                      <td>{fa(teacherMonthly.reduce((a, b) => a + b.classes, 0))}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ================= تقویم رویدادها ================= */}
+        {tab === 'تقویم رویدادها' && (
+          <>
+            <div className="month-card month-page calendar-top-card">
+              <div className="month-card-head">
+                <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => setMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
+                <strong>{monthObj.label}</strong>
+                <button type="button" className="month-nav" disabled={monthIdx === calendarMonths.length - 1} onClick={() => setMonthIdx(i => Math.min(calendarMonths.length - 1, i + 1))}>بعدی</button>
+              </div>
+              <div className="month-grid">
+                {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => <span key={d} className="mg-dayname">{d}</span>)}
+                {Array.from({ length: monthObj.offset }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
+                {Array.from({ length: monthObj.days }, (_, i) => {
+                  const day = i + 1
+                  const cellCls = ['mg-cell', 'is-clickable']
+                  if (day === selDay) cellCls.push('sel')
+                  if (monthObj.items.some(it => it.day === day)) cellCls.push('has-event')
+                  return (
+                    <button type="button" key={day} className={cellCls.join(' ')} onClick={() => setSelDay(day)}>{fa(day)}</button>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="section-heading" style={{ marginTop: 14 }}>
+              <strong>رویدادهای روز {fa(selDay)}</strong>
+              <button type="button" className="admin-add-btn" onClick={() => setEvSheet(true)}>ثبت رویداد</button>
+            </div>
+            {dayEvents.length === 0 && <div className="report-empty-hint">رویدادی برای این روز ثبت نشده است.</div>}
+            {dayEvents.map(it => (
+              <div className={`admin-event-row kind-${it.kind}`} key={`${it.day}-${it.kind}-${it.title}`}>
+                <i className={`dot ${it.kind}`} />
+                <div><strong>{it.title}</strong><small>{adminKindLabels[it.kind]} · {it.subject} · {it.due}</small></div>
+                {it.admin && (
+                  <button
+                    type="button"
+                    className="admin-event-del"
+                    aria-label="حذف رویداد"
+                    onClick={() => {
+                      const arr = calendarMonths[monthIdx].items
+                      const idx = arr.indexOf(it)
+                      if (idx >= 0) { arr.splice(idx, 1); rerender() }
+                    }}
+                  >×</button>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ================= برنامه کلاسی ================= */}
+        {tab === 'برنامه کلاسی' && (
+          <>
+            <div className="two-fields">
+              <label className="field"><span>کلاس</span>
+                <select value={cls} onChange={e => setCls(e.target.value)}>
+                  {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="report-empty-hint">برای تغییر هر بازه، روی آن بزنید.</div>
+            <div className="assignment-table-wrap">
+              <table className="schedule-table admin-sched-table" dir="rtl">
+                <thead>
+                  <tr>
+                    <th className="schedule-day-heading">روز</th>
+                    {scheduleTimes.map(t => <th key={t}>{t}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {faDayFull.slice(0, 5).map((dayName, d) => (
+                    <tr key={dayName}>
+                      <th scope="row" className="schedule-day-name">{dayName}</th>
+                      {scheduleTimes.map((t, ti) => {
+                        const slot = adminSchedules[cls][d][ti]
+                        return (
+                          <td key={t}>
+                            <button type="button" className={`admin-sched-cell${slot ? '' : ' empty'}`} onClick={() => setSchedEdit({ day: d, time: ti })}>
+                              {slot ? (<><strong>{slot.subject}</strong><small>{slot.teacher}</small></>) : <span>—</span>}
+                            </button>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* ================= اعلان‌ها ================= */}
+        {tab === 'اعلان‌ها' && (
+          <>
+            <div className="section-heading"><strong>ارسال اعلان</strong></div>
+            <div className="two-fields">
+              <label className="field"><span>مخاطب</span>
+                <select value={annAudience} onChange={e => setAnnAudience(e.target.value)}>
+                  {adminAudiences.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </label>
+              {annAudience === 'کلاس خاص' && (
+                <label className="field"><span>کلاس</span>
+                  <select value={annClass} onChange={e => setAnnClass(e.target.value)}>
+                    {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </label>
+              )}
+              {annAudience === 'رویداد خاص' && (
+                <label className="field"><span>رویداد</span>
+                  <select value={annEvent} onChange={e => setAnnEvent(e.target.value)}>
+                    <option value="">انتخاب کنید</option>
+                    {upcomingEvents.map(ev => <option key={ev} value={ev}>{ev}</option>)}
+                  </select>
+                </label>
+              )}
+            </div>
+            <label className="field"><span>عنوان</span>
+              <input value={annTitle} onChange={e => setAnnTitle(e.target.value)} placeholder="مثلاً جلسه اولیا و مربیان" />
+            </label>
+            <label className="field"><span>متن اعلان</span>
+              <textarea value={annText} onChange={e => setAnnText(e.target.value)} rows={3} placeholder="متن پیام برای مخاطبان انتخاب‌شده..." />
+            </label>
+            <div className="admin-ann-send-row">
+              <span>گیرندگان: <strong>{fa(adminAudienceCounts[annAudience])}</strong> نفر</span>
+              <button type="button" className="admin-primary-btn slim" disabled={!annTitle.trim() && !annText.trim()} onClick={sendAnnouncement}>
+                {annSent ? 'ارسال شد ✓' : 'ارسال اعلان'}
+              </button>
+            </div>
+            {adminAnnouncementStore.length > 0 && (
+              <>
+                <div className="section-heading" style={{ marginTop: 16 }}><strong>اعلان‌های ارسال‌شده</strong></div>
+                {adminAnnouncementStore.map(a => (
+                  <div className="admin-ann-item" key={a.id}>
+                    <div className="admin-ann-head">
+                      <span className="admin-aud-chip">{a.target}</span>
+                      <small>{a.time} · {fa(a.count)} گیرنده</small>
+                    </div>
+                    <strong>{a.title}</strong>
+                    {a.text && <p>{a.text}</p>}
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        )}
+      </main>
+
+      {/* ===== sheet: ثبت رویداد در تقویم ===== */}
+      {evSheet && (
+        <div className="overlay group-grade-overlay" onClick={() => setEvSheet(false)}>
+          <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>ثبت رویداد در تقویم</strong>
+                <span>{fa(selDay)} {monthObj.label}</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setEvSheet(false)} />
+            </div>
+            <div className="admin-chip-row">
+              {(['event', 'exam', 'assignment'] as CalKind[]).map(k => (
+                <button key={k} type="button" className={`admin-chip${evKind === k ? ' active' : ''}`} onClick={() => setEvKind(k)}>{adminKindLabels[k]}</button>
+              ))}
+            </div>
+            <div className="admin-chip-row">
+              {adminEventSubjects.map(s => (
+                <button key={s} type="button" className={`admin-chip${evSubject === s ? ' active' : ''}`} onClick={() => setEvSubject(s)}>{s}</button>
+              ))}
+            </div>
+            <label className="field"><span>عنوان رویداد</span>
+              <input value={evTitle} onChange={e => setEvTitle(e.target.value)} placeholder="مثلاً جشن انجمن علمی" />
+            </label>
+            <button type="button" className="admin-primary-btn" disabled={!evTitle.trim()} onClick={addEvent}>ثبت در تقویم</button>
+          </div>
+        </div>
+      )}
+
+      {/* ===== sheet: ویرایش برنامه کلاسی ===== */}
+      {schedEdit && (
+        <div className="overlay group-grade-overlay" onClick={() => setSchedEdit(null)}>
+          <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>ویرایش برنامه کلاسی</strong>
+                <span>{faDayFull[schedEdit.day]} · {scheduleTimes[schedEdit.time]} · کلاس {cls}</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setSchedEdit(null)} />
+            </div>
+            <div className="admin-sched-options">
+              {adminScheduleSubjects.map(s => (
+                <button
+                  key={s.subject}
+                  type="button"
+                  className="admin-sched-option"
+                  onClick={() => { adminSchedules[cls][schedEdit.day][schedEdit.time] = { subject: s.subject, teacher: s.teacher }; rerender(); setSchedEdit(null) }}
+                >
+                  <strong>{s.subject}</strong><small>{s.teacher}</small>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="admin-sched-option clear"
+                onClick={() => { adminSchedules[cls][schedEdit.day][schedEdit.time] = null; rerender(); setSchedEdit(null) }}
+              >خالی کردن این بازه</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; goBack: () => void; setRole: (r: UserRole) => void }) {
   const [leaving, setLeaving] = useState<UserRole | null>(null)
 
@@ -6795,6 +7458,7 @@ export default function App() {
     {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
     {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
+    {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
     {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
     {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
