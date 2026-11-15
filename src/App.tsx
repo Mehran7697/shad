@@ -140,7 +140,7 @@ function SaveToFolderSheet({
   )
 }
 
-type UserRole = 'teacher' | 'student'
+type UserRole = 'teacher' | 'student' | 'admin'
 
 type Screen =
   | 'home'
@@ -397,7 +397,7 @@ function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void
 }
 
 function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
-  const [active, setActive] = useState(role === 'teacher' ? 'مدرسه من' : 'خانه')
+  const [active, setActive] = useState(role !== 'student' ? 'مدرسه من' : 'خانه')
   void role
   const subjects = [
     { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
@@ -4584,6 +4584,8 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
   }).format(new Date())
   const isTeacher = role === 'teacher'
   const isStudent = role === 'student'
+  const isAdmin = role === 'admin'
+  const canManage = !isStudent
   return <div className="screen main-section"><main className="section-content">
     {screen === 'schedule' && (
       isStudent ? (
@@ -4671,11 +4673,11 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
     {screen === 'calls' && <><div className="call-tabs"><button className="active">همه</button><button>ازدست‌رفته</button></div>{conversations.slice(0,5).map((c,i)=><button className="call-row" key={c.name} onClick={()=>navigate('call')}><Avatar item={c}/><div><strong>{c.name}</strong><span className={i===1?'missed':''}>{i===1?'تماس ازدست‌رفته':'تماس ورودی'} · {c.time}</span></div><Icon name={i%2?'video':'phone'}/></button>)}</>}
     {screen === 'more' && <>
       <div className="profile-card">
-        <button className="profile-large">{isTeacher ? 'س' : 'ع'}</button>
+        <button className="profile-large">{isAdmin ? 'م' : isTeacher ? 'س' : 'ع'}</button>
         <div>
-          <strong>{isTeacher ? 'سارا کریمی' : 'علی احمدی'}</strong>
-          <span>{isTeacher ? 'دبیر علوم تجربی' : 'دانش‌آموز پایه نهم'}</span>
-          <small>{isTeacher ? 'school-321@shad.ir' : 'student-901@shad.ir'}</small>
+          <strong>{isAdmin ? 'مدیر مدرسه' : isTeacher ? 'سارا کریمی' : 'علی احمدی'}</strong>
+          <span>{isAdmin ? 'مدیریت مدرسه نمونه' : isTeacher ? 'دبیر علوم تجربی' : 'دانش‌آموز پایه نهم'}</span>
+          <small>{isAdmin ? 'admin-901@shad.ir' : isTeacher ? 'school-321@shad.ir' : 'student-901@shad.ir'}</small>
         </div>
         <Icon name="chevron"/>
       </div>
@@ -4684,10 +4686,11 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
         <div>
           <button type="button" className={role === 'teacher' ? 'active' : ''} onClick={() => setRole('teacher')}>معلم</button>
           <button type="button" className={role === 'student' ? 'active' : ''} onClick={() => setRole('student')}>دانش‌آموز</button>
+          <button type="button" className={role === 'admin' ? 'active' : ''} onClick={() => setRole('admin')}>مدیر</button>
         </div>
       </div>
       <div className="more-grid">
-        {(isTeacher
+        {(canManage
           ? [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
           : [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'}]
         ).map(x=><button key={x.t} onClick={()=>navigate(x.s as Screen)}><span><Icon name={x.i as IconName}/></span><strong>{x.t}</strong></button>)}
@@ -6424,6 +6427,15 @@ function Auth({ navigate, goBack, setRole }: { navigate: (s: Screen) => void; go
           <span><Icon name="users" /></span>
           <strong>دانش‌آموز</strong>
           <small>مشاهدهٔ دروس و ارسال تکلیف</small>
+        </button>
+        <button
+          className={`span-all${leaving === 'admin' ? ' active-role' : ''}`}
+          onClick={() => enterAs('admin')}
+          disabled={!!leaving}
+        >
+          <span><Icon name="settings" /></span>
+          <strong>مدیر</strong>
+          <small>مدیریت مدرسه، کلاس‌ها و کاربران</small>
         </button>
       </div>
       {leaving && (
