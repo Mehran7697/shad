@@ -394,9 +394,9 @@ function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void
   )
 }
 
-/** shared admin toolbar (☰ + 🔍) with hamburger drawer — used in admin sections */
-function AdminToolbar({ navigate }: { navigate: (s: Screen) => void }) {
-  const [menuOpen, setMenuOpen] = useState(false)
+/** admin hamburger drawer — opened via ☰ button in the admin panel header */
+function AdminDrawer({ open, onClose, navigate }: { open: boolean; onClose: () => void; navigate: (s: Screen) => void }) {
+  if (!open) return null
   const items: { t: string; i: IconName; go: () => void; accent?: boolean }[] = [
     { t: 'کلاس‌ها', i: 'classes', go: () => { adminStartTab = 'کلاس‌ها'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; adminPanelRerender?.(); navigate('admin') } },
@@ -405,33 +405,25 @@ function AdminToolbar({ navigate }: { navigate: (s: Screen) => void }) {
     { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
   ]
   return (
-    <>
-      <div className="home-toolbar">
-        <button className="icon-button toolbar-button" aria-label="منو" onClick={() => setMenuOpen(true)}><Icon name="menu" /></button>
-        <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => navigate('search')}><Icon name="search" /></button>
-      </div>
-      {menuOpen && (
-        <div className="admin-drawer-overlay" onClick={() => setMenuOpen(false)}>
-          <nav className="admin-drawer" onClick={e => e.stopPropagation()}>
-            <div className="admin-drawer-head">
-              <span className="admin-avatar big">م</span>
-              <div>
-                <strong>مدیر مدرسه</strong>
-                <small>مدیریت مدرسه نمونه</small>
-              </div>
-            </div>
-            <div className="admin-drawer-items">
-              {items.map(x => (
-                <button type="button" key={x.t} className={x.accent ? 'is-accent' : ''} onClick={() => { setMenuOpen(false); x.go() }}>
-                  <span><Icon name={x.i} size={19} /></span>
-                  <strong>{x.t}</strong>
-                </button>
-              ))}
-            </div>
-          </nav>
+    <div className="admin-drawer-overlay" onClick={onClose}>
+      <nav className="admin-drawer" onClick={e => e.stopPropagation()}>
+        <div className="admin-drawer-head">
+          <span className="admin-avatar big">م</span>
+          <div>
+            <strong>مدیر مدرسه</strong>
+            <small>مدیریت مدرسه نمونه</small>
+          </div>
         </div>
-      )}
-    </>
+        <div className="admin-drawer-items">
+          {items.map(x => (
+            <button type="button" key={x.t} className={x.accent ? 'is-accent' : ''} onClick={() => { onClose(); x.go() }}>
+              <span><Icon name={x.i} size={19} /></span>
+              <strong>{x.t}</strong>
+            </button>
+          ))}
+        </div>
+      </nav>
+    </div>
   )
 }
 
@@ -6742,6 +6734,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     adminStartTab = null
     return ((start && (adminTabs as readonly string[]).includes(start) ? start : 'کلاس‌ها') as (typeof adminTabs)[number])
   })
+  const [menuOpen, setMenuOpen] = useState(false)
   const [cls, setCls] = useState(() => {
     const c = adminStartCls
     adminStartCls = null
@@ -6896,14 +6889,17 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         title={tab === 'کلاس‌ها' ? 'کلاس‌های مدرسه' : tab === 'معلمان' ? 'دبیران مدرسه' : tab === 'دانش‌آموزان' ? `دانش‌آموزان کلاس ${cls}` : tab}
         subtitle={`${date.weekday} · ${date.date}`}
         rightExtra={
-          tab === 'معلمان' ? (
-            <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setNewSubject('علوم تجربی'); setMgSheet('teacher') }}>افزودن دبیر</button>
-          ) : tab === 'دانش‌آموزان' ? (
-            <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setMgSheet('student') }}>افزودن</button>
-          ) : undefined
+          <>
+            <IconButton icon="menu" label="منو" onClick={() => setMenuOpen(true)} />
+            {tab === 'معلمان' ? (
+              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setNewSubject('علوم تجربی'); setMgSheet('teacher') }}>افزودن دبیر</button>
+            ) : tab === 'دانش‌آموزان' ? (
+              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setMgSheet('student') }}>افزودن</button>
+            ) : null}
+          </>
         }
       />
-      <AdminToolbar navigate={navigate} />
+      <AdminDrawer open={menuOpen} onClose={() => setMenuOpen(false)} navigate={navigate} />
       <main className="inner-content">
 
         {/* ================= کلاس‌ها ================= */}
