@@ -7079,19 +7079,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                       <strong>کلاس {c}</strong>
                       <small>{fa(students.length)} دانش‌آموز · معلم: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
                     </div>
-                    <button
-                      type="button"
-                      className="admin-event-del"
-                      aria-label="حذف کلاس"
-                      onClick={() => {
-                        const idx = adminClasses.indexOf(c)
-                        if (idx >= 0) adminClasses.splice(idx, 1)
-                        delete classStudents[c]
-                        delete adminSchedules[c]
-                        if (cls === c) setCls(adminClasses[0] || '۹۰۱')
-                        rerender()
-                      }}
-                    >×</button>
                   </div>
                   <div className="admin-kpis">
                     <div className="admin-kpi"><strong>{students.length ? `${fa(Math.round((presentToday / students.length) * 100))}٪` : '—'}</strong><span>حضور امروز</span></div>
