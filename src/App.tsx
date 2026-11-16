@@ -402,16 +402,10 @@ function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void
 function AdminToolbar({ navigate }: { navigate: (s: Screen) => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const items: { t: string; i: IconName; go: () => void; accent?: boolean }[] = [
-    { t: 'داشبورد', i: 'grid', go: () => { adminStartTab = 'داشبورد'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'کلاس‌ها', i: 'classes', go: () => { adminStartTab = 'کلاس‌ها'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
-    { t: 'حضور و غیاب', i: 'attendance', go: () => { adminStartTab = 'حضور و غیاب'; adminPanelRerender?.(); navigate('admin') } },
-    { t: 'حضور معلمان', i: 'clock', go: () => { adminStartTab = 'حضور معلمان'; adminPanelRerender?.(); navigate('admin') } },
-    { t: 'تقویم رویدادها', i: 'calendar', go: () => { adminStartTab = 'تقویم رویدادها'; adminPanelRerender?.(); navigate('admin') } },
-    { t: 'برنامه کلاسی', i: 'board', go: () => { adminStartTab = 'برنامه کلاسی'; adminPanelRerender?.(); navigate('admin') } },
-    { t: 'اعلان‌ها', i: 'send', go: () => { adminStartTab = 'اعلان‌ها'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
   ]
   return (
