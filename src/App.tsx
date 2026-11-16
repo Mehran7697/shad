@@ -7005,7 +7005,20 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
 
   return (
     <div className="screen inner-screen admin-screen">
-      <SubHeader screen="admin" back={goBack} rightIcon={null} subtitle={`${date.weekday} · ${date.date}`} />
+      <SubHeader
+        screen="admin"
+        back={goBack}
+        rightIcon={null}
+        title={tab === 'کلاس‌ها' ? 'کلاس‌های مدرسه' : tab === 'معلمان' ? 'دبیران مدرسه' : tab === 'دانش‌آموزان' ? `دانش‌آموزان کلاس ${cls}` : tab}
+        subtitle={`${date.weekday} · ${date.date}`}
+        rightExtra={
+          tab === 'معلمان' ? (
+            <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setNewSubject('علوم تجربی'); setMgSheet('teacher') }}>افزودن دبیر</button>
+          ) : tab === 'دانش‌آموزان' ? (
+            <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setMgSheet('student') }}>افزودن</button>
+          ) : undefined
+        }
+      />
       <AdminToolbar navigate={navigate} />
       <main className="inner-content">
 
@@ -7058,9 +7071,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {/* ================= کلاس‌ها ================= */}
         {tab === 'کلاس‌ها' && (
           <>
-            <div className="section-heading">
-              <strong>کلاس‌های مدرسه</strong>
-            </div>
             {adminClasses.length === 0 && <div className="report-empty-hint">کلاسی ثبت نشده است.</div>}
             {adminClasses.map((c, ci) => {
               const students = classStudents[c] || []
@@ -7089,10 +7099,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {/* ================= معلمان ================= */}
         {tab === 'معلمان' && (
           <>
-            <div className="section-heading">
-              <strong>دبیران مدرسه</strong>
-              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setNewSubject('علوم تجربی'); setMgSheet('teacher') }}>افزودن دبیر</button>
-            </div>
             {adminTeachers.length === 0 && <div className="report-empty-hint">دبیری ثبت نشده است.</div>}
             {adminTeachers.map((t, ti) => (
               <div className="admin-student-row" key={t.name}>
@@ -7123,10 +7129,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </label>
-            </div>
-            <div className="section-heading">
-              <strong>دانش‌آموزان کلاس {cls}</strong>
-              <button type="button" className="admin-add-btn" onClick={() => { setNewName(''); setMgSheet('student') }}>افزودن</button>
             </div>
             {(classStudents[cls] || []).length === 0 && <div className="report-empty-hint">دانش‌آموزی در این کلاس ثبت نشده است.</div>}
             {(classStudents[cls] || []).map((name, si) => {
