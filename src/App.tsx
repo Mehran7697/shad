@@ -877,7 +877,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
                   <span className="admin-class-badge">{c}</span>
                   <div className="admin-row-copy">
                     <strong>کلاس {c}</strong>
-                    <small>{fa(students.length)} دانش‌آموز · کارگردانی: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
+                    <small>{fa(students.length)} دانش‌آموز · معلم: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
                   </div>
                 </div>
                 <div className="admin-kpis">
@@ -7077,7 +7077,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                     <span className="admin-class-badge">{c}</span>
                     <div className="admin-row-copy">
                       <strong>کلاس {c}</strong>
-                      <small>{fa(students.length)} دانش‌آموز · کارگردانی: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
+                      <small>{fa(students.length)} دانش‌آموز · معلم: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
                     </div>
                     <button
                       type="button"
