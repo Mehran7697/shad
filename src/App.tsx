@@ -5618,7 +5618,7 @@ const categoryOptions = [
   'حضور و غیاب',
 ]
 
-function Reports({ goBack }: { goBack: () => void }) {
+function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: UserRole }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
   const [selected, setSelected] = useState<string | null>(null)
@@ -5641,6 +5641,10 @@ function Reports({ goBack }: { goBack: () => void }) {
   const [filterCategories, setFilterCategories] = useState<string[]>(['آزمونک', 'حضور و غیاب'])
   const [filterPeriods, setFilterPeriods] = useState<string[]>([])
   const [exportPage, setExportPage] = useState(false)
+  const [repCls, setRepCls] = useState(() => adminClasses[0] || '۹۰۱')
+  const [clsSheet, setClsSheet] = useState(false)
+  /** لیست دانش‌آموزان نمایش‌داده‌شده — مدیر بر اساس کلاس انتخاب‌شده، بقیه فهرست ثابت */
+  const repStudents = role === 'admin' ? (classStudents[repCls] || []) : students
 
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
@@ -5705,7 +5709,7 @@ function Reports({ goBack }: { goBack: () => void }) {
 
   if (exportPage) {
     const allMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
-    const studentMatches = students.filter(n => !filterStudentQuery.trim() || n.includes(filterStudentQuery.trim()))
+    const studentMatches = repStudents.filter(n => !filterStudentQuery.trim() || n.includes(filterStudentQuery.trim()))
     const toggleCategory = (c: string) => {
       setFilterCategories(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
     }
@@ -5725,7 +5729,7 @@ function Reports({ goBack }: { goBack: () => void }) {
       })
     }
     const downloadReport = (type: 'csv' | 'pdf') => {
-      const chosenStudents = filterAllStudents ? students : filterStudents
+      const chosenStudents = filterAllStudents ? repStudents : filterStudents
       const chosenCats = filterCategories.length ? filterCategories : categoryOptions
       const chosenPeriods = filterPeriods.length ? filterPeriods : (periodMode === 'terms' ? terms : periodMode === 'summer' ? summerMonths : academicMonths)
       const header = ['دانش‌آموز', ...chosenCats, 'بازه']
@@ -5921,7 +5925,7 @@ function Reports({ goBack }: { goBack: () => void }) {
 
   // 1) First: student list
   if (!selected) {
-    const visibleStudents = students.filter(n => !studentQuery.trim() || n.includes(studentQuery.trim()))
+    const visibleStudents = repStudents.filter(n => !studentQuery.trim() || n.includes(studentQuery.trim()))
     const entries = (() => {
       switch (detailTab) {
         case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
@@ -5935,7 +5939,7 @@ function Reports({ goBack }: { goBack: () => void }) {
     const isPctTab = detailTab === 'حضور و غیاب'
     const tabIdx = collectiveCats.indexOf(detailTab)
     const scoresFor = (name: string) => {
-      const si = students.indexOf(name)
+      const si = repStudents.indexOf(name)
       return entries.map((_, ei) => {
         if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5) % 15))}٪`
         if (detailTab === 'فعالیت کلاسی') {
@@ -6056,7 +6060,7 @@ function Reports({ goBack }: { goBack: () => void }) {
             ) : detailTab === 'حضور و غیاب' ? (() => {
               const months = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
               const attFor = (name: string) => {
-                const si = students.indexOf(name)
+                const si = repStudents.indexOf(name)
                 return months.map((_, mi) => {
                   const delay = (si * 3 + mi * 2) % 3
                   const absent = (si * 5 + mi * 3) % 3
@@ -6164,7 +6168,46 @@ function Reports({ goBack }: { goBack: () => void }) {
             )}
           </>
         )}
+        {role === 'admin' && (
+          <button type="button" className="report-cls-switch" onClick={() => setClsSheet(true)}>
+            <span className="report-cls-switch-ic"><Icon name="classes" size={20} /></span>
+            <div className="report-cls-switch-txt">
+              <strong>کلاس {repCls}</strong>
+              <small>تغییر کلاس گزارش · {fa(repStudents.length)} دانش‌آموز</small>
+            </div>
+            <Icon name="chevron" />
+          </button>
+        )}
       </main>
+      {clsSheet && (
+        <div className="overlay group-grade-overlay" onClick={() => setClsSheet(false)}>
+          <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>انتخاب کلاس گزارش</strong>
+                <span>گزارش‌ها برای کلاس انتخاب‌شده نمایش داده می‌شود</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setClsSheet(false)} />
+            </div>
+            {adminClasses.map(c => (
+              <button
+                type="button"
+                key={c}
+                className={`report-cls-option${c === repCls ? ' active' : ''}`}
+                onClick={() => { setRepCls(c); setSelected(null); setStudentQuery(''); setClsSheet(false) }}
+              >
+                <span className="report-cls-option-ic"><Icon name="classes" size={18} /></span>
+                <div className="report-cls-switch-txt">
+                  <strong>کلاس {c}</strong>
+                  <small>{fa((classStudents[c] || []).length)} دانش‌آموز</small>
+                </div>
+                {c === repCls ? <Icon name="check" /> : <Icon name="chevron" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   }
 
@@ -6244,7 +6287,7 @@ function Reports({ goBack }: { goBack: () => void }) {
           </div>
 
           {(() => {
-            const si = selected ? students.indexOf(selected) : 0
+            const si = selected ? repStudents.indexOf(selected) : 0
             const d = (offset: number) => `۱۴۰۵/${fa(7).padStart(2, '۰')}/${fa(weekIndex * 7 + offset).padStart(2, '۰')}`
 
             if (detailTab === 'حضور و غیاب') {
@@ -7793,7 +7836,7 @@ export default function App() {
     {screen === 'storage' && <StorageManage goBack={goBack}/>}
     {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
-    {screen === 'reports' && <Reports goBack={goBack}/>}
+    {screen === 'reports' && <Reports goBack={goBack} role={role}/>}
     {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
     {screen === 'search' && <SchoolSearch navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}

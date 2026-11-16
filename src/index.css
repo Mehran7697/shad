@@ -3760,6 +3760,22 @@
 .export-mini { flex: none; height: 42px; padding: 0 15px; border: 1px solid var(--green); border-radius: 12px; background: var(--green-soft); color: var(--green-dark); font-size: 10.5px; font-weight: 700; transition: .17s; }
 .export-mini:active { transform: scale(.97); }
 .report-empty-hint { text-align: center; color: var(--muted); font-size: 11px; padding: 18px 0; }
+/* دکمهٔ تغییر کلاس گزارش (فقط مدیر) */
+.report-cls-switch { width: 100%; margin-top: 16px; border: 1px dashed var(--green); background: var(--green-soft); border-radius: 16px; padding: 12px 13px; display: flex; align-items: center; gap: 11px; text-align: right; transition: .17s; }
+.report-cls-switch:active { transform: scale(.98); }
+.report-cls-switch-ic { width: 42px; height: 42px; flex: none; display: grid; place-items: center; border-radius: 12px; background: white; color: var(--green-dark); box-shadow: 0 2px 6px rgb(0 0 0 / .07); }
+.report-cls-switch-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.report-cls-switch-txt strong { font-size: 12px; }
+.report-cls-switch-txt small { font-size: 9.5px; color: var(--muted); }
+.report-cls-switch > svg { flex: none; width: 16px; color: var(--green-dark); transform: rotate(180deg); }
+/* آیتم‌های انتخاب کلاس در شیت پایین */
+.report-cls-option { width: 100%; margin-top: 9px; border: 1px solid var(--line); background: white; border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; gap: 11px; text-align: right; transition: .17s; }
+.report-cls-option:active { transform: scale(.98); }
+.report-cls-option-ic { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--green-soft); color: var(--green-dark); }
+.report-cls-option > svg { flex: none; width: 17px; color: #9aa5aa; transform: rotate(180deg); }
+.report-cls-option.active { border-color: var(--green); background: var(--green-soft); }
+.report-cls-option.active .report-cls-option-ic { background: var(--green); color: white; }
+.report-cls-option.active > svg { color: var(--green); transform: none; }
 .report-mode-sticky { gap: 10px; }
 .report-mode-sticky button { border: 1px solid var(--green); background: white; color: var(--green-dark); box-shadow: none; }
 .report-mode-sticky button.active { background: var(--green); color: white; box-shadow: 0 4px 12px rgb(17 156 120 / .2); }
