@@ -4225,12 +4225,19 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   background: var(--green-soft);
 }
 
-/* teacher attendance: full-column table (replaces teacher card) */
-.report-detail-table.att-teacher-table { min-width: 780px; }
+/* teacher attendance: full-column table (replaces teacher card) — tight, auto-sized */
+.report-detail-table.att-teacher-table {
+  table-layout: auto;
+  width: auto;
+  width: fit-content;
+  min-width: 0;
+}
+.report-detail-table.att-teacher-table th,
+.report-detail-table.att-teacher-table td { padding: 6px 5px; }
 .report-detail-table.att-teacher-table th:first-child,
 .report-detail-table.att-teacher-table td:first-child { width: auto; text-align: right; }
-.report-detail-table.att-teacher-table th:nth-child(2),
-.report-detail-table.att-teacher-table td:nth-child(2) { text-align: center; }
+.report-detail-table.att-teacher-table th:nth-child(n+2),
+.report-detail-table.att-teacher-table td:nth-child(n+2) { width: auto; text-align: center; }
 
 
 /* feedback grouped under date row */

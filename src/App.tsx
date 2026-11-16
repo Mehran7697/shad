@@ -7131,7 +7131,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                       <tr>
                         <th>دبیر</th><th>وضعیت روز</th><th>ورود</th><th>خروج</th>
                         <th>مدت حضور روز</th><th>کلاس روز</th>
-                        <th>حضور ماه</th><th>روز کاری</th><th>کلاس‌ها</th><th>غیبت / مرخصی</th>
+                        <th>حضور ماه</th><th>روز کاری</th><th>کلاس‌ها</th><th>غیبت/مرخصی</th>
                       </tr>
                     </thead>
                     <tbody>
