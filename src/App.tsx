@@ -398,6 +398,53 @@ function MySchoolNav({ active, setActive }: { navigate: (screen: Screen) => void
   )
 }
 
+/** shared admin toolbar (☰ + 🔍) with hamburger drawer — used in admin sections */
+function AdminToolbar({ navigate }: { navigate: (s: Screen) => void }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const items: { t: string; i: IconName; go: () => void; accent?: boolean }[] = [
+    { t: 'داشبورد', i: 'grid', go: () => { adminStartTab = 'داشبورد'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'کلاس‌ها', i: 'classes', go: () => { adminStartTab = 'کلاس‌ها'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
+    { t: 'حضور و غیاب', i: 'attendance', go: () => { adminStartTab = 'حضور و غیاب'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'حضور معلمان', i: 'clock', go: () => { adminStartTab = 'حضور معلمان'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'تقویم رویدادها', i: 'calendar', go: () => { adminStartTab = 'تقویم رویدادها'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'برنامه کلاسی', i: 'board', go: () => { adminStartTab = 'برنامه کلاسی'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'اعلان‌ها', i: 'send', go: () => { adminStartTab = 'اعلان‌ها'; adminPanelRerender?.(); navigate('admin') } },
+    { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
+  ]
+  return (
+    <>
+      <div className="home-toolbar">
+        <button className="icon-button toolbar-button" aria-label="منو" onClick={() => setMenuOpen(true)}><Icon name="menu" /></button>
+        <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => navigate('search')}><Icon name="search" /></button>
+      </div>
+      {menuOpen && (
+        <div className="admin-drawer-overlay" onClick={() => setMenuOpen(false)}>
+          <nav className="admin-drawer" onClick={e => e.stopPropagation()}>
+            <div className="admin-drawer-head">
+              <span className="admin-avatar big">م</span>
+              <div>
+                <strong>مدیر مدرسه</strong>
+                <small>مدیریت مدرسه نمونه</small>
+              </div>
+            </div>
+            <div className="admin-drawer-items">
+              {items.map(x => (
+                <button type="button" key={x.t} className={x.accent ? 'is-accent' : ''} onClick={() => { setMenuOpen(false); x.go() }}>
+                  <span><Icon name={x.i} size={19} /></span>
+                  <strong>{x.t}</strong>
+                </button>
+              ))}
+            </div>
+          </nav>
+        </div>
+      )}
+    </>
+  )
+}
+
 function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [active, setActive] = useState(role !== 'student' ? 'مدرسه من' : 'خانه')
   const subjects = [
@@ -412,20 +459,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
   const admRecent = adminRecentClasses.filter(c => adminClasses.includes(c)).slice(0, 3)
-  const [admMenuOpen, setAdmMenuOpen] = useState(false)
-  const admMenuItems: { t: string; i: IconName; go: () => void; accent?: boolean }[] = [
-    { t: 'داشبورد', i: 'grid', go: () => { adminStartTab = 'داشبورد'; navigate('admin') } },
-    { t: 'کلاس‌ها', i: 'classes', go: () => { adminStartTab = 'کلاس‌ها'; navigate('admin') } },
-    { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; navigate('admin') } },
-    { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; navigate('admin') } },
-    { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
-    { t: 'حضور و غیاب', i: 'attendance', go: () => { adminStartTab = 'حضور و غیاب'; navigate('admin') } },
-    { t: 'حضور معلمان', i: 'clock', go: () => { adminStartTab = 'حضور معلمان'; navigate('admin') } },
-    { t: 'تقویم رویدادها', i: 'calendar', go: () => { adminStartTab = 'تقویم رویدادها'; navigate('admin') } },
-    { t: 'برنامه کلاسی', i: 'board', go: () => { adminStartTab = 'برنامه کلاسی'; navigate('admin') } },
-    { t: 'اعلان‌ها', i: 'send', go: () => { adminStartTab = 'اعلان‌ها'; navigate('admin') } },
-    { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
-  ]
   const admEvents: { title: string; label: string; kind: CalKind; due: string; day: number; mi: number }[] = []
   for (let k = admMonthIdx; k < Math.min(calendarMonths.length, admMonthIdx + 2) && admEvents.length < 4; k++) {
     const mm = calendarMonths[k]
@@ -453,12 +486,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       <QuickLinks navigate={navigate} active="آموزش" />
     </div>
     <main className="msg-list" style={{ paddingTop: 10 }}>
-      {role === 'admin' && (
-        <div className="home-toolbar">
-          <button className="icon-button toolbar-button" aria-label="منو" onClick={() => setAdmMenuOpen(true)}><Icon name="menu" /></button>
-          <button className="icon-button toolbar-button" aria-label="جست‌وجو" onClick={() => navigate('search')}><Icon name="search" /></button>
-        </div>
-      )}
+      {role === 'admin' && <AdminToolbar navigate={navigate} />}
       {active === 'خانه' && (
         <div className="edu-home">
           <div className="edu-hero">
@@ -730,27 +758,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       {(active === 'محتوای آموزشی' || active === 'سکوی آموزشی') && contentPlaceholder}
     </main>
     <MySchoolNav navigate={navigate} active={active} setActive={setActive} />
-    {admMenuOpen && (
-      <div className="admin-drawer-overlay" onClick={() => setAdmMenuOpen(false)}>
-        <nav className="admin-drawer" onClick={e => e.stopPropagation()}>
-          <div className="admin-drawer-head">
-            <span className="admin-avatar big">م</span>
-            <div>
-              <strong>مدیر مدرسه</strong>
-              <small>مدیریت مدرسه نمونه</small>
-            </div>
-          </div>
-          <div className="admin-drawer-items">
-            {admMenuItems.map(x => (
-              <button type="button" key={x.t} className={x.accent ? 'is-accent' : ''} onClick={() => { setAdmMenuOpen(false); x.go() }}>
-                <span><Icon name={x.i} size={19} /></span>
-                <strong>{x.t}</strong>
-              </button>
-            ))}
-          </div>
-        </nav>
-      </div>
-    )}
   </div>
 }
 
@@ -801,6 +808,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
 
   return <div className="screen school-search-screen" dir="rtl">
+    <AdminToolbar navigate={navigate} />
     <header className="school-search-head">
       <div className="school-search-bar">
         <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
@@ -5650,7 +5658,7 @@ const categoryOptions = [
   'حضور و غیاب',
 ]
 
-function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Reports({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
   const [selected, setSelected] = useState<string | null>(null)
@@ -6028,6 +6036,7 @@ function Reports({ goBack }: { navigate: (s: Screen) => void; goBack: () => void
           </div>
         )}
       />
+      <AdminToolbar navigate={navigate} />
       <main className="inner-content">
         <div className="report-topbar">
           <div className="report-search-row">
@@ -6734,6 +6743,8 @@ let adminStartDay: number | null = null
 let adminStartCls: string | null = null
 let adminStartTeacher: number | null = null
 let adminStartSearchTag: SearchTag | null = null
+/** set by AdminPanel so drawer jumps can switch tab while panel is already mounted */
+let adminPanelRerender: (() => void) | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
 function touchAdminClass(c: string) {
   adminRecentClasses = [c, ...adminRecentClasses.filter(x => x !== c)].slice(0, 6)
@@ -6753,6 +6764,12 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const dates = adminDateList()
   const [, setTick] = useState(0)
   const rerender = () => setTick(x => x + 1)
+  useEffect(() => { adminPanelRerender = rerender; return () => { adminPanelRerender = null } }, [])
+  // consume a pending tab jump (drawer opened from inside the panel)
+  useEffect(() => {
+    const t = adminStartTab
+    if (t && (adminTabs as readonly string[]).includes(t)) { adminStartTab = null; setTab(t as (typeof adminTabs)[number]) }
+  })
   const [tab, setTab] = useState<(typeof adminTabs)[number]>(() => {
     const start = adminStartTab
     adminStartTab = null
@@ -6919,6 +6936,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   return (
     <div className="screen inner-screen admin-screen">
       <SubHeader screen="admin" back={goBack} rightIcon={null} subtitle={`${date.weekday} · ${date.date}`} />
+      <AdminToolbar navigate={navigate} />
       <main className="inner-content">
 
         {/* ================= داشبورد ================= */}
