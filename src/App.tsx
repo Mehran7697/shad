@@ -4930,7 +4930,7 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
         {(isStudent
           ? [{t:'تکالیف من',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'}]
           : isAdmin
-            ? [{t:'سرویس آموزش',i:'grid',s:'admin',tab:'داشبورد'},{t:'کلاس‌ها',i:'classes',s:'admin',tab:'کلاس‌ها'},{t:'معلمان',i:'person',s:'admin',tab:'معلمان'},{t:'دانش‌آموزان',i:'users',s:'admin',tab:'دانش‌آموزان'},{t:'حضور و غیاب',i:'attendance',s:'admin',tab:'حضور و غیاب'}]
+            ? [{t:'سرویس آموزش',i:'grid',s:'admin',tab:'کلاس‌ها'},{t:'کلاس‌ها',i:'classes',s:'admin',tab:'کلاس‌ها'},{t:'معلمان',i:'person',s:'admin',tab:'معلمان'},{t:'دانش‌آموزان',i:'users',s:'admin',tab:'دانش‌آموزان'},{t:'حضور و غیاب',i:'attendance',s:'admin',tab:'حضور و غیاب'}]
             : [{t:'تکالیف',i:'book',s:'assignments'},{t:'آزمون‌ها',i:'exam',s:'exam'},{t:'منابع کلاسی',i:'file',s:'materials'},{t:'حضور و غیاب',i:'attendance',s:'attendance'}]
         ).map(x => (
           <button key={x.t} onClick={() => { if ('tab' in x) adminStartTab = x.tab; navigate(x.s as Screen) }}>
@@ -6743,7 +6743,7 @@ let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
 function touchAdminClass(c: string) {
   adminRecentClasses = [c, ...adminRecentClasses.filter(x => x !== c)].slice(0, 6)
 }
-const adminTabs = ['داشبورد', 'کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
+const adminTabs = ['کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
 
 const adminEventSubjects = ['مدرسه', 'کلاس', 'ریاضی', 'علوم تجربی', 'فارسی', 'عربی']
 const adminAudiences = ['همه', 'دبیران', 'دانش‌آموزان', 'کلاس خاص', 'رویداد خاص']
@@ -6767,7 +6767,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [tab, setTab] = useState<(typeof adminTabs)[number]>(() => {
     const start = adminStartTab
     adminStartTab = null
-    return ((start && (adminTabs as readonly string[]).includes(start) ? start : 'داشبورد') as (typeof adminTabs)[number])
+    return ((start && (adminTabs as readonly string[]).includes(start) ? start : 'کلاس‌ها') as (typeof adminTabs)[number])
   })
   const [cls, setCls] = useState(() => {
     const c = adminStartCls
@@ -6846,19 +6846,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const dayEvents = monthObj.items.filter(it => it.day === selDay)
   const upcomingEvents = calendarMonths.flatMap(mm =>
     mm.items.filter(it => it.kind === 'event').map(it => `${it.title} · ${fa(it.day)} ${adminMonthShort(mm.label)}`))
-
-  // ---- derived: dashboard
-  const todayAbsent = adminClasses.reduce((sum, _c, ci) =>
-    sum + classStudents[adminClasses[ci]].filter((_, si) => attStatusOf(ci, si, 0) === 'غایب').length, 0)
-  const dashEvents: { title: string; label: string; kind: CalKind; mi: number; day: number }[] = []
-  for (let k = todayMonthIdx; k < Math.min(calendarMonths.length, todayMonthIdx + 2) && dashEvents.length < 6; k++) {
-    const mm = calendarMonths[k]
-    for (const it of mm.items) {
-      if (dashEvents.length >= 6) break
-      if (k === todayMonthIdx && it.day < nowJd) continue
-      dashEvents.push({ title: it.title, label: `${fa(it.day)} ${adminMonthShort(mm.label)}`, kind: it.kind, mi: k, day: it.day })
-    }
-  }
 
   const addEvent = () => {
     if (!evTitle.trim()) return
@@ -6945,52 +6932,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
       />
       <AdminToolbar navigate={navigate} />
       <main className="inner-content">
-
-        {/* ================= داشبورد ================= */}
-        {tab === 'داشبورد' && (
-          <>
-            <div className="admin-kpis">
-              <div className="admin-kpi"><strong>{fa(adminClasses.length)}</strong><span>کلاس فعال</span></div>
-              <div className="admin-kpi"><strong>{fa(adminClasses.reduce((s, c) => s + classStudents[c].length, 0))}</strong><span>دانش‌آموز</span></div>
-              <div className="admin-kpi"><strong>{fa(adminTeachers.length)}</strong><span>دبیر</span></div>
-              <div className="admin-kpi warn"><strong>{fa(todayAbsent)}</strong><span>غیبت امروز</span></div>
-            </div>
-            <div className="section-heading"><strong>دسترسی سریع</strong></div>
-            <div className="admin-quick">
-              {([['کلاس‌ها', 'classes'], ['معلمان', 'person'], ['دانش‌آموزان', 'users'], ['حضور و غیاب', 'attendance'], ['حضور معلمان', 'clock'], ['تقویم رویدادها', 'calendar'], ['برنامه کلاسی', 'board'], ['اعلان‌ها', 'send']] as [string, IconName][]).map(([t, ic]) => (
-                <button key={t} type="button" onClick={() => setTab(t as (typeof adminTabs)[number])}>
-                  <span><Icon name={ic} /></span><strong>{t}</strong>
-                </button>
-              ))}
-            </div>
-            <div className="section-heading"><strong>رویدادهای پیش‌رو</strong></div>
-            {dashEvents.length === 0 && <div className="report-empty-hint">رویدادی برای ماه‌های پیش‌رو ثبت نشده است.</div>}
-            {dashEvents.map(ev => (
-              <button
-                key={`${ev.mi}-${ev.day}-${ev.title}`}
-                type="button"
-                className="admin-event-row"
-                onClick={() => { setMonthIdx(ev.mi); setSelDay(ev.day); setTab('تقویم رویدادها') }}
-              >
-                <i className={`dot ${ev.kind}`} />
-                <div><strong>{ev.title}</strong><small>{adminKindLabels[ev.kind]} · {ev.label}</small></div>
-                <Icon name="chevron" size={16} />
-              </button>
-            ))}
-            <div className="section-heading"><strong>اعلان‌های اخیر</strong></div>
-            {adminAnnouncementStore.length === 0 && <div className="report-empty-hint">هنوز اعلانی ارسال نشده است.</div>}
-            {adminAnnouncementStore.slice(0, 3).map(a => (
-              <div className="admin-ann-item" key={a.id}>
-                <div className="admin-ann-head">
-                  <span className="admin-aud-chip">{a.target}</span>
-                  <small>{a.time} · {fa(a.count)} گیرنده</small>
-                </div>
-                <strong>{a.title}</strong>
-                {a.text && <p>{a.text}</p>}
-              </div>
-            ))}
-          </>
-        )}
 
         {/* ================= کلاس‌ها ================= */}
         {tab === 'کلاس‌ها' && (

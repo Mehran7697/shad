@@ -4636,19 +4636,6 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 }
 .admin-kpi.admin-kpi-action:active { transform: scale(.96); background: var(--green-soft); }
 
-.admin-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 12px; }
-.admin-quick button {
-  border: 1px solid var(--line); background: white; border-radius: 15px;
-  min-height: 74px; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 7px; padding: 10px 4px; transition: .17s;
-}
-.admin-quick button:active { transform: scale(.95); }
-.admin-quick button > span {
-  width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center;
-  color: var(--green-dark); background: var(--green-soft);
-}
-.admin-quick button strong { font-size: 10px; color: var(--ink); font-weight: 700; }
-
 .admin-avatar {
   flex: none; width: 34px; height: 34px; border-radius: 50%;
   display: grid; place-items: center; font-weight: 800; font-size: 13px;
