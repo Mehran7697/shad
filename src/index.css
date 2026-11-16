@@ -4659,6 +4659,13 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .admin-kpi strong { font-size: 19px; color: var(--green-dark); font-weight: 800; }
 .admin-kpi span { font-size: 10px; color: var(--muted); }
 .admin-kpi.warn strong { color: #c0392b; }
+.admin-kpi.admin-kpi-action {
+  align-items: center; justify-content: center; text-align: center;
+  min-height: 62px; font-size: 12.5px; font-weight: 800;
+  color: var(--green-dark); background: linear-gradient(145deg, #f3fcf8, #e8f7f0);
+  border-color: #cfeee2; cursor: pointer; transition: .15s;
+}
+.admin-kpi.admin-kpi-action:active { transform: scale(.96); background: var(--green-soft); }
 
 .admin-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 12px; }
 .admin-quick button {
@@ -4823,14 +4830,6 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   background: linear-gradient(135deg, #12c48b, #0b8f6a);
   font-size: 13px; font-weight: 800;
 }
-.admin-class-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-.admin-class-actions button {
-  height: 32px; border: 1px solid #d5eee6; border-radius: 10px;
-  background: #f7fcfa; color: var(--green-dark); font-size: 10.5px; font-weight: 700;
-  transition: .15s;
-}
-.admin-class-actions button:active { transform: scale(.96); background: var(--green-soft); }
-
 .admin-row-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .admin-row-copy strong { font-size: 12.5px; color: var(--ink); }
 .admin-row-copy small { font-size: 10px; color: var(--muted); }

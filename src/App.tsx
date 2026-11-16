@@ -869,7 +869,6 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
             const ci = adminClasses.indexOf(c)
             const students = classStudents[c] || []
             const presentToday = students.filter((_, si) => attStatusOf(ci, si, 0) !== 'غایب').length
-            const slots = (adminSchedules[c] || []).flat().filter(Boolean).length
             const jump = (tabName: string) => { adminStartCls = c; touchAdminClass(c); adminStartTab = tabName; navigate('admin') }
             return (
               <div className="admin-class-card" key={c}>
@@ -883,12 +882,8 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
                 <div className="admin-kpis">
                   <div className="admin-kpi"><strong>{students.length ? `${fa(Math.round((presentToday / students.length) * 100))}٪` : '—'}</strong><span>حضور امروز</span></div>
                   <div className="admin-kpi"><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
-                  <div className="admin-kpi"><strong>{fa(slots)}</strong><span>بازه برنامه هفته</span></div>
-                </div>
-                <div className="admin-class-actions">
-                  <button type="button" onClick={() => jump('دانش‌آموزان')}>دانش‌آموزان</button>
-                  <button type="button" onClick={() => jump('حضور و غیاب')}>حضور و غیاب</button>
-                  <button type="button" onClick={() => jump('برنامه کلاسی')}>برنامه کلاسی</button>
+                  <button type="button" className="admin-kpi admin-kpi-action" onClick={() => jump('حضور و غیاب')}>حضور و غیاب</button>
+                  <button type="button" className="admin-kpi admin-kpi-action" onClick={() => jump('برنامه کلاسی')}>برنامه کلاسی</button>
                 </div>
               </div>
             )
@@ -7070,7 +7065,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             {adminClasses.map((c, ci) => {
               const students = classStudents[c] || []
               const presentToday = students.filter((_, si) => attStatusOf(ci, si, 0) !== 'غایب').length
-              const slots = (adminSchedules[c] || []).flat().filter(Boolean).length
               return (
                 <div className="admin-class-card" key={c}>
                   <div className="admin-class-head">
@@ -7083,12 +7077,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   <div className="admin-kpis">
                     <div className="admin-kpi"><strong>{students.length ? `${fa(Math.round((presentToday / students.length) * 100))}٪` : '—'}</strong><span>حضور امروز</span></div>
                     <div className="admin-kpi"><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
-                    <div className="admin-kpi"><strong>{fa(slots)}</strong><span>بازه برنامه هفته</span></div>
-                  </div>
-                  <div className="admin-class-actions">
-                    <button type="button" onClick={() => { setCls(c); touchAdminClass(c); setTab('دانش‌آموزان') }}>دانش‌آموزان</button>
-                    <button type="button" onClick={() => { setCls(c); touchAdminClass(c); setTab('حضور و غیاب') }}>حضور و غیاب</button>
-                    <button type="button" onClick={() => { setCls(c); touchAdminClass(c); setTab('برنامه کلاسی') }}>برنامه کلاسی</button>
+                    <button type="button" className="admin-kpi admin-kpi-action" onClick={() => { setCls(c); touchAdminClass(c); setTab('حضور و غیاب') }}>حضور و غیاب</button>
+                    <button type="button" className="admin-kpi admin-kpi-action" onClick={() => { setCls(c); touchAdminClass(c); setTab('برنامه کلاسی') }}>برنامه کلاسی</button>
                   </div>
                 </div>
               )
