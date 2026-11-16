@@ -765,7 +765,7 @@ function parentNameOf(student: string) {
   return `${searchParentFirsts[h % searchParentFirsts.length]} ${family}`
 }
 
-type SearchTag = 'همه' | 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'
+type SearchTag = 'کلاس' | 'معلم' | 'دانش‌آموز' | 'والدین'
 type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; go: () => void }
 
 /** separate Telegram-like search page with tag filters (admin) */
@@ -774,28 +774,28 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   const [tag, setTag] = useState<SearchTag>(() => {
     const t = adminStartSearchTag
     adminStartSearchTag = null
-    return t ?? 'همه'
+    return t ?? 'کلاس'
   })
   const query = q.trim()
   const en = toEn(query)
   const hit = (s: string) => !query || s.includes(query) || toEn(s).includes(en)
   const rows: SearchRow[] = []
   adminClasses.forEach(c => (classStudents[c] || []).forEach(name => {
-    if ((tag === 'همه' || tag === 'دانش‌آموز') && hit(name)) {
+    if (tag === 'دانش‌آموز' && hit(name)) {
       rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
     }
     const p = parentNameOf(name)
-    if ((tag === 'همه' || tag === 'والدین') && hit(p)) {
+    if (tag === 'والدین' && hit(p)) {
       rows.push({ kind: 'والدین', name: p, sub: `والدین ${name} · کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
     }
   }))
   adminTeachers.forEach((t, ti) => {
-    if ((tag === 'همه' || tag === 'معلم') && hit(t.name)) {
+    if (tag === 'معلم' && hit(t.name)) {
       rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { adminStartTeacher = ti; adminStartTab = 'معلمان'; navigate('admin') } })
     }
   })
   adminClasses.forEach(c => {
-    if ((tag === 'همه' || tag === 'کلاس') && hit(c)) {
+    if (tag === 'کلاس' && hit(c)) {
       rows.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
     }
   })
@@ -812,7 +812,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
       </div>
     </header>
     <div className="school-search-tags">
-      {(['همه', 'دانش‌آموز', 'معلم', 'والدین', 'کلاس'] as SearchTag[]).map(t => (
+      {(['کلاس', 'معلم', 'دانش‌آموز', 'والدین'] as SearchTag[]).map(t => (
         <button type="button" key={t} className={tag === t ? 'active' : ''} onClick={() => setTag(t)}>{t}</button>
       ))}
     </div>
