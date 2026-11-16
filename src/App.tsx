@@ -452,7 +452,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admNowParts = toEn(nowShamsi().date).split('/').map(Number)
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
-  const [admTab, setAdmTab] = useState<'افراد' | 'برنامه ریزی' | 'سرویس‌ها' | 'گزارش'>('افراد')
 
   const contentPlaceholder = (
     <div className="school-home">
@@ -635,83 +634,29 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   })}
                 </div>
               </div>
-              {/* تب‌های سریع زیر تقویم */}
-              <div className="admin-chip-row" style={{ marginTop: 14 }}>
-                {(['افراد', 'برنامه ریزی', 'سرویس‌ها', 'گزارش'] as const).map(t => (
-                  <button key={t} type="button" className={`admin-chip${admTab === t ? ' active' : ''}`} onClick={() => setAdmTab(t)}>{t}</button>
-                ))}
+              {/* میانبرهای بزرگ زیر تقویم */}
+              <div className="classroom-grid" style={{ marginTop: 14 }}>
+                <button onClick={() => navigate('search')}>
+                  <span><Icon name="users" /></span>
+                  <strong>افراد</strong>
+                  <small>{fa(adminClasses.reduce((s, c) => s + (classStudents[c] || []).length, 0))} دانش‌آموز · {fa(adminTeachers.length)} دبیر</small>
+                </button>
+                <button onClick={() => { adminStartTab = 'برنامه کلاسی'; navigate('admin') }}>
+                  <span><Icon name="board" /></span>
+                  <strong>برنامه ریزی</strong>
+                  <small>برنامهٔ هفتگی و تقویم رویدادها</small>
+                </button>
+                <button onClick={() => navigate('admin')}>
+                  <span><Icon name="grid" /></span>
+                  <strong>سرویس‌ها</strong>
+                  <small>پنل مدیریت مدرسه</small>
+                </button>
+                <button onClick={() => navigate('reports')}>
+                  <span><Icon name="chart" /></span>
+                  <strong>گزارش</strong>
+                  <small>گزارش‌های مدرسه</small>
+                </button>
               </div>
-              {admTab === 'افراد' && (
-                <>
-                  <button className="resource" onClick={() => { adminStartTab = 'معلمان'; navigate('admin') }}>
-                    <span className="resource-icon mint"><Icon name="person" /></span>
-                    <div><strong>دبیران مدرسه</strong><small>لیست دبیران و دروس</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartTab = 'دانش‌آموزان'; navigate('admin') }}>
-                    <span className="resource-icon blue"><Icon name="users" /></span>
-                    <div><strong>دانش‌آموزان</strong><small>به تفکیک کلاس</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartSearchTag = 'والدین'; navigate('search') }}>
-                    <span className="resource-icon orange"><Icon name="home" /></span>
-                    <div><strong>والدین</strong><small>جست‌وجوی والدین دانش‌آموزان</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                </>
-              )}
-              {admTab === 'برنامه ریزی' && (
-                <>
-                  <button className="resource" onClick={() => { adminStartTab = 'برنامه کلاسی'; navigate('admin') }}>
-                    <span className="resource-icon mint"><Icon name="board" /></span>
-                    <div><strong>برنامه کلاسی</strong><small>برنامهٔ هفتگی کلاس‌ها</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartTab = 'تقویم رویدادها'; navigate('admin') }}>
-                    <span className="resource-icon blue"><Icon name="calendar" /></span>
-                    <div><strong>تقویم رویدادها</strong><small>آزمون، تکلیف و مناسبت‌ها</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartTab = 'کلاس‌ها'; navigate('admin') }}>
-                    <span className="resource-icon orange"><Icon name="classes" /></span>
-                    <div><strong>کلاس‌ها</strong><small>کارت کلاس و عملیات</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                </>
-              )}
-              {admTab === 'سرویس‌ها' && (
-                <>
-                  <button className="resource" onClick={() => navigate('admin')}>
-                    <span className="resource-icon mint"><Icon name="grid" /></span>
-                    <div><strong>سرویس آموزش</strong><small>پنل مدیریت مدرسه</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartTab = 'حضور و غیاب'; navigate('admin') }}>
-                    <span className="resource-icon blue"><Icon name="attendance" /></span>
-                    <div><strong>حضور و غیاب</strong><small>ثبت وضعیت دانش‌آموزان</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartTab = 'اعلان‌ها'; navigate('admin') }}>
-                    <span className="resource-icon orange"><Icon name="send" /></span>
-                    <div><strong>اعلان‌ها</strong><small>ارسال اعلان به مخاطبان</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                </>
-              )}
-              {admTab === 'گزارش' && (
-                <>
-                  <button className="resource" onClick={() => navigate('reports')}>
-                    <span className="resource-icon mint"><Icon name="chart" /></span>
-                    <div><strong>گزارش گیری</strong><small>گزارش‌های مدرسه</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                  <button className="resource" onClick={() => { adminStartTab = 'حضور معلمان'; navigate('admin') }}>
-                    <span className="resource-icon blue"><Icon name="clock" /></span>
-                    <div><strong>حضور معلمان</strong><small>ورود و خروج دبیران</small></div>
-                    <Icon name="chevron" />
-                  </button>
-                </>
-              )}
             </>
           ) : (
             <>
