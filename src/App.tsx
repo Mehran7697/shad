@@ -801,6 +801,26 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   })
   const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
 
+  // ---- فیلتر کلاس‌ها بر اساس کلاس / درس / معلم (کارت کلاس) ----
+  const [fMode, setFMode] = useState<'کلاس' | 'درس' | 'معلم'>('کلاس')
+  const [fQ, setFQ] = useState('')
+  const fQuery = fQ.trim()
+  const fEn = toEn(fQuery)
+  const fHit = (s: string) => !fQuery || s.includes(fQuery) || toEn(s).includes(fEn)
+  const fSlots = (c: string): { subject: string; teacher: string }[] =>
+    (adminSchedules[c] || []).flat().filter((x): x is { subject: string; teacher: string } => x !== null)
+  const fSuggestions: string[] = fMode === 'کلاس'
+    ? [...adminClasses]
+    : fMode === 'درس'
+      ? Array.from(new Set(adminClasses.flatMap(c => fSlots(c).map(s => s.subject))))
+      : Array.from(new Set(adminClasses.flatMap(c => fSlots(c).map(s => s.teacher))))
+  const fClasses = fQuery ? adminClasses.filter(c => {
+    if (fMode === 'کلاس') return fHit(c) || fHit(`کلاس ${c}`)
+    if (fMode === 'درس') return fSlots(c).some(s => fHit(s.subject))
+    const head = adminTeachers[adminClasses.indexOf(c) % (adminTeachers.length || 1)]?.name || ''
+    return fSlots(c).some(s => fHit(s.teacher)) || fHit(head)
+  }) : []
+
   return <div className="screen school-search-screen" dir="rtl">
     <AdminToolbar navigate={navigate} />
     <header className="school-search-head">
@@ -816,16 +836,77 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
         <button type="button" key={t} className={tag === t ? 'active' : ''} onClick={() => setTag(t)}>{t}</button>
       ))}
     </div>
+    <div className="cls-filter">
+      <div className="cls-filter-chips">
+        {(['کلاس', 'درس', 'معلم'] as const).map(f => (
+          <button
+            type="button"
+            key={f}
+            className={fMode === f ? 'active' : ''}
+            onClick={() => { setFMode(f); setFQ('') }}
+          >{f}</button>
+        ))}
+      </div>
+      <label className="field cls-filter-field">
+        <input
+          value={fQ}
+          onChange={e => setFQ(e.target.value)}
+          placeholder={fMode === 'کلاس' ? 'جست‌وجوی کلاس... مثلاً ۹۰۱' : fMode === 'درس' ? 'جست‌وجوی درس... مثلاً ریاضی' : 'جست‌وجوی معلم... مثلاً محمدی'}
+        />
+      </label>
+      <div className="cls-filter-suggest">
+        {fSuggestions.map(s => (
+          <button type="button" key={s} className={fQ === s ? 'active' : ''} onClick={() => setFQ(s)}>{s}</button>
+        ))}
+      </div>
+    </div>
     <main className="msg-list school-search-list">
-      <div className="school-search-count">{query ? `${fa(rows.length)} نتیجه` : `${fa(rows.length)} مورد`}</div>
-      {rows.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
-      {rows.map((r, i) => (
-        <button type="button" className="school-search-row" key={`${r.kind}-${r.name}-${i}`} onClick={r.go}>
-          <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
-          <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
-          <Icon name="chevron" size={16} />
-        </button>
-      ))}
+      {fQuery ? (
+        <>
+          <div className="school-search-count">{fa(fClasses.length)} کلاس</div>
+          {fClasses.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
+          {fClasses.map(c => {
+            const ci = adminClasses.indexOf(c)
+            const students = classStudents[c] || []
+            const presentToday = students.filter((_, si) => attStatusOf(ci, si, 0) !== 'غایب').length
+            const slots = (adminSchedules[c] || []).flat().filter(Boolean).length
+            const jump = (tabName: string) => { adminStartCls = c; touchAdminClass(c); adminStartTab = tabName; navigate('admin') }
+            return (
+              <div className="admin-class-card" key={c}>
+                <div className="admin-class-head">
+                  <span className="admin-class-badge">{c}</span>
+                  <div className="admin-row-copy">
+                    <strong>کلاس {c}</strong>
+                    <small>{fa(students.length)} دانش‌آموز · کارگردانی: {adminTeachers[ci % adminTeachers.length]?.name || '—'}</small>
+                  </div>
+                </div>
+                <div className="admin-kpis">
+                  <div className="admin-kpi"><strong>{students.length ? `${fa(Math.round((presentToday / students.length) * 100))}٪` : '—'}</strong><span>حضور امروز</span></div>
+                  <div className="admin-kpi"><strong>{fa(students.length)}</strong><span>دانش‌آموز</span></div>
+                  <div className="admin-kpi"><strong>{fa(slots)}</strong><span>بازه برنامه هفته</span></div>
+                </div>
+                <div className="admin-class-actions">
+                  <button type="button" onClick={() => jump('دانش‌آموزان')}>دانش‌آموزان</button>
+                  <button type="button" onClick={() => jump('حضور و غیاب')}>حضور و غیاب</button>
+                  <button type="button" onClick={() => jump('برنامه کلاسی')}>برنامه کلاسی</button>
+                </div>
+              </div>
+            )
+          })}
+        </>
+      ) : (
+        <>
+          <div className="school-search-count">{query ? `${fa(rows.length)} نتیجه` : `${fa(rows.length)} مورد`}</div>
+          {rows.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
+          {rows.map((r, i) => (
+            <button type="button" className="school-search-row" key={`${r.kind}-${r.name}-${i}`} onClick={r.go}>
+              <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
+              <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
+              <Icon name="chevron" size={16} />
+            </button>
+          ))}
+        </>
+      )}
     </main>
   </div>
 }
@@ -6780,8 +6861,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     adminStartTeacher = null
     return t !== null && t >= 0 && t < adminTeachers.length ? t : -1
   })
-  const [clsFilter, setClsFilter] = useState<'کلاس' | 'درس' | 'معلم'>('کلاس')
-  const [clsQuery, setClsQuery] = useState('')
 
   const now = nowShamsi()
   const [nowJy, nowJm, nowJd] = toEn(now.date).split('/').map(Number)
@@ -6929,25 +7008,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
 
   const effTeacherIdx = teacherIdx >= adminTeachers.length ? -1 : teacherIdx
 
-  // ---- فیلتر کلاس‌ها بر اساس کلاس / درس / معلم ----
-  const clsFilterQ = clsQuery.trim()
-  const clsFilterEn = toEn(clsFilterQ)
-  const clsHit = (s: string) => !clsFilterQ || s.includes(clsFilterQ) || toEn(s).includes(clsFilterEn)
-  const clsSlots = (c: string): { subject: string; teacher: string }[] =>
-    (adminSchedules[c] || []).flat().filter((x): x is { subject: string; teacher: string } => x !== null)
-  const clsSuggestions: string[] = clsFilter === 'کلاس'
-    ? [...adminClasses]
-    : clsFilter === 'درس'
-      ? Array.from(new Set(adminClasses.flatMap(c => clsSlots(c).map(s => s.subject))))
-      : Array.from(new Set(adminClasses.flatMap(c => clsSlots(c).map(s => s.teacher))))
-  const clsFiltered = adminClasses.filter(c => {
-    if (!clsFilterQ) return true
-    if (clsFilter === 'کلاس') return clsHit(c) || clsHit(`کلاس ${c}`)
-    if (clsFilter === 'درس') return clsSlots(c).some(s => clsHit(s.subject))
-    const head = adminTeachers[adminClasses.indexOf(c) % (adminTeachers.length || 1)]?.name || ''
-    return clsSlots(c).some(s => clsHit(s.teacher)) || clsHit(head)
-  })
-
   return (
     <div className="screen inner-screen admin-screen">
       <SubHeader screen="admin" back={goBack} rightIcon={null} subtitle={`${date.weekday} · ${date.date}`} />
@@ -7006,33 +7066,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             <div className="section-heading">
               <strong>کلاس‌های مدرسه</strong>
             </div>
-            <div className="cls-filter">
-              <div className="cls-filter-chips">
-                {(['کلاس', 'درس', 'معلم'] as const).map(f => (
-                  <button
-                    type="button"
-                    key={f}
-                    className={clsFilter === f ? 'active' : ''}
-                    onClick={() => { setClsFilter(f); setClsQuery('') }}
-                  >{f}</button>
-                ))}
-              </div>
-              <label className="field cls-filter-field">
-                <input
-                  value={clsQuery}
-                  onChange={e => setClsQuery(e.target.value)}
-                  placeholder={clsFilter === 'کلاس' ? 'جست‌وجوی کلاس... مثلاً ۹۰۱' : clsFilter === 'درس' ? 'جست‌وجوی درس... مثلاً ریاضی' : 'جست‌وجوی معلم... مثلاً محمدی'}
-                />
-              </label>
-              <div className="cls-filter-suggest">
-                {clsSuggestions.map(s => (
-                  <button type="button" key={s} className={clsQuery === s ? 'active' : ''} onClick={() => setClsQuery(s)}>{s}</button>
-                ))}
-              </div>
-            </div>
-            {clsFiltered.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
-            {clsFiltered.map(c => {
-              const ci = adminClasses.indexOf(c)
+            {adminClasses.length === 0 && <div className="report-empty-hint">کلاسی ثبت نشده است.</div>}
+            {adminClasses.map((c, ci) => {
               const students = classStudents[c] || []
               const presentToday = students.filter((_, si) => attStatusOf(ci, si, 0) !== 'غایب').length
               const slots = (adminSchedules[c] || []).flat().filter(Boolean).length

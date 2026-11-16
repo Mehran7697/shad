@@ -650,6 +650,7 @@
   font-size: 10.5px; font-weight: 700; cursor: pointer; transition: .15s;
 }
 .cls-filter-suggest button.active { background: var(--green); border-color: var(--green); color: white; }
+.school-search-screen .cls-filter { margin: 0 14px 4px; }
 
 .score-stepper { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .score-step-btn { width: 46px; height: 46px; border: 0; border-radius: 14px; display: grid; place-items: center; color: white; transition: .18s; }
