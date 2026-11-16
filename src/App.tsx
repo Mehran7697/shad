@@ -7118,60 +7118,53 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               </label>
             </div>
             {date.holiday && <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>}
-            {effTeacherIdx >= 0 ? (
-              (() => {
-                const tm = teacherMonthly[effTeacherIdx]
-                const td = tm.today
-                return (
-                  <div className="admin-teacher-card">
-                    <div className="admin-teacher-head">
-                      <div className="admin-avatar big">{tm.initial}</div>
-                      <div><strong>{tm.name}</strong><span>{tm.subject}</span></div>
-                      <span className={`admin-status-chip st-${td.status === 'حاضر' ? 'ok' : td.status === 'مرخصی' ? 'late' : 'abs'}`}>{td.status}</span>
-                    </div>
-                    <div className="admin-kpis">
-                      <div className="admin-kpi"><strong>{td.arrive}</strong><span>ورود</span></div>
-                      <div className="admin-kpi"><strong>{td.leave}</strong><span>خروج</span></div>
-                      <div className="admin-kpi"><strong>{adminMinutes(td.minutes)}</strong><span>مدت حضور روز</span></div>
-                      <div className="admin-kpi"><strong>{fa(td.classes)}</strong><span>کلاس روز</span></div>
-                    </div>
-                    <div className="admin-kpis">
-                      <div className="admin-kpi"><strong>{adminMinutes(tm.minutes)}</strong><span>حضور این ماه</span></div>
-                      <div className="admin-kpi"><strong>{fa(tm.days)}</strong><span>روز کاری</span></div>
-                      <div className="admin-kpi"><strong>{fa(tm.classes)}</strong><span>کلاس‌ها</span></div>
-                      <div className="admin-kpi warn"><strong>{fa(tm.absDays + tm.offDays)}</strong><span>غیبت / مرخصی</span></div>
-                    </div>
-                  </div>
-                )
-              })()
-            ) : (
-              <div className="assignment-table-wrap">
-                <table className="report-detail-table att-month-table" dir="rtl">
-                  <thead>
-                    <tr><th>دبیر</th><th>وضعیت روز</th><th>ورود</th><th>خروج</th><th>حضور ماه</th><th>کلاس‌ها</th></tr>
-                  </thead>
-                  <tbody>
-                    {teacherMonthly.map(tm => (
-                      <tr key={tm.name}>
-                        <td><strong>{tm.name}</strong></td>
-                        <td>{tm.today.status}</td>
-                        <td>{tm.today.arrive}</td>
-                        <td>{tm.today.leave}</td>
-                        <td>{adminMinutes(tm.minutes)}</td>
-                        <td>{fa(tm.classes)}</td>
+            {(() => {
+              const list = effTeacherIdx >= 0 ? [teacherMonthly[effTeacherIdx]] : teacherMonthly
+              const sum = list.reduce((a, b) => ({
+                minutes: a.minutes + b.minutes, days: a.days + b.days,
+                classes: a.classes + b.classes, abs: a.abs + b.absDays + b.offDays,
+              }), { minutes: 0, days: 0, classes: 0, abs: 0 })
+              return (
+                <div className="assignment-table-wrap">
+                  <table className="report-detail-table att-month-table att-teacher-table" dir="rtl">
+                    <thead>
+                      <tr>
+                        <th>دبیر</th><th>وضعیت روز</th><th>ورود</th><th>خروج</th>
+                        <th>مدت حضور روز</th><th>کلاس روز</th>
+                        <th>حضور ماه</th><th>روز کاری</th><th>کلاس‌ها</th><th>غیبت / مرخصی</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={4}><strong>جمع کل دبیران</strong></td>
-                      <td>{adminMinutes(teacherMonthly.reduce((a, b) => a + b.minutes, 0))}</td>
-                      <td>{fa(teacherMonthly.reduce((a, b) => a + b.classes, 0))}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            )}
+                    </thead>
+                    <tbody>
+                      {list.map(tm => (
+                        <tr key={tm.name}>
+                          <td><strong>{tm.name}</strong></td>
+                          <td><span className={`admin-status-chip st-${tm.today.status === 'حاضر' ? 'ok' : tm.today.status === 'مرخصی' ? 'late' : 'abs'}`}>{tm.today.status}</span></td>
+                          <td>{tm.today.arrive}</td>
+                          <td>{tm.today.leave}</td>
+                          <td>{adminMinutes(tm.today.minutes)}</td>
+                          <td>{fa(tm.today.classes)}</td>
+                          <td>{adminMinutes(tm.minutes)}</td>
+                          <td>{fa(tm.days)}</td>
+                          <td>{fa(tm.classes)}</td>
+                          <td>{fa(tm.absDays + tm.offDays)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    {effTeacherIdx < 0 && (
+                      <tfoot>
+                        <tr>
+                          <td colSpan={6}><strong>جمع کل دبیران</strong></td>
+                          <td>{adminMinutes(sum.minutes)}</td>
+                          <td>{fa(sum.days)}</td>
+                          <td>{fa(sum.classes)}</td>
+                          <td>{fa(sum.abs)}</td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              )
+            })()}
           </>
         )}
 

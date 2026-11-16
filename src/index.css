@@ -4225,6 +4225,13 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   background: var(--green-soft);
 }
 
+/* teacher attendance: full-column table (replaces teacher card) */
+.report-detail-table.att-teacher-table { min-width: 780px; }
+.report-detail-table.att-teacher-table th:first-child,
+.report-detail-table.att-teacher-table td:first-child { width: auto; text-align: right; }
+.report-detail-table.att-teacher-table th:nth-child(2),
+.report-detail-table.att-teacher-table td:nth-child(2) { text-align: center; }
+
 
 /* feedback grouped under date row */
 .feedback-stack {
@@ -4668,15 +4675,6 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   padding: 9px 12px; margin-bottom: 8px;
 }
 .admin-student-row strong { flex: 1; font-size: 12.5px; color: var(--ink); }
-
-.admin-teacher-card {
-  background: white; border: 1px solid var(--line); border-radius: 17px;
-  padding: 14px; display: flex; flex-direction: column; gap: 12px;
-}
-.admin-teacher-head { display: flex; align-items: center; gap: 11px; }
-.admin-teacher-head > div:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.admin-teacher-head strong { font-size: 14px; }
-.admin-teacher-head span { font-size: 10.5px; color: var(--muted); }
 
 .admin-event-row {
   width: 100%; display: flex; align-items: center; gap: 9px;
