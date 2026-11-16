@@ -352,10 +352,6 @@ function Messenger({ navigate }: { navigate: (screen: Screen) => void; goBack?: 
     <header className="home-header">
       <QuickLinks navigate={navigate} active="پیام رسان" />
     </header>
-    <div className="home-toolbar">
-      <button className="icon-button toolbar-button" aria-label="منو"><Icon name="menu" /></button>
-      <button className="icon-button toolbar-button" aria-label="جست‌وجو"><Icon name="search" /></button>
-    </div>
     <div className="chips">{['همه', 'دروس من', 'گروه', 'شخصی', 'کانال'].map(x => <button key={x} className={filter === x ? 'active' : ''} onClick={() => setFilter(x)}>{x}</button>)}</div>
     <main className="conversation-list">
       {started && <button className="class-banner-active" onClick={() => navigate('call')}>
@@ -470,7 +466,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
       <QuickLinks navigate={navigate} active="آموزش" />
     </div>
     <main className="msg-list" style={{ paddingTop: 10 }}>
-      {role === 'admin' && <AdminToolbar navigate={navigate} />}
       {active === 'خانه' && (
         <div className="edu-home">
           <div className="edu-hero">
@@ -782,7 +777,6 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
 
   return <div className="screen school-search-screen" dir="rtl">
-    <AdminToolbar navigate={navigate} />
     <header className="school-search-head">
       <div className="school-search-bar">
         <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
@@ -5632,7 +5626,7 @@ const categoryOptions = [
   'حضور و غیاب',
 ]
 
-function Reports({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function Reports({ goBack }: { goBack: () => void }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
   const [selected, setSelected] = useState<string | null>(null)
@@ -6010,7 +6004,6 @@ function Reports({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: 
           </div>
         )}
       />
-      <AdminToolbar navigate={navigate} />
       <main className="inner-content">
         <div className="report-topbar">
           <div className="report-search-row">
@@ -7804,7 +7797,7 @@ export default function App() {
     {screen === 'storage' && <StorageManage goBack={goBack}/>}
     {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
-    {screen === 'reports' && <Reports navigate={navigate} goBack={goBack}/>}
+    {screen === 'reports' && <Reports goBack={goBack}/>}
     {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
     {screen === 'search' && <SchoolSearch navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
