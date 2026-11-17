@@ -762,7 +762,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
     if (!inCls(c)) return
     ;(classStudents[c] || []).forEach(name => {
       if (tag === 'دانش‌آموز' && hit(name)) {
-        rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+        rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, cls: c, go: () => { reportStartStudent = name; adminStartReportCls = c; navigate('reports') } })
       }
       const p = parentNameOf(name)
       if (tag === 'والدین' && hit(p)) {
@@ -772,7 +772,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   })
   adminTeachers.forEach((t, ti) => {
     if (tag === 'معلم' && hit(t.name)) {
-      rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { adminStartTeacher = ti; adminStartTab = 'معلمان'; navigate('admin') } })
+      rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { reportStartTeacher = t.name; navigate('reports') } })
     }
   })
   adminClasses.forEach(c => {
@@ -5682,8 +5682,18 @@ const categoryOptions = [
 function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: UserRole }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(() => {
+    const n = reportStartStudent
+    reportStartStudent = null
+    return n
+  })
+  const [selectedTeacher, setSelectedTeacher] = useState<string | null>(() => {
+    const n = reportStartTeacher
+    reportStartTeacher = null
+    return n
+  })
   const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
+  const [teacherTab, setTeacherTab] = useState('ساعت کاری')
   const [studentQuery, setStudentQuery] = useState('')
   const [detailTab, setDetailTab] = useState('بازخورد کلاسی')
   const [weekIndex, setWeekIndex] = useState(0)
@@ -5770,6 +5780,10 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
     }
     if (selected) {
       setSelected(null)
+      return
+    }
+    if (selectedTeacher) {
+      setSelectedTeacher(null)
       return
     }
     if (exportPage) {
@@ -5993,6 +6007,155 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
       </main>
       {toast && <div className="toast">{toast}</div>}
     </div>
+  }
+
+
+  // گزارش کار معلم
+  if (selectedTeacher) {
+    const teacher = adminTeachers.find(x => x.name === selectedTeacher) || {
+      name: selectedTeacher,
+      subject: 'علوم تجربی',
+      initial: selectedTeacher[0] || 'م',
+      subjects: ['علوم تجربی'],
+    }
+    const subjects = (teacher as { subjects?: string[] }).subjects?.length
+      ? (teacher as { subjects?: string[] }).subjects!
+      : [teacher.subject]
+    const teacherTabs = ['تکالیف ثبت‌شده', 'آزمون‌ها', 'منابع کلاسی', 'بازخورد کلاسی', 'ساعت کاری']
+    const workSeed = selectedTeacher.split('').reduce((s, ch) => s + ch.charCodeAt(0), 0)
+    const hourRows = [
+      { date: '۱۴۰۵/۰۷/۰۴', section: 'چت کلاس · علوم تجربی', minutes: 48 + (workSeed % 20) },
+      { date: '۱۴۰۵/۰۷/۰۴', section: 'ثبت نمره', minutes: 22 + (workSeed % 10) },
+      { date: '۱۴۰۵/۰۷/۰۵', section: 'حضور و غیاب', minutes: 12 + (workSeed % 8) },
+      { date: '۱۴۰۵/۰۷/۰۵', section: 'تکالیف · بازخورد', minutes: 35 + (workSeed % 15) },
+      { date: '۱۴۰۵/۰۷/۰۸', section: 'منابع کلاسی', minutes: 18 + (workSeed % 12) },
+      { date: '۱۴۰۵/۰۷/۰۸', section: 'چت کلاس · ریاضی', minutes: 40 + (workSeed % 18) },
+      { date: '۱۴۰۵/۰۷/۱۲', section: 'آزمون · طراحی', minutes: 55 + (workSeed % 14) },
+      { date: '۱۴۰۵/۰۷/۱۲', section: 'گزارش کلاسی', minutes: 27 + (workSeed % 9) },
+    ]
+    const totalMin = hourRows.reduce((s, r) => s + r.minutes, 0)
+    const fmtMin = (m: number) => {
+      const h = Math.floor(m / 60)
+      const mm = m % 60
+      if (h && mm) return `${fa(h)} ساعت و ${fa(mm)} دقیقه`
+      if (h) return `${fa(h)} ساعت`
+      return `${fa(mm)} دقیقه`
+    }
+    const workLists: Record<string, { title: string; sub: string }[]> = {
+      'تکالیف ثبت‌شده': [
+        { title: 'تمرین فصل سوم', sub: 'علوم تجربی · کلاس ۹۰۱ · ۱۲ تحویل' },
+        { title: 'گزارش آزمایش', sub: 'علوم تجربی · کلاس ۹۰۱ · ۸ تحویل' },
+        { title: 'تمرین صفحه ۴۵', sub: subjects[0] + ' · ثبت‌شده این ماه' },
+      ],
+      'آزمون‌ها': [
+        { title: 'آزمونک فصل ۲', sub: 'آزمونک · ۲۰ سؤال' },
+        { title: 'آزمون میان‌ترم', sub: 'آزمون · برگزار شده' },
+      ],
+      'منابع کلاسی': [
+        { title: 'جزوه فصل سوم.pdf', sub: 'پوشه فصل سوم' },
+        { title: 'ویدیو آزمایش', sub: 'پوشه آزمایشگاه' },
+      ],
+      'بازخورد کلاسی': [
+        { title: 'بازخورد گروهی مثبت', sub: 'کلاس ۹۰۱ · ۳+' },
+        { title: 'تذکر نظم', sub: 'کلاس ۹۰۲ · ۱−' },
+      ],
+    }
+
+    return (
+      <div className="screen inner-screen">
+        <SubHeader
+          screen="gradebook"
+          back={() => setSelectedTeacher(null)}
+          title={teacher.name}
+          subtitle={`گزارش کار معلم · ${subjects.join('، ')}`}
+          rightIcon={null}
+        />
+        <main className="inner-content">
+          <div className="week-summary-banner">
+            <div className="week-summary-item">
+              <strong>{fa(subjects.length)}</strong>
+              <span>درس فعال</span>
+            </div>
+            <div className="week-summary-item">
+              <strong>{fmtMin(totalMin)}</strong>
+              <span>حضور در اپ</span>
+            </div>
+            <div className="week-summary-item">
+              <strong>{fa(hourRows.length)}</strong>
+              <span>نشست کاری</span>
+            </div>
+          </div>
+
+          <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 4, marginBottom: 10 }}>
+            {teacherTabs.map(tab => (
+              <button
+                key={tab}
+                type="button"
+                className={teacherTab === tab ? 'active' : ''}
+                onClick={() => setTeacherTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {teacherTab === 'ساعت کاری' ? (
+            <>
+              <div className="section-heading">
+                <strong>ساعت کاری در اپ</strong>
+                <span>زمان حضور در بخش‌های مرتبط با کلاس</span>
+              </div>
+              <div className="assignment-table-wrap">
+                <table className="report-detail-table" dir="rtl">
+                  <thead>
+                    <tr>
+                      <th>تاریخ</th>
+                      <th>بخش</th>
+                      <th>مدت</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hourRows.map((r, i) => (
+                      <tr key={i}>
+                        <td>{r.date}</td>
+                        <td>{r.section}</td>
+                        <td>{fmtMin(r.minutes)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="collective-foot">
+                    <tr>
+                      <td colSpan={2}><strong>جمع مدت</strong></td>
+                      <td><strong>{fmtMin(totalMin)}</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="section-heading">
+                <strong>{teacherTab}</strong>
+                <span>{fa((workLists[teacherTab] || []).length)} مورد</span>
+              </div>
+              <div className="storage-list">
+                {(workLists[teacherTab] || []).map((item, i) => (
+                  <div className="storage-group" key={i}>
+                    <div className="storage-row" style={{ cursor: 'default' }}>
+                      <span className="storage-row-icon"><Icon name={teacherTab === 'آزمون‌ها' ? 'exam' : teacherTab === 'منابع کلاسی' ? 'file' : 'book'} /></span>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <small>{item.sub}</small>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+    )
   }
 
   // 1) First: student list
@@ -6845,6 +7008,10 @@ let adminStartTeacher: number | null = null
 let adminStartSearchTag: SearchTag | null = null
 /** کلاس انتخاب‌شده از کارت کلاس در جست‌وجو → باز شدن صفحهٔ گزارش روی همان کلاس */
 let adminStartReportCls: string | null = null
+/** باز کردن مستقیم گزارش فردی یک دانش‌آموز (از جست‌وجوی مدرسه) */
+let reportStartStudent: string | null = null
+/** باز کردن مستقیم گزارش کار معلم */
+let reportStartTeacher: string | null = null
 /** set by AdminPanel so drawer jumps can switch tab while panel is already mounted */
 let adminPanelRerender: (() => void) | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
