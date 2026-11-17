@@ -4743,6 +4743,44 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .admin-ann-item strong { font-size: 12.5px; color: var(--ink); }
 .admin-ann-item p { font-size: 11px; color: var(--muted); line-height: 1.8; margin: 0; }
 
+/* ---- فروشگاه سرویس‌های مدرسه ---- */
+.admin-svc-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 4px; }
+.admin-svc-card {
+  background: white; border: 1px solid var(--line); border-radius: 15px;
+  padding: 12px 13px; margin-bottom: 10px; transition: .17s;
+}
+.admin-svc-card.active { border-color: var(--green); background: linear-gradient(145deg, #f7fffb, #effbf6); }
+.admin-svc-head { display: flex; align-items: center; gap: 10px; }
+.admin-svc-ic {
+  flex: none; width: 40px; height: 40px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--green-soft); color: var(--green-dark);
+}
+.admin-svc-card.active .admin-svc-ic { background: var(--green); color: white; }
+.admin-svc-price { flex: none; font-size: 11px; font-weight: 800; color: var(--green-dark); text-align: left; }
+.admin-svc-price small { display: block; font-size: 8.5px; color: var(--muted); font-weight: 600; }
+.admin-svc-feats { margin: 9px 0 0; padding: 0 18px 0 0; display: flex; flex-direction: column; gap: 3px; }
+.admin-svc-feats li { font-size: 10.5px; color: var(--muted); }
+.admin-svc-feats li::marker { color: var(--green); }
+.admin-svc-actions { display: flex; gap: 8px; margin-top: 11px; }
+.admin-svc-btn {
+  flex: 1; height: 36px; border-radius: 11px; font-size: 11.5px; font-weight: 800; transition: .15s;
+}
+.admin-svc-btn:active { transform: scale(.97); }
+.admin-svc-btn.buy { border: 0; background: var(--green); color: white; }
+.admin-svc-btn.open { border: 1px solid var(--green); background: var(--green-soft); color: var(--green-dark); }
+.admin-svc-btn.cancel { flex: none; padding: 0 14px; border: 1px solid var(--line); background: white; color: var(--muted); }
+.admin-svc-note { font-size: 10px; color: var(--muted); line-height: 1.9; margin: 4px 2px 0; }
+.admin-svc-receipt {
+  background: #f7fcfa; border: 1px dashed #cfeee2; border-radius: 13px;
+  padding: 11px 13px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px;
+}
+.admin-svc-receipt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; }
+.admin-svc-receipt-row span { color: var(--muted); }
+.admin-svc-receipt-row strong { color: var(--ink); font-size: 11.5px; }
+.admin-svc-receipt-row.total { border-top: 1px dashed #d9ece6; padding-top: 8px; }
+.admin-svc-receipt-row.total strong { color: var(--green-dark); font-size: 13px; }
+
 .admin-sched-table td { padding: 5px 4px; }
 .admin-sched-cell {
   width: 100%; min-height: 58px; padding: 7px 6px; border: 1px dashed #d9ece6;

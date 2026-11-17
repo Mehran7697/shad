@@ -402,6 +402,7 @@ function AdminDrawer({ open, onClose, navigate }: { open: boolean; onClose: () =
     { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
+    { t: 'سرویس‌ها', i: 'bag', go: () => { adminStartTab = 'سرویس‌ها'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
   ]
   return (
@@ -633,10 +634,10 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <strong>برنامه ریزی</strong>
                   <small>برنامهٔ هفتگی و تقویم رویدادها</small>
                 </button>
-                <button onClick={() => navigate('admin')}>
+                <button onClick={() => { adminStartTab = 'سرویس‌ها'; navigate('admin') }}>
                   <span><Icon name="grid" /></span>
                   <strong>سرویس‌ها</strong>
-                  <small>پنل مدیریت مدرسه</small>
+                  <small>خرید سرویس برای مدرسه</small>
                 </button>
                 <button onClick={() => navigate('reports')}>
                   <span><Icon name="chart" /></span>
@@ -6738,7 +6739,20 @@ let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
 function touchAdminClass(c: string) {
   adminRecentClasses = [c, ...adminRecentClasses.filter(x => x !== c)].slice(0, 6)
 }
-const adminTabs = ['کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها'] as const
+const adminTabs = ['کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها', 'سرویس‌ها'] as const
+
+/** سرویس‌های قابل خرید مدرسه — هر سرویس به یک بخش اصلی برنامه وصل است */
+type SchoolService = { id: string; name: string; desc: string; price: number; icon: IconName; screen: Screen; features: string[] }
+const schoolServices: SchoolService[] = [
+  { id: 'quiz', name: 'سرویس آزمون‌ساز', desc: 'ساخت آزمون از روی درس با تصحیح خودکار', price: 490000, icon: 'exam', screen: 'exam', features: ['سؤالات چهارگزینه‌ای و تشریحی', 'تصحیح و نمره‌دهی خودکار', 'گزارش نتایج کلاس'] },
+  { id: 'content', name: 'سرویس تولید محتوا و طرح درس', desc: 'طرح درس، برگه تمرین و منابع آموزشی', price: 390000, icon: 'book', screen: 'materials', features: ['طرح درس متناسب با کتاب', 'برگه تمرین چاپی', 'منابع صوتی و تصویری'] },
+  { id: 'report', name: 'سرویس گزارش‌گیری پیشرفته', desc: 'خروجی PDF و اکسل از گزارش‌های مدرسه', price: 290000, icon: 'chart', screen: 'reports', features: ['گزارش فردی و جمعی', 'خروجی چاپی و اکسل', 'نمودار عملکرد دانش‌آموزان'] },
+  { id: 'attendance', name: 'سرویس حضور و غیاب', desc: 'ثبت و پیگیری حضور دانش‌آموزان', price: 250000, icon: 'attendance', screen: 'attendance', features: ['ثبت روزانه با یک لمس', 'گزارش غیبت والدین', 'آمار ماهانه کلاس'] },
+  { id: 'gradebook', name: 'سرویس دفتر نمره', desc: 'ثبت، محاسبه و اعلام نمرات', price: 320000, icon: 'pencil', screen: 'gradebook', features: ['نمره‌دهی گروهی', 'میانگین وزنی خودکار', 'ارسال نمره به والدین'] },
+  { id: 'parents', name: 'سرویس ارتباط با والدین', desc: 'پیام‌رسانی و اطلاع‌رسانی به خانواده‌ها', price: 190000, icon: 'chat', screen: 'messenger', features: ['گروه کلاسی والدین', 'اعلان فوری مدرسه', 'تاریخچه گفت‌وگو'] },
+]
+/** سرویس‌های فعال‌شدهٔ مدرسه (ساختگی — فقط در state برنامه) */
+let adminOwnedServices: string[] = ['attendance']
 
 const adminEventSubjects = ['مدرسه', 'کلاس', 'ریاضی', 'علوم تجربی', 'فارسی', 'عربی']
 const adminAudiences = ['همه', 'دبیران', 'دانش‌آموزان', 'کلاس خاص', 'رویداد خاص']
@@ -6749,7 +6763,6 @@ const adminMinutes = (m: number) => (m ? `${fa(Math.floor(m / 60))} ساعت${m 
 const adminMonthShort = (label: string) => label.replace(/\s*\d+$/, '').trim()
 
 function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
-  void navigate
   const dates = adminDateList()
   const [, setTick] = useState(0)
   const rerender = () => setTick(x => x + 1)
@@ -6803,6 +6816,25 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [mgSheet, setMgSheet] = useState<'class' | 'teacher' | 'student' | null>(null)
   const [newName, setNewName] = useState('')
   const [newSubject, setNewSubject] = useState('علوم تجربی')
+  const [svcBuy, setSvcBuy] = useState<SchoolService | null>(null)
+  const [svcToast, setSvcToast] = useState<string | null>(null)
+
+  const ownedServices = schoolServices.filter(s => adminOwnedServices.includes(s.id))
+  const svcMonthly = ownedServices.reduce((sum, s) => sum + s.price, 0)
+
+  const buyService = (s: SchoolService) => {
+    if (!adminOwnedServices.includes(s.id)) adminOwnedServices = [...adminOwnedServices, s.id]
+    setSvcBuy(null)
+    setSvcToast(`«${s.name}» فعال شد`)
+    window.setTimeout(() => setSvcToast(null), 2000)
+    rerender()
+  }
+  const cancelService = (s: SchoolService) => {
+    adminOwnedServices = adminOwnedServices.filter(x => x !== s.id)
+    setSvcToast(`اشتراک «${s.name}» لغو شد`)
+    window.setTimeout(() => setSvcToast(null), 2000)
+    rerender()
+  }
 
   const date = dates[dateIdx]
   const clsIdx = adminClasses.indexOf(cls)
@@ -7312,6 +7344,50 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             )}
           </>
         )}
+
+        {/* ================= سرویس‌ها ================= */}
+        {tab === 'سرویس‌ها' && (
+          <>
+            <div className="admin-svc-summary">
+              <div className="admin-kpi"><strong>{fa(ownedServices.length)} از {fa(schoolServices.length)}</strong><span>سرویس فعال مدرسه</span></div>
+              <div className="admin-kpi"><strong>{fa(svcMonthly.toLocaleString('en-US'))}</strong><span>تومان هزینه ماهانه</span></div>
+            </div>
+
+            <div className="section-heading"><strong>سرویس‌های قابل خرید</strong><span>برای کل مدرسه</span></div>
+
+            {schoolServices.map(s => {
+              const owned = adminOwnedServices.includes(s.id)
+              return (
+                <div className={`admin-svc-card${owned ? ' active' : ''}`} key={s.id}>
+                  <div className="admin-svc-head">
+                    <span className="admin-svc-ic"><Icon name={s.icon} size={20} /></span>
+                    <div className="admin-row-copy">
+                      <strong>{s.name}</strong>
+                      <small>{s.desc}</small>
+                    </div>
+                    {owned
+                      ? <span className="admin-status-chip st-ok">فعال</span>
+                      : <span className="admin-svc-price">{fa(s.price.toLocaleString('en-US'))} تومان<small>/ماه</small></span>}
+                  </div>
+                  <ul className="admin-svc-feats">
+                    {s.features.map(f => <li key={f}>{f}</li>)}
+                  </ul>
+                  <div className="admin-svc-actions">
+                    {owned ? (
+                      <>
+                        <button type="button" className="admin-svc-btn open" onClick={() => navigate(s.screen)}>ورود به بخش</button>
+                        <button type="button" className="admin-svc-btn cancel" onClick={() => cancelService(s)}>لغو اشتراک</button>
+                      </>
+                    ) : (
+                      <button type="button" className="admin-svc-btn buy" onClick={() => setSvcBuy(s)}>خرید اشتراک</button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            <p className="admin-svc-note">سرویس‌ها برای کل مدرسه فعال می‌شوند و معلمان به‌صورت خودکار به بخش مرتبط دسترسی می‌گیرند. خرید در این نسخه نمایشی است.</p>
+          </>
+        )}
       </main>
 
       {/* ===== sheet: مدیریت (کلاس/دبیر/دانش‌آموز) ===== */}
@@ -7408,6 +7484,30 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
           </div>
         </div>
       )}
+
+      {/* ===== sheet: تأیید خرید سرویس ===== */}
+      {svcBuy && (
+        <div className="overlay group-grade-overlay" onClick={() => setSvcBuy(null)}>
+          <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              <div>
+                <strong>فعال‌سازی {svcBuy.name}</strong>
+                <span>برای کل مدرسه · پرداخت ماهانه</span>
+              </div>
+              <IconButton icon="close" label="بستن" onClick={() => setSvcBuy(null)} />
+            </div>
+            <div className="admin-svc-receipt">
+              <div className="admin-svc-receipt-row"><span>سرویس</span><strong>{svcBuy.name}</strong></div>
+              <div className="admin-svc-receipt-row"><span>دامنه</span><strong>{fa(adminClasses.length)} کلاس · {fa(Object.values(classStudents).reduce((s, a) => s + a.length, 0))} دانش‌آموز</strong></div>
+              <div className="admin-svc-receipt-row total"><span>هزینه ماهانه</span><strong>{fa(svcBuy.price.toLocaleString('en-US'))} تومان</strong></div>
+            </div>
+            <button type="button" className="admin-primary-btn" onClick={() => buyService(svcBuy)}>پرداخت و فعال‌سازی</button>
+          </div>
+        </div>
+      )}
+
+      {svcToast && <div className="toast">{svcToast}</div>}
     </div>
   )
 }
