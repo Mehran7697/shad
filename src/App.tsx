@@ -628,7 +628,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <span><Icon name="users" /></span>
                   <div>
                     <strong>افراد</strong>
-                    <small>{fa(adminClasses.reduce((s, c) => s + (classStudents[c] || []).length, 0))} دانش‌آموز · {fa(adminTeachers.length)} دبیر</small>
                   </div>
                   <Icon name="chevron" />
                 </button>
@@ -636,7 +635,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <span><Icon name="board" /></span>
                   <div>
                     <strong>برنامه ریزی</strong>
-                    <small>برنامهٔ هفتگی و تقویم رویدادها</small>
                   </div>
                   <Icon name="chevron" />
                 </button>
@@ -644,7 +642,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <span><Icon name="grid" /></span>
                   <div>
                     <strong>سرویس‌ها</strong>
-                    <small>خرید سرویس برای مدرسه</small>
                   </div>
                   <Icon name="chevron" />
                 </button>
@@ -652,7 +649,6 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <span><Icon name="chart" /></span>
                   <div>
                     <strong>گزارش</strong>
-                    <small>گزارش‌های مدرسه</small>
                   </div>
                   <Icon name="chevron" />
                 </button>
