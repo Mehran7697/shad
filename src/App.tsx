@@ -742,7 +742,7 @@ function parentNameOf(student: string) {
 }
 
 type SearchTag = 'کلاس' | 'معلم' | 'دانش‌آموز' | 'والدین'
-type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; go: () => void }
+type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; cls?: string; go: () => void }
 
 /** separate Telegram-like search page with tag filters (admin) */
 function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
@@ -752,30 +752,56 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
     adminStartSearchTag = null
     return t ?? 'کلاس'
   })
+  const [clsF, setClsF] = useState('همه')
   const query = q.trim()
   const en = toEn(query)
   const hit = (s: string) => !query || s.includes(query) || toEn(s).includes(en)
+  const inCls = (c: string) => clsF === 'همه' || clsF === c
   const rows: SearchRow[] = []
-  adminClasses.forEach(c => (classStudents[c] || []).forEach(name => {
-    if (tag === 'دانش‌آموز' && hit(name)) {
-      rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
-    }
-    const p = parentNameOf(name)
-    if (tag === 'والدین' && hit(p)) {
-      rows.push({ kind: 'والدین', name: p, sub: `والدین ${name} · کلاس ${c}`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
-    }
-  }))
+  adminClasses.forEach(c => {
+    if (!inCls(c)) return
+    ;(classStudents[c] || []).forEach(name => {
+      if (tag === 'دانش‌آموز' && hit(name)) {
+        rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+      }
+      const p = parentNameOf(name)
+      if (tag === 'والدین' && hit(p)) {
+        rows.push({ kind: 'والدین', name: p, sub: `والدین ${name} · کلاس ${c}`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+      }
+    })
+  })
   adminTeachers.forEach((t, ti) => {
     if (tag === 'معلم' && hit(t.name)) {
       rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { adminStartTeacher = ti; adminStartTab = 'معلمان'; navigate('admin') } })
     }
   })
   adminClasses.forEach(c => {
+    if (!inCls(c)) return
     if (tag === 'کلاس' && hit(c)) {
-      rows.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
+      rows.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
     }
   })
   const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
+
+  // ---- گروه‌بندی کارتی بر اساس کلاس (دانش‌آموز/والدین/کلاس) ----
+  const goClass = (c: string) => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') }
+  const goStudent = (c: string) => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') }
+  /** آیا این کلاس با جست‌وجوی فعلی مطابقت دارد؟ (نام کلاس یا یکی از اعضایش) */
+  const classMatch = (c: string) => !query || hit(c) || (classStudents[c] || []).some(hit)
+  /** تگ‌های داخل کارت کلاس */
+  const classTags = (c: string): SearchRow[] => {
+    if (tag !== 'کلاس') return rows.filter(r => r.cls === c)
+    const stu = classStudents[c] || []
+    const picked = !query ? stu : stu.some(hit) ? stu.filter(hit) : stu
+    return picked.map(name => ({ kind: 'دانش‌آموز' as const, name, sub: `کلاس ${c}`, cls: c, go: () => goStudent(c) }))
+  }
+  const cards = tag === 'معلم'
+    ? []
+    : adminClasses
+        .filter(inCls)
+        .filter(c => tag === 'کلاس' ? classMatch(c) : rows.some(r => r.cls === c))
+        .map(c => ({ cls: c, items: classTags(c) }))
+  const total = tag === 'معلم' ? rows.length : tag === 'کلاس' ? cards.length : cards.reduce((s, g) => s + g.items.length, 0)
 
   return <div className="screen school-search-screen" dir="rtl">
     <header className="school-search-head">
@@ -791,15 +817,41 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
         <button type="button" key={t} className={tag === t ? 'active' : ''} onClick={() => setTag(t)}>{t}</button>
       ))}
     </div>
+    {tag !== 'معلم' && (
+      <div className="school-search-cls">
+        {['همه', ...adminClasses].map(c => (
+          <button type="button" key={c} className={clsF === c ? 'active' : ''} onClick={() => setClsF(c)}>
+            {c === 'همه' ? 'همه' : `کلاس ${c}`}
+          </button>
+        ))}
+      </div>
+    )}
     <main className="msg-list school-search-list">
-      <div className="school-search-count">{query ? `${fa(rows.length)} نتیجه` : `${fa(rows.length)} مورد`}</div>
-      {rows.length === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
-      {rows.map((r, i) => (
-        <button type="button" className="school-search-row" key={`${r.kind}-${r.name}-${i}`} onClick={r.go}>
+      <div className="school-search-count">{query ? `${fa(total)} نتیجه` : `${fa(total)} مورد`}</div>
+      {total === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
+      {tag === 'معلم' && rows.map((r, i) => (
+        <button type="button" className="school-search-row" key={`${r.name}-${i}`} onClick={r.go}>
           <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
           <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
           <Icon name="chevron" size={16} />
         </button>
+      ))}
+      {cards.map(g => (
+        <div className="sr-class-card" key={g.cls}>
+          <button type="button" className="sr-class-head" onClick={() => goClass(g.cls)}>
+            <span className="sr-class-badge">{g.cls}</span>
+            <span className="admin-row-copy">
+              <strong>کلاس {g.cls}</strong>
+              <small>{fa(g.items.length)} {tag === 'والدین' ? 'والدین' : 'دانش‌آموز'}</small>
+            </span>
+            <Icon name="chevron" size={16} />
+          </button>
+          <div className="sr-class-tags">
+            {g.items.map((r, i) => (
+              <button type="button" className="sr-tag" key={`${r.name}-${i}`} onClick={r.go}>{r.name}</button>
+            ))}
+          </div>
+        </div>
       ))}
     </main>
   </div>

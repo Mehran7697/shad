@@ -612,6 +612,45 @@
 .adm-search-chip.k-student { background: #f59f2b; }
 .adm-search-chip.k-parent { background: #8b5cf6; }
 
+/* ---- فیلتر کلاس در صفحهٔ افراد ---- */
+.school-search-cls {
+  display: flex; gap: 7px; padding: 0 14px 11px; overflow-x: auto; scrollbar-width: none;
+}
+.school-search-cls::-webkit-scrollbar { display: none; }
+.school-search-cls button {
+  flex: none; height: 27px; padding: 0 12px; border-radius: 999px;
+  border: 1px dashed var(--line); background: #f7faf9; color: var(--muted);
+  font-size: 10.5px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+.school-search-cls button.active {
+  background: var(--green-soft); border-color: var(--green); border-style: solid;
+  color: var(--green-dark);
+}
+
+/* ---- کارت گروهی هر کلاس + تگ افراد ---- */
+.sr-class-card {
+  background: white; border: 1px solid var(--line); border-radius: 16px;
+  padding: 10px 11px; margin-bottom: 10px;
+}
+.sr-class-head {
+  width: 100%; display: flex; align-items: center; gap: 9px;
+  background: none; border: 0; padding: 2px 1px 8px; text-align: right; cursor: pointer;
+}
+.sr-class-head .admin-row-copy { flex: 1; min-width: 0; }
+.sr-class-badge {
+  flex: none; width: 34px; height: 34px; border-radius: 11px;
+  display: grid; place-items: center;
+  background: var(--green-soft); color: var(--green-dark);
+  font-size: 11px; font-weight: 800;
+}
+.sr-class-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.sr-tag {
+  border: 1px solid var(--line); background: #fbfdfc; color: var(--ink);
+  border-radius: 999px; padding: 6px 11px; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: .15s;
+}
+.sr-tag:active { transform: scale(.96); background: var(--green-soft); border-color: var(--green); }
+
 /* admin hamburger drawer (toolbar menu button) */
 .admin-drawer-overlay {
   position: fixed; inset: 0; z-index: 80;
