@@ -766,7 +766,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
       }
       const p = parentNameOf(name)
       if (tag === 'والدین' && hit(p)) {
-        rows.push({ kind: 'والدین', name: p, sub: `والدین ${name} · کلاس ${c}`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+        rows.push({ kind: 'والدین', name: p, sub: `والدین ${name}`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
       }
     })
   })
@@ -783,25 +783,13 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   })
   const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
 
-  // ---- گروه‌بندی کارتی بر اساس کلاس (دانش‌آموز/والدین/کلاس) ----
-  const goClass = (c: string) => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') }
-  const goStudent = (c: string) => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') }
+  // ---- نمایش کارتی فقط برای تگ «کلاس» ----
   /** آیا این کلاس با جست‌وجوی فعلی مطابقت دارد؟ (نام کلاس یا یکی از اعضایش) */
   const classMatch = (c: string) => !query || hit(c) || (classStudents[c] || []).some(hit)
-  /** تگ‌های داخل کارت کلاس */
-  const classTags = (c: string): SearchRow[] => {
-    if (tag !== 'کلاس') return rows.filter(r => r.cls === c)
-    const stu = classStudents[c] || []
-    const picked = !query ? stu : stu.some(hit) ? stu.filter(hit) : stu
-    return picked.map(name => ({ kind: 'دانش‌آموز' as const, name, sub: `کلاس ${c}`, cls: c, go: () => goStudent(c) }))
-  }
-  const cards = tag === 'معلم'
-    ? []
-    : adminClasses
-        .filter(inCls)
-        .filter(c => tag === 'کلاس' ? classMatch(c) : rows.some(r => r.cls === c))
-        .map(c => ({ cls: c, items: classTags(c) }))
-  const total = tag === 'معلم' ? rows.length : tag === 'کلاس' ? cards.length : cards.reduce((s, g) => s + g.items.length, 0)
+  const cards = tag === 'کلاس'
+    ? adminClasses.filter(inCls).filter(classMatch).map(c => ({ cls: c }))
+    : []
+  const total = tag === 'کلاس' ? cards.length : rows.length
 
   return <div className="screen school-search-screen" dir="rtl">
     <header className="school-search-head">
@@ -836,6 +824,15 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
           <Icon name="chevron" size={16} />
         </button>
       ))}
+      {/* تگ‌های دانش‌آموز/والدین: ردیف جداگانهٔ هر فرد (+ تگ کلاس برای والدین) */}
+      {(tag === 'دانش‌آموز' || tag === 'والدین') && rows.map((r, i) => (
+        <button type="button" className="school-search-row" key={`${r.name}-${i}`} onClick={r.go}>
+          <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
+          <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
+          {tag === 'والدین' && r.cls && <span className="sr-cls-tag">{r.cls}</span>}
+          <Icon name="chevron" size={16} />
+        </button>
+      ))}
       {/* تگ «کلاس»: کارت کامل پنل مدیر — کلیک روی هدر → گزارش همان کلاس */}
       {tag === 'کلاس' && cards.map(g => {
         const students = classStudents[g.cls] || []
@@ -856,24 +853,6 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
           </div>
         )
       })}
-      {/* تگ‌های دانش‌آموز/والدین: کارت گروهی با تگ افراد */}
-      {tag !== 'کلاس' && cards.map(g => (
-        <div className="sr-class-card" key={g.cls}>
-          <button type="button" className="sr-class-head" onClick={() => goClass(g.cls)}>
-            <span className="sr-class-badge">{g.cls}</span>
-            <span className="admin-row-copy">
-              <strong>کلاس {g.cls}</strong>
-              <small>{fa(g.items.length)} {tag === 'والدین' ? 'والدین' : 'دانش‌آموز'}</small>
-            </span>
-            <Icon name="chevron" size={16} />
-          </button>
-          <div className="sr-class-tags">
-            {g.items.map((r, i) => (
-              <button type="button" className="sr-tag" key={`${r.name}-${i}`} onClick={r.go}>{r.name}</button>
-            ))}
-          </div>
-        </div>
-      ))}
     </main>
   </div>
 }
