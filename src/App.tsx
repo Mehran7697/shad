@@ -5642,7 +5642,6 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
   const [filterPeriods, setFilterPeriods] = useState<string[]>([])
   const [exportPage, setExportPage] = useState(false)
   const [repCls, setRepCls] = useState(() => adminClasses[0] || '۹۰۱')
-  const [clsSheet, setClsSheet] = useState(false)
   /** لیست دانش‌آموزان نمایش‌داده‌شده — مدیر بر اساس کلاس انتخاب‌شده، بقیه فهرست ثابت */
   const repStudents = role === 'admin' ? (classStudents[repCls] || []) : students
 
@@ -6013,6 +6012,20 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
           </div>
           <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
         </div>
+        {role === 'admin' && (
+          <div className="chips compact report-cls-list">
+            {adminClasses.map(c => (
+              <button
+                key={c}
+                type="button"
+                className={c === repCls ? 'active' : ''}
+                onClick={() => { setRepCls(c); setSelected(null); setStudentQuery('') }}
+              >
+                کلاس {c}
+              </button>
+            ))}
+          </div>
+        )}
         {reportMode === 'individual' ? (
           <>
             <div className="section-heading">
@@ -6168,46 +6181,7 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
             )}
           </>
         )}
-        {role === 'admin' && (
-          <button type="button" className="report-cls-switch" onClick={() => setClsSheet(true)}>
-            <span className="report-cls-switch-ic"><Icon name="classes" size={20} /></span>
-            <div className="report-cls-switch-txt">
-              <strong>کلاس {repCls}</strong>
-              <small>تغییر کلاس گزارش · {fa(repStudents.length)} دانش‌آموز</small>
-            </div>
-            <Icon name="chevron" />
-          </button>
-        )}
       </main>
-      {clsSheet && (
-        <div className="overlay group-grade-overlay" onClick={() => setClsSheet(false)}>
-          <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
-            <div className="sheet-handle" />
-            <div className="sheet-title">
-              <div>
-                <strong>انتخاب کلاس گزارش</strong>
-                <span>گزارش‌ها برای کلاس انتخاب‌شده نمایش داده می‌شود</span>
-              </div>
-              <IconButton icon="close" label="بستن" onClick={() => setClsSheet(false)} />
-            </div>
-            {adminClasses.map(c => (
-              <button
-                type="button"
-                key={c}
-                className={`report-cls-option${c === repCls ? ' active' : ''}`}
-                onClick={() => { setRepCls(c); setSelected(null); setStudentQuery(''); setClsSheet(false) }}
-              >
-                <span className="report-cls-option-ic"><Icon name="classes" size={18} /></span>
-                <div className="report-cls-switch-txt">
-                  <strong>کلاس {c}</strong>
-                  <small>{fa((classStudents[c] || []).length)} دانش‌آموز</small>
-                </div>
-                {c === repCls ? <Icon name="check" /> : <Icon name="chevron" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   }
 
