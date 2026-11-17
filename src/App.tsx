@@ -623,26 +623,38 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                 </div>
               </div>
               {/* میانبرهای بزرگ زیر تقویم */}
-              <div className="classroom-grid" style={{ marginTop: 14 }}>
+              <div className="classroom-grid admin-shortcuts" style={{ marginTop: 14 }}>
                 <button onClick={() => navigate('search')}>
                   <span><Icon name="users" /></span>
-                  <strong>افراد</strong>
-                  <small>{fa(adminClasses.reduce((s, c) => s + (classStudents[c] || []).length, 0))} دانش‌آموز · {fa(adminTeachers.length)} دبیر</small>
+                  <div>
+                    <strong>افراد</strong>
+                    <small>{fa(adminClasses.reduce((s, c) => s + (classStudents[c] || []).length, 0))} دانش‌آموز · {fa(adminTeachers.length)} دبیر</small>
+                  </div>
+                  <Icon name="chevron" />
                 </button>
                 <button onClick={() => { adminStartTab = 'برنامه کلاسی'; navigate('admin') }}>
                   <span><Icon name="board" /></span>
-                  <strong>برنامه ریزی</strong>
-                  <small>برنامهٔ هفتگی و تقویم رویدادها</small>
+                  <div>
+                    <strong>برنامه ریزی</strong>
+                    <small>برنامهٔ هفتگی و تقویم رویدادها</small>
+                  </div>
+                  <Icon name="chevron" />
                 </button>
                 <button onClick={() => { adminStartTab = 'سرویس‌ها'; navigate('admin') }}>
                   <span><Icon name="grid" /></span>
-                  <strong>سرویس‌ها</strong>
-                  <small>خرید سرویس برای مدرسه</small>
+                  <div>
+                    <strong>سرویس‌ها</strong>
+                    <small>خرید سرویس برای مدرسه</small>
+                  </div>
+                  <Icon name="chevron" />
                 </button>
                 <button onClick={() => navigate('reports')}>
                   <span><Icon name="chart" /></span>
-                  <strong>گزارش</strong>
-                  <small>گزارش‌های مدرسه</small>
+                  <div>
+                    <strong>گزارش</strong>
+                    <small>گزارش‌های مدرسه</small>
+                  </div>
+                  <Icon name="chevron" />
                 </button>
               </div>
             </>

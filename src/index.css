@@ -430,6 +430,38 @@
 .classroom-grid button.wide { grid-column: 1 / -1; min-height: 64px; flex-direction: row; align-items: center; gap: 12px; }
 .classroom-grid button.span-all { grid-column: 1 / -1; }
 .classroom-grid button.wide > strong { flex: 1; font-size: 13px; }
+
+/* ---- میانبرهای خانهٔ مدرسه: چیدمان افقی بدون فضای خالی ---- */
+.classroom-grid.admin-shortcuts button {
+  min-height: 76px;
+  flex-direction: row;
+  align-items: center;
+  gap: 11px;
+  padding: 13px;
+  position: relative;
+  overflow: hidden;
+}
+.classroom-grid.admin-shortcuts button::after {
+  content: '';
+  position: absolute;
+  inset: auto -22px -30px auto;
+  width: 78px; height: 78px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .05;
+  pointer-events: none;
+}
+.classroom-grid.admin-shortcuts button > span { flex: none; width: 42px; height: 42px; border-radius: 13px; }
+.classroom-grid.admin-shortcuts button > div {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.classroom-grid.admin-shortcuts button > div strong { font-size: 12.5px; color: var(--ink); }
+.classroom-grid.admin-shortcuts button > div small { font-size: 9.5px; color: var(--muted); line-height: 1.5; }
+.classroom-grid.admin-shortcuts button > svg {
+  flex: none; width: 15px; color: #b6c0c5;
+  transform: rotate(180deg); /* در RTL فلش باید به چپ باشد */
+}
 .score-input { width: 78px; border: 1px solid var(--line); background: white; border-radius: 11px; padding: 9px 6px; outline: 0; font-size: 11px; text-align: center; }
 .score-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgb(17 156 120 / .08); }
 .score-readonly {
