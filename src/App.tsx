@@ -5641,9 +5641,15 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
   const [filterCategories, setFilterCategories] = useState<string[]>(['آزمونک', 'حضور و غیاب'])
   const [filterPeriods, setFilterPeriods] = useState<string[]>([])
   const [exportPage, setExportPage] = useState(false)
+  /** مقدار ویژهٔ چیپ «همه» — نمایش دانش‌آموزان تمام کلاس‌ها */
+  const ALL_CLASSES = '__all__'
   const [repCls, setRepCls] = useState(() => adminClasses[0] || '۹۰۱')
-  /** لیست دانش‌آموزان نمایش‌داده‌شده — مدیر بر اساس کلاس انتخاب‌شده، بقیه فهرست ثابت */
-  const repStudents = role === 'admin' ? (classStudents[repCls] || []) : students
+  /** لیست دانش‌آموزان نمایش‌داده‌شده — مدیر بر اساس کلاس انتخاب‌شده (یا همهٔ کلاس‌ها)، بقیه فهرست ثابت */
+  const repStudents = role === 'admin'
+    ? (repCls === ALL_CLASSES
+        ? [...new Set(adminClasses.flatMap(c => classStudents[c] || []))]
+        : (classStudents[repCls] || []))
+    : students
 
   const summerMonths = ['تیر', 'مرداد', 'شهریور']
   const academicMonths = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
@@ -6014,6 +6020,13 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
         </div>
         {role === 'admin' && (
           <div className="chips compact report-cls-list">
+            <button
+              type="button"
+              className={repCls === ALL_CLASSES ? 'active' : ''}
+              onClick={() => { setRepCls(ALL_CLASSES); setSelected(null); setStudentQuery('') }}
+            >
+              همه
+            </button>
             {adminClasses.map(c => (
               <button
                 key={c}
