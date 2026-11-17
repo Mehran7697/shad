@@ -651,6 +651,15 @@
 }
 .sr-tag:active { transform: scale(.96); background: var(--green-soft); border-color: var(--green); }
 
+/* هدر کارت کلاس (تگ «کلاس») به‌صورت دکمهٔ کامل پنل مدیر */
+.sr-cls-head {
+  width: 100%; padding: 0; border: 0; background: none;
+  cursor: pointer; text-align: right;
+}
+.sr-cls-head:active { opacity: .7; }
+.sr-cls-head > svg { flex: none; width: 16px; color: #b6c0c5; transform: rotate(180deg); }
+.school-search-list .admin-class-card .admin-kpis { margin-bottom: 0; }
+
 /* admin hamburger drawer (toolbar menu button) */
 .admin-drawer-overlay {
   position: fixed; inset: 0; z-index: 80;
@@ -3832,6 +3841,17 @@
 .export-mini:active { transform: scale(.97); }
 .report-empty-hint { text-align: center; color: var(--muted); font-size: 11px; padding: 18px 0; }
 .report-cls-list { padding: 0 0 4px; }
+/* فیلترهای گزارش: چیپ‌های کلاس + درس و خط نام دبیر */
+.report-filters { display: flex; flex-direction: column; gap: 8px; }
+.report-filters .chips.compact { padding: 0 0 2px; }
+.report-subj-list { border-top: 1px dashed var(--line); padding-top: 9px; }
+.report-subj-teacher {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--muted);
+  margin: 4px 0 12px;
+}
+.report-subj-teacher b { color: var(--green-dark); font-weight: 800; }
+.report-subj-teacher svg { flex: none; color: var(--green); }
 .report-mode-sticky { gap: 10px; }
 .report-mode-sticky button { border: 1px solid var(--green); background: white; color: var(--green-dark); box-shadow: none; }
 .report-mode-sticky button.active { background: var(--green); color: white; box-shadow: 0 4px 12px rgb(17 156 120 / .2); }

@@ -836,7 +836,28 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
           <Icon name="chevron" size={16} />
         </button>
       ))}
-      {cards.map(g => (
+      {/* تگ «کلاس»: کارت کامل پنل مدیر — کلیک روی هدر → گزارش همان کلاس */}
+      {tag === 'کلاس' && cards.map(g => {
+        const students = classStudents[g.cls] || []
+        return (
+          <div className="admin-class-card" key={g.cls}>
+            <button type="button" className="admin-class-head sr-cls-head" onClick={() => { adminStartReportCls = g.cls; navigate('reports') }}>
+              <span className="admin-class-badge">{g.cls}</span>
+              <span className="admin-row-copy">
+                <strong>کلاس {g.cls}</strong>
+                <small>{fa(students.length)} دانش‌آموز</small>
+              </span>
+              <Icon name="chevron" size={16} />
+            </button>
+            <div className="admin-kpis">
+              <button type="button" className="admin-kpi admin-kpi-action" onClick={() => { adminStartCls = g.cls; touchAdminClass(g.cls); adminStartTab = 'حضور و غیاب'; navigate('admin') }}>حضور و غیاب</button>
+              <button type="button" className="admin-kpi admin-kpi-action" onClick={() => { adminStartCls = g.cls; touchAdminClass(g.cls); adminStartTab = 'برنامه کلاسی'; navigate('admin') }}>برنامه کلاسی</button>
+            </div>
+          </div>
+        )
+      })}
+      {/* تگ‌های دانش‌آموز/والدین: کارت گروهی با تگ افراد */}
+      {tag !== 'کلاس' && cards.map(g => (
         <div className="sr-class-card" key={g.cls}>
           <button type="button" className="sr-class-head" onClick={() => goClass(g.cls)}>
             <span className="sr-class-badge">{g.cls}</span>
@@ -5704,7 +5725,13 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
   const [exportPage, setExportPage] = useState(false)
   /** مقدار ویژهٔ چیپ «همه» — نمایش دانش‌آموزان تمام کلاس‌ها */
   const ALL_CLASSES = '__all__'
-  const [repCls, setRepCls] = useState(() => adminClasses[0] || '۹۰۱')
+  const [repCls, setRepCls] = useState(() => {
+    const c = adminStartReportCls
+    adminStartReportCls = null
+    return c && adminClasses.includes(c) ? c : adminClasses[0] || '۹۰۱'
+  })
+  /** درس انتخاب‌شدهٔ مدیر در گزارش (جابجایی بین درس‌ها + نمایش دبیر هر درس) */
+  const [repSubject, setRepSubject] = useState<string>(() => adminSubjectList()[0] || '')
   /** لیست دانش‌آموزان نمایش‌داده‌شده — مدیر بر اساس کلاس انتخاب‌شده (یا همهٔ کلاس‌ها)، بقیه فهرست ثابت */
   const repStudents = role === 'admin'
     ? (repCls === ALL_CLASSES
@@ -6004,19 +6031,22 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
     })()
     const isPctTab = detailTab === 'حضور و غیاب'
     const tabIdx = collectiveCats.indexOf(detailTab)
+    /** بذر تغییر امتیازها بر اساس درس انتخاب‌شدهٔ مدیر — هر درس گزارش متفاوتی دارد */
+    const subjIdx = Math.max(0, adminSubjectList().indexOf(repSubject))
+    const subjSeed = role === 'admin' ? subjIdx * 4 : 0
     const scoresFor = (name: string) => {
       const si = repStudents.indexOf(name)
       return entries.map((_, ei) => {
-        if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5) % 15))}٪`
+        if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5 + subjSeed) % 15))}٪`
         if (detailTab === 'فعالیت کلاسی') {
-          return (si + ei * 2) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+          return (si + ei * 2 + subjSeed) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
         }
         if (detailTab === 'بازخورد کلاسی') {
           const opts = ['۳+', '۰', '۲−', '۵+', '۱−', '۰', '۴+']
-          return opts[(si + ei * 2) % opts.length]
+          return opts[(si + ei * 2 + subjSeed) % opts.length]
         }
-        if ((si * 5 + ei * 3 + tabIdx) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
-        return `${fa(14 + ((si * 3 + ei * 5 + tabIdx * 2) % 7))}/۲۰`
+        if ((si * 5 + ei * 3 + tabIdx + subjSeed) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+        return `${fa(14 + ((si * 3 + ei * 5 + tabIdx * 2 + subjSeed) % 7))}/۲۰`
       })
     }
     const toNum = (v: string): number | null => {
@@ -6045,7 +6075,9 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
         screen="gradebook"
         back={goBack}
         title="گزارش‌های کلاس"
-        subtitle={reportMode === 'collective' ? 'گزارش جمعی همه دانش‌آموزان' : 'انتخاب دانش‌آموز'}
+        subtitle={role === 'admin'
+          ? `کلاس ${repCls === ALL_CLASSES ? 'همه' : repCls} · درس ${repSubject}`
+          : reportMode === 'collective' ? 'گزارش جمعی همه دانش‌آموزان' : 'انتخاب دانش‌آموز'}
         rightIcon={null}
         rightExtra={(
           <div className="header-mode-toggle" role="group" aria-label="حالت گزارش">
@@ -6080,24 +6112,45 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
           <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
         </div>
         {role === 'admin' && (
-          <div className="chips compact report-cls-list">
-            <button
-              type="button"
-              className={repCls === ALL_CLASSES ? 'active' : ''}
-              onClick={() => { setRepCls(ALL_CLASSES); setSelected(null); setStudentQuery('') }}
-            >
-              همه
-            </button>
-            {adminClasses.map(c => (
+          <div className="report-filters">
+            <div className="chips compact report-cls-list">
               <button
-                key={c}
                 type="button"
-                className={c === repCls ? 'active' : ''}
-                onClick={() => { setRepCls(c); setSelected(null); setStudentQuery('') }}
+                className={repCls === ALL_CLASSES ? 'active' : ''}
+                onClick={() => { setRepCls(ALL_CLASSES); setSelected(null); setStudentQuery('') }}
               >
-                کلاس {c}
+                همه
               </button>
-            ))}
+              {adminClasses.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  className={c === repCls ? 'active' : ''}
+                  onClick={() => { setRepCls(c); setSelected(null); setStudentQuery('') }}
+                >
+                  کلاس {c}
+                </button>
+              ))}
+            </div>
+            <div className="chips compact report-subj-list">
+              {adminSubjectList().map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  className={s === repSubject ? 'active' : ''}
+                  onClick={() => setRepSubject(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <div className="report-subj-teacher">
+              <Icon name="book" size={14} />
+              <span>
+                دبیر درس <b>{repSubject}</b>:{' '}
+                <b>{(subjectTeachersMap()[repSubject] || []).join('، ') || '—'}</b>
+              </span>
+            </div>
           </div>
         )}
         {reportMode === 'individual' ? (
@@ -6722,12 +6775,30 @@ const classStudents: Record<string, string[]> = {
   '۹۰۳': ['کیان توکلی', 'رویا شریفی', 'سامان قاسمی', 'الهام جعفری', 'مهدی عباسی', 'نیلوفر یوسفی'],
 }
 
-const adminTeachers = [
-  { name: 'سارا کریمی', subject: 'علوم تجربی', initial: 'س' },
+const adminTeachers: { name: string; subject: string; initial: string; subjects?: string[] }[] = [
+  { name: 'سارا کریمی', subject: 'علوم تجربی', initial: 'س', subjects: ['علوم تجربی', 'ریاضی'] },
   { name: 'رضا محمدی', subject: 'ریاضی', initial: 'ر' },
   { name: 'مریم حسینی', subject: 'فارسی', initial: 'م' },
   { name: 'نرگس رضایی', subject: 'عربی', initial: 'ن' },
 ]
+
+/** درس‌های یک دبیر — پیش‌فرض همان درس اصلی است */
+function teacherSubjectsOf(t: { subject: string; subjects?: string[] }): string[] {
+  return t.subjects && t.subjects.length ? t.subjects : [t.subject]
+}
+/** نگاشت درس ← نام دبیران آن درس (یک دبیر می‌تواند چند درس داشته باشد) */
+function subjectTeachersMap(): Record<string, string[]> {
+  const map: Record<string, string[]> = {}
+  adminTeachers.forEach(t => teacherSubjectsOf(t).forEach(s => {
+    if (!map[s]) map[s] = []
+    if (!map[s].includes(t.name)) map[s].push(t.name)
+  }))
+  return map
+}
+/** فهرست درس‌های مدرسه بر اساس دبیران فعلی */
+function adminSubjectList(): string[] {
+  return Object.keys(subjectTeachersMap())
+}
 
 type AttStatus = 'حاضر' | 'غایب' | 'تأخیر'
 function attStatusOf(clsIdx: number, stuIdx: number, dateIdx: number): AttStatus {
@@ -6793,6 +6864,8 @@ let adminStartDay: number | null = null
 let adminStartCls: string | null = null
 let adminStartTeacher: number | null = null
 let adminStartSearchTag: SearchTag | null = null
+/** کلاس انتخاب‌شده از کارت کلاس در جست‌وجو → باز شدن صفحهٔ گزارش روی همان کلاس */
+let adminStartReportCls: string | null = null
 /** set by AdminPanel so drawer jumps can switch tab while panel is already mounted */
 let adminPanelRerender: (() => void) | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
