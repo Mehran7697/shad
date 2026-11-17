@@ -770,7 +770,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
       }
     })
   })
-  adminTeachers.forEach((t, ti) => {
+  adminTeachers.forEach((t) => {
     if (tag === 'معلم' && hit(t.name)) {
       rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { reportStartTeacher = t.name; navigate('reports') } })
     }
