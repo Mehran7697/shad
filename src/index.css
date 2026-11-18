@@ -5072,22 +5072,97 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 
 
 /* جدول افراد: نام، نقش، پیام مستقیم */
-.people-table-wrap { margin: 8px 0 14px; }
-.people-table th:last-child,
-.people-table td:last-child { width: 88px; text-align: center; }
-.people-table td { vertical-align: middle; }
-.people-name-btn {
-  width: 100%; border: 0; background: transparent; padding: 0;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  text-align: right; cursor: pointer;
+.people-table-wrap {
+  margin: 8px 0 14px;
+  overflow-x: auto;
 }
-.people-name-btn strong { font-size: 12.5px; color: var(--ink); }
-.people-name-btn small { font-size: 10px; color: var(--muted); }
+.people-table.report-detail-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.people-table.report-detail-table th,
+.people-table.report-detail-table td {
+  padding: 12px 10px;
+  vertical-align: middle;
+  white-space: normal;
+  word-break: break-word;
+  border-bottom: 1px solid var(--line);
+  width: auto !important;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.people-table.report-detail-table th {
+  background: #f3f8f7;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+}
+/* نام */
+.people-table.report-detail-table th:nth-child(1),
+.people-table.report-detail-table td:nth-child(1) {
+  width: 48% !important;
+  text-align: right !important;
+}
+/* نقش */
+.people-table.report-detail-table th:nth-child(2),
+.people-table.report-detail-table td:nth-child(2) {
+  width: 26% !important;
+  text-align: center !important;
+}
+/* پیام */
+.people-table.report-detail-table th:nth-child(3),
+.people-table.report-detail-table td:nth-child(3) {
+  width: 26% !important;
+  text-align: center !important;
+}
+.people-name-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: right;
+  cursor: pointer;
+  min-width: 0;
+}
+.people-name-btn strong {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.people-name-btn small {
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
 .people-name-btn:active strong { color: var(--green-dark); }
+.people-table .adm-search-chip {
+  display: inline-flex;
+  max-width: 100%;
+  justify-content: center;
+  white-space: nowrap;
+}
 .people-msg-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  height: 30px; padding: 0 10px; border-radius: 999px;
-  border: 1px solid #d5eee6; background: #f7fcfa; color: var(--green-dark);
-  font-size: 11px; font-weight: 700; white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #d5eee6;
+  background: #f7fcfa;
+  color: var(--green-dark);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .people-msg-btn:active { transform: scale(.96); background: var(--green-soft); }
