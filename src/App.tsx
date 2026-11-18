@@ -869,7 +869,7 @@ function parentNameOf(student: string) {
 }
 
 type SearchTag = 'کلاس' | 'معلم' | 'دانش‌آموز' | 'والدین'
-type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; cls?: string; go: () => void }
+type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; cls?: string; childName?: string; go: () => void }
 
 /** separate Telegram-like search page with tag filters (admin) */
 function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
@@ -893,7 +893,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
       }
       const p = parentNameOf(name)
       if (tag === 'والدین' && hit(p)) {
-        rows.push({ kind: 'والدین', name: p, sub: `والدین ${name}`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+        rows.push({ kind: 'والدین', name: p, sub: name, cls: c, childName: name, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
       }
     })
   })
@@ -946,12 +946,13 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
       {total === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
       {(tag === 'معلم' || tag === 'دانش‌آموز' || tag === 'والدین') && rows.length > 0 && (
         <div className="assignment-table-wrap people-table-wrap">
-          <table className="report-detail-table people-table" dir="rtl">
+          <table className={`report-detail-table people-table people-table-${tag === 'معلم' ? 'teacher' : tag === 'والدین' ? 'parent' : 'student'}`} dir="rtl">
             <thead>
               <tr>
                 <th>نام و نام‌خانوادگی</th>
                 <th>کلاس</th>
-                <th>درس</th>
+                {tag === 'معلم' && <th>درس</th>}
+                {tag === 'والدین' && <th>نام فرزند</th>}
                 <th>نقش</th>
                 <th>پیام</th>
               </tr>
@@ -961,7 +962,6 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
                 const classNo = r.kind === 'معلم'
                   ? (adminClasses[i % adminClasses.length] || '—')
                   : (r.cls || '—')
-                const lesson = r.kind === 'معلم' ? (r.sub || '—') : '—'
                 return (
                 <tr key={`${r.name}-${i}`}>
                   <td>
@@ -969,8 +969,9 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
                       <strong>{r.name}</strong>
                     </button>
                   </td>
-                  <td className="people-meta-cell">{classNo === '—' ? '—' : classNo}</td>
-                  <td className="people-meta-cell">{lesson}</td>
+                  <td className="people-meta-cell">{classNo}</td>
+                  {tag === 'معلم' && <td className="people-meta-cell">{r.sub || '—'}</td>}
+                  {tag === 'والدین' && <td className="people-meta-cell">{r.childName || r.sub || '—'}</td>}
                   <td><span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span></td>
                   <td>
                     <button
@@ -7509,7 +7510,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             {adminTeachers.length === 0 && <div className="report-empty-hint">دبیری ثبت نشده است.</div>}
             {adminTeachers.length > 0 && (
               <div className="assignment-table-wrap people-table-wrap">
-                <table className="report-detail-table people-table" dir="rtl">
+                <table className="report-detail-table people-table people-table-teacher" dir="rtl">
                   <thead>
                     <tr>
                       <th>نام و نام‌خانوادگی</th>
@@ -7563,12 +7564,11 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             {(classStudents[cls] || []).length === 0 && <div className="report-empty-hint">دانش‌آموزی در این کلاس ثبت نشده است.</div>}
             {(classStudents[cls] || []).length > 0 && (
               <div className="assignment-table-wrap people-table-wrap">
-                <table className="report-detail-table people-table" dir="rtl">
+                <table className="report-detail-table people-table people-table-student" dir="rtl">
                   <thead>
                     <tr>
                       <th>نام و نام‌خانوادگی</th>
                       <th>کلاس</th>
-                      <th>درس</th>
                       <th>نقش</th>
                       <th>پیام</th>
                     </tr>
@@ -7586,7 +7586,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                           </button>
                         </td>
                         <td className="people-meta-cell">{cls}</td>
-                        <td className="people-meta-cell">—</td>
                         <td><span className="adm-search-chip k-student">دانش‌آموز</span></td>
                         <td>
                           <button

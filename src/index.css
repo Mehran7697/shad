@@ -5184,3 +5184,36 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   white-space: nowrap;
 }
 .people-msg-btn:active { transform: scale(.96); background: var(--green-soft); }
+
+
+/* چیدمان ستون‌ها بر اساس نوع جدول افراد */
+.people-table-student.report-detail-table th:nth-child(1),
+.people-table-student.report-detail-table td:nth-child(1) { width: 40% !important; text-align: right !important; }
+.people-table-student.report-detail-table th:nth-child(2),
+.people-table-student.report-detail-table td:nth-child(2) { width: 18% !important; text-align: center !important; }
+.people-table-student.report-detail-table th:nth-child(3),
+.people-table-student.report-detail-table td:nth-child(3) { width: 20% !important; text-align: center !important; }
+.people-table-student.report-detail-table th:nth-child(4),
+.people-table-student.report-detail-table td:nth-child(4) { width: 22% !important; text-align: center !important; }
+
+.people-table-parent.report-detail-table th:nth-child(1),
+.people-table-parent.report-detail-table td:nth-child(1) { width: 28% !important; text-align: right !important; }
+.people-table-parent.report-detail-table th:nth-child(2),
+.people-table-parent.report-detail-table td:nth-child(2) { width: 14% !important; text-align: center !important; }
+.people-table-parent.report-detail-table th:nth-child(3),
+.people-table-parent.report-detail-table td:nth-child(3) { width: 24% !important; text-align: right !important; }
+.people-table-parent.report-detail-table th:nth-child(4),
+.people-table-parent.report-detail-table td:nth-child(4) { width: 16% !important; text-align: center !important; }
+.people-table-parent.report-detail-table th:nth-child(5),
+.people-table-parent.report-detail-table td:nth-child(5) { width: 18% !important; text-align: center !important; }
+
+.people-table-teacher.report-detail-table th:nth-child(1),
+.people-table-teacher.report-detail-table td:nth-child(1) { width: 26% !important; text-align: right !important; }
+.people-table-teacher.report-detail-table th:nth-child(2),
+.people-table-teacher.report-detail-table td:nth-child(2) { width: 12% !important; text-align: center !important; }
+.people-table-teacher.report-detail-table th:nth-child(3),
+.people-table-teacher.report-detail-table td:nth-child(3) { width: 24% !important; text-align: right !important; }
+.people-table-teacher.report-detail-table th:nth-child(4),
+.people-table-teacher.report-detail-table td:nth-child(4) { width: 18% !important; text-align: center !important; }
+.people-table-teacher.report-detail-table th:nth-child(5),
+.people-table-teacher.report-detail-table td:nth-child(5) { width: 20% !important; text-align: center !important; }
