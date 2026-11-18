@@ -950,19 +950,26 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
             <thead>
               <tr>
                 <th>نام و نام‌خانوادگی</th>
+                <th>کلاس / درس</th>
                 <th>نقش</th>
                 <th>پیام</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
+              {rows.map((r, i) => {
+                const meta = r.kind === 'معلم'
+                  ? (r.sub || '—')
+                  : r.kind === 'دانش‌آموز'
+                    ? (r.cls ? `کلاس ${r.cls}` : (r.sub || '—'))
+                    : (r.cls ? `کلاس ${r.cls}` : (r.sub || '—'))
+                return (
                 <tr key={`${r.name}-${i}`}>
                   <td>
                     <button type="button" className="people-name-btn" onClick={r.go}>
                       <strong>{r.name}</strong>
-                      {r.sub && <small>{r.sub}</small>}
                     </button>
                   </td>
+                  <td className="people-meta-cell">{meta}</td>
                   <td><span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span></td>
                   <td>
                     <button
@@ -976,7 +983,8 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
                     </button>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -7504,6 +7512,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   <thead>
                     <tr>
                       <th>نام و نام‌خانوادگی</th>
+                      <th>کلاس / درس</th>
                       <th>نقش</th>
                       <th>پیام</th>
                     </tr>
@@ -7514,9 +7523,9 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                         <td>
                           <button type="button" className="people-name-btn" onClick={() => { setTeacherIdx(ti); setTab('حضور معلمان') }}>
                             <strong>{t.name}</strong>
-                            <small>{t.subject}</small>
                           </button>
                         </td>
+                        <td className="people-meta-cell">{t.subject}{(t.subjects && t.subjects.length > 1) ? ` · ${t.subjects.slice(1).join('، ')}` : ''}</td>
                         <td><span className="adm-search-chip k-teacher">معلم</span></td>
                         <td>
                           <button
@@ -7555,6 +7564,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   <thead>
                     <tr>
                       <th>نام و نام‌خانوادگی</th>
+                      <th>کلاس / درس</th>
                       <th>نقش</th>
                       <th>پیام</th>
                     </tr>
@@ -7569,9 +7579,9 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                             onClick={() => { reportStartStudent = name; adminStartReportCls = cls; navigate('reports') }}
                           >
                             <strong>{name}</strong>
-                            <small>کلاس {cls}</small>
                           </button>
                         </td>
+                        <td className="people-meta-cell">کلاس {cls}</td>
                         <td><span className="adm-search-chip k-student">دانش‌آموز</span></td>
                         <td>
                           <button
