@@ -1001,6 +1001,7 @@ const calShowsDay = (offset: number, day: number) => (offset + day - 1) % 7 < 5
 const calendarMonths: CalMonth[] = [
   {
     label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
+    holidays: [2],
     items: [
       { day: 4, kind: 'assignment', subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
       { day: 4, kind: 'assignment', subject: 'علوم', title: 'پرسش کلاسی فصل ۲', due: 'تا امروز' },
@@ -1025,6 +1026,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
+    holidays: [13],
     items: [
       { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
       { day: 3, kind: 'exam', subject: 'علوم', title: 'آزمونک فصل ۴', due: '۳ آبان' },
@@ -1041,6 +1043,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'آذر ۱۴۰۵', days: 30, offset: 0, today: 0,
+    holidays: [16],
     items: [
       { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 آذر' },
       { day: 7, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '7 آذر', admin: true },
@@ -1051,6 +1054,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0,
+    holidays: [5],
     items: [
       { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 دی' },
       { day: 8, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '8 دی', admin: true },
@@ -1061,6 +1065,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0,
+    holidays: [22],
     items: [
       { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 بهمن' },
       { day: 9, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '9 بهمن', admin: true },
@@ -1071,6 +1076,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0,
+    holidays: [29],
     items: [
       { day: 10, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '10 اسفند' },
       { day: 10, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '10 اسفند', admin: true },
@@ -1081,6 +1087,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0,
+    holidays: [1, 2, 3, 4, 12, 13],
     items: [
       { day: 11, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '11 فروردین' },
       { day: 11, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '11 فروردین', admin: true },
@@ -1091,6 +1098,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0,
+    holidays: [3],
     items: [
       { day: 5, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '5 اردیبهشت' },
       { day: 5, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '5 اردیبهشت', admin: true },
@@ -1101,6 +1109,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0,
+    holidays: [14, 15],
     items: [
       { day: 6, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '6 خرداد' },
       { day: 6, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '6 خرداد', admin: true },
@@ -1111,6 +1120,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'تیر ۱۴۰۶', days: 31, offset: 2, today: 0,
+    holidays: [7],
     items: [
       { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 تیر' },
       { day: 7, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '7 تیر', admin: true },
@@ -1121,6 +1131,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0,
+    holidays: [8],
     items: [
       { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 مرداد' },
       { day: 8, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '8 مرداد', admin: true },
@@ -1131,6 +1142,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'شهریور ۱۴۰۶', days: 31, offset: 1, today: 0,
+    holidays: [1],
     items: [
       { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 شهریور' },
       { day: 9, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '9 شهریور', admin: true },
