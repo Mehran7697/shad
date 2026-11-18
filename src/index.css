@@ -5032,3 +5032,40 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
 }
 .subject-card .admin-class-tile strong { color: white; font-size: 19px; font-weight: 800; }
+
+.mg-cell.off .off-label {
+  display: block;
+  max-width: 100%;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #2f2a1a;
+  color: #ffca28;
+  line-height: 1.25;
+  font-size: 7px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.month-page .mg-cell.off .off-label { font-size: 8.5px; }
+.mt-holiday {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  margin: 4px 0 6px;
+  border-radius: 12px;
+  background: #fffbeb;
+  border: 1px solid #ecd694;
+  font-size: 11px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.mt-holiday b { color: #a76d14; }
+.mt-holiday .dot.off {
+  margin-top: 5px;
+  background: repeating-linear-gradient(-45deg, #ffe27a 0 2px, #ffffff 2px 4px);
+  border: 1px solid #ecd694;
+}

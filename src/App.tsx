@@ -736,14 +736,15 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   {Array.from({ length: calendarMonths[admMonthIdx].days }, (_, i) => {
                     const day = i + 1
                     if (!calShowsDay(calendarMonths[admMonthIdx].offset, day)) return null
-                    const isOff = !!calendarMonths[admMonthIdx].holidays?.includes(day)
+                    const hol = holidayOf(calendarMonths[admMonthIdx], day)
+                    const isOff = !!hol
                     const kinds = calendarMonths[admMonthIdx].items.filter(it => it.day === day && it.kind === 'event').map(it => it.kind)
                     const cellCls = ['mg-cell', 'is-clickable']
                     if (isOff) cellCls.push('off')
                     if (kinds.includes('event')) cellCls.push('has-event')
                     if (admIsNowMonth(calendarMonths[admMonthIdx]) && day === admNowParts[2]) cellCls.push('today')
                     return (
-                      <button type="button" key={day} className={cellCls.join(' ')} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{isOff ? <span className="off-label">تعطیل</span> : fa(day)}</button>
+                      <button type="button" key={day} className={cellCls.join(' ')} title={hol?.reason} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{isOff ? <span className="off-label">{hol!.reason}</span> : fa(day)}</button>
                     )
                   })}
                 </div>
@@ -990,18 +991,21 @@ type CalMonth = {
   days: number
   offset: number
   today: number
-  /** روزهای تعطیل رسمی (شمارهٔ روز در ماه) */
-  holidays?: number[]
+  /** تعطیلات رسمی با دلیل */
+  holidays?: { day: number; reason: string }[]
   items: CalItem[]
 }
 /* تقویم فقط روزهای شنبه تا چهارشنبه را نشان می‌دهد (پنجشنبه/جمعه حذف شدند) */
 const calDayNames = ['ش', 'ی', 'د', 'س', 'چ']
 const calLeadingBlanks = (offset: number) => (offset < 5 ? offset : 0)
 const calShowsDay = (offset: number, day: number) => (offset + day - 1) % 7 < 5
+
+const holidayOf = (month: CalMonth | undefined, day: number) =>
+  month?.holidays?.find(h => h.day === day) ?? null
 const calendarMonths: CalMonth[] = [
   {
     label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
-    holidays: [2],
+    holidays: [{ day: 2, reason: 'شهادت امام رضا (ع)' }],
     items: [
       { day: 4, kind: 'assignment', subject: 'ریاضی', title: 'تمرین صفحه ۴۵', due: 'تا امروز' },
       { day: 4, kind: 'assignment', subject: 'علوم', title: 'پرسش کلاسی فصل ۲', due: 'تا امروز' },
@@ -1026,7 +1030,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
-    holidays: [13],
+    holidays: [{ day: 13, reason: 'روز دانش‌آموز · ۱۳ آبان' }],
     items: [
       { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
       { day: 3, kind: 'exam', subject: 'علوم', title: 'آزمونک فصل ۴', due: '۳ آبان' },
@@ -1043,7 +1047,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'آذر ۱۴۰۵', days: 30, offset: 0, today: 0,
-    holidays: [16],
+    holidays: [{ day: 16, reason: 'روز دانشجو' }],
     items: [
       { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 آذر' },
       { day: 7, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '7 آذر', admin: true },
@@ -1054,7 +1058,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0,
-    holidays: [5],
+    holidays: [{ day: 5, reason: 'تعطیل رسمی' }],
     items: [
       { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 دی' },
       { day: 8, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '8 دی', admin: true },
@@ -1065,7 +1069,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0,
-    holidays: [22],
+    holidays: [{ day: 22, reason: 'پیروزی انقلاب اسلامی' }],
     items: [
       { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 بهمن' },
       { day: 9, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '9 بهمن', admin: true },
@@ -1076,7 +1080,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0,
-    holidays: [29],
+    holidays: [{ day: 29, reason: 'ملی شدن صنعت نفت' }],
     items: [
       { day: 10, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '10 اسفند' },
       { day: 10, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '10 اسفند', admin: true },
@@ -1087,7 +1091,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0,
-    holidays: [1, 2, 3, 4, 12, 13],
+    holidays: [{ day: 1, reason: 'عید نوروز' }, { day: 2, reason: 'عید نوروز' }, { day: 3, reason: 'عید نوروز' }, { day: 4, reason: 'عید نوروز' }, { day: 12, reason: 'روز جمهوری اسلامی' }, { day: 13, reason: 'روز طبیعت' }],
     items: [
       { day: 11, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '11 فروردین' },
       { day: 11, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '11 فروردین', admin: true },
@@ -1098,7 +1102,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0,
-    holidays: [3],
+    holidays: [{ day: 3, reason: 'شهادت امام جعفر صادق (ع)' }],
     items: [
       { day: 5, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '5 اردیبهشت' },
       { day: 5, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '5 اردیبهشت', admin: true },
@@ -1109,7 +1113,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0,
-    holidays: [14, 15],
+    holidays: [{ day: 14, reason: 'رحلت امام خمینی (ره)' }, { day: 15, reason: 'قیام ۱۵ خرداد' }],
     items: [
       { day: 6, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '6 خرداد' },
       { day: 6, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '6 خرداد', admin: true },
@@ -1120,7 +1124,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'تیر ۱۴۰۶', days: 31, offset: 2, today: 0,
-    holidays: [7],
+    holidays: [{ day: 7, reason: 'شهادت آیت‌الله بهشتی' }],
     items: [
       { day: 7, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '7 تیر' },
       { day: 7, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '7 تیر', admin: true },
@@ -1131,7 +1135,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0,
-    holidays: [8],
+    holidays: [{ day: 8, reason: 'تعطیل رسمی' }],
     items: [
       { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 مرداد' },
       { day: 8, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '8 مرداد', admin: true },
@@ -1142,7 +1146,7 @@ const calendarMonths: CalMonth[] = [
   },
   {
     label: 'شهریور ۱۴۰۶', days: 31, offset: 1, today: 0,
-    holidays: [1],
+    holidays: [{ day: 1, reason: 'آغاز سال تحصیلی · آماده‌سازی' }],
     items: [
       { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 شهریور' },
       { day: 9, kind: 'event', subject: 'مدرسه', title: 'رویداد ماهانه مدرسه', due: '9 شهریور', admin: true },
@@ -1163,7 +1167,10 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
   const [monthIdx, setMonthIdx] = useState(0)
   const m = months[monthIdx]
   const kindsOnDay = (day: number) => new Set(m.items.filter(it => it.day === day).map(it => it.kind))
-  const daysWithItems = [...new Set(m.items.map(it => it.day))].sort((a, b) => a - b)
+  const daysWithItems = [...new Set([
+    ...m.items.map(it => it.day),
+    ...(m.holidays?.map(h => h.day) ?? []),
+  ])].sort((a, b) => a - b)
 
   const scrollToDay = (day: number) => {
     if (!kindsOnDay(day).size) return
@@ -1192,7 +1199,8 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
               {Array.from({ length: m.days }, (_, i) => {
                 const day = i + 1
                 if (!calShowsDay(m.offset, day)) return null
-                const isOff = !!m.holidays?.includes(day)
+                const hol = holidayOf(m, day)
+                const isOff = !!hol
                 const cls = ['mg-cell']
                 if (isOff) cls.push('off')
                 if (day === m.today) cls.push('today')
@@ -1200,17 +1208,18 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
                 if (kinds.has('assignment')) cls.push('has-assignment')
                 if (kinds.has('exam')) cls.push('has-exam')
                 if (kinds.has('event')) cls.push('has-event')
-                if (kinds.size) cls.push('is-clickable')
+                if (kinds.size || isOff) cls.push('is-clickable')
                 return (
                   <span
                     key={day}
                     className={cls.join(' ')}
-                    role={kinds.size ? 'button' : undefined}
-                    tabIndex={kinds.size ? 0 : undefined}
+                    role={(kinds.size || isOff) ? 'button' : undefined}
+                    tabIndex={(kinds.size || isOff) ? 0 : undefined}
+                    title={hol?.reason}
                     onClick={() => scrollToDay(day)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') scrollToDay(day) }}
                   >
-                    {isOff ? <span className="off-label">تعطیل</span> : fa(day)}
+                    {isOff ? <span className="off-label">{hol!.reason}</span> : fa(day)}
                   </span>
                 )
               })}
@@ -1231,9 +1240,16 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
             )}
             {daysWithItems.map(day => {
               const list = m.items.filter(it => it.day === day)
+              const hol = holidayOf(m, day)
               return (
                 <div className="mt-group kind-by-date" key={day} id={`cal-day-${day}`}>
                   <em>{fa(day)} {m.label.replace(/\s*\d+$/, '').trim()}</em>
+                  {hol && (
+                    <span className="mt-holiday">
+                      <i className="dot off" />
+                      <b>تعطیل</b> · {hol.reason}
+                    </span>
+                  )}
                   {list.map(it => (
                     <button
                       type="button"
@@ -7337,6 +7353,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   // ---- derived: calendar day events
   const monthObj = calendarMonths[monthIdx]
   const dayEvents = monthObj.items.filter(it => it.day === selDay && it.kind === 'event')
+  const dayHoliday = holidayOf(monthObj, selDay)
   const upcomingEvents = calendarMonths.flatMap(mm =>
     mm.items.filter(it => it.kind === 'event').map(it => `${it.title} · ${fa(it.day)} ${adminMonthShort(mm.label)}`))
 
@@ -7679,13 +7696,14 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                 {Array.from({ length: monthObj.days }, (_, i) => {
                   const day = i + 1
                   if (!calShowsDay(monthObj.offset, day)) return null
-                  const isOff = !!monthObj.holidays?.includes(day)
+                  const hol = holidayOf(monthObj, day)
+                  const isOff = !!hol
                   const cellCls = ['mg-cell', 'is-clickable']
                   if (isOff) cellCls.push('off')
                   if (day === selDay) cellCls.push('sel')
                   if (monthObj.items.some(it => it.day === day && it.kind === 'event')) cellCls.push('has-event')
                   return (
-                    <button type="button" key={day} className={cellCls.join(' ')} onClick={() => setSelDay(day)}>{isOff ? <span className="off-label">تعطیل</span> : fa(day)}</button>
+                    <button type="button" key={day} className={cellCls.join(' ')} title={hol?.reason} onClick={() => setSelDay(day)}>{isOff ? <span className="off-label">{hol!.reason}</span> : fa(day)}</button>
                   )
                 })}
               </div>
@@ -7694,7 +7712,16 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               <strong>رویدادهای روز {fa(selDay)}</strong>
               <button type="button" className="admin-add-btn" onClick={() => setEvSheet(true)}>ثبت رویداد</button>
             </div>
-            {dayEvents.length === 0 && <div className="report-empty-hint">رویدادی برای این روز ثبت نشده است.</div>}
+            {dayHoliday && (
+              <div className="admin-event-row kind-event" style={{ borderColor: '#ecd694', background: '#fffbeb' }}>
+                <i className="dot off" />
+                <div>
+                  <strong>تعطیل رسمی</strong>
+                  <small>{dayHoliday.reason}</small>
+                </div>
+              </div>
+            )}
+            {dayEvents.length === 0 && !dayHoliday && <div className="report-empty-hint">رویدادی برای این روز ثبت نشده است.</div>}
             {dayEvents.map(it => (
               <div className={`admin-event-row kind-${it.kind}`} key={`${it.day}-${it.kind}-${it.title}`}>
                 <i className={`dot ${it.kind}`} />
