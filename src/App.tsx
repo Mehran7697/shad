@@ -349,15 +349,20 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
   return <nav className="msg-nav">{items.map(item => <button key={item.label} className={active === item.label ? 'active' : ''} onClick={() => navigate(item.screen)}><span><Icon name={item.icon} /></span><small>{item.label}</small></button>)}</nav>
 }
 
-function Messenger({ navigate }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
+function Messenger({ navigate, role }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [started] = useState(classStarted)
   const [filter, setFilter] = useState('همه')
-  const filtered = filter === 'همه' ? messengerChats : filter === 'دروس من' ? messengerChats.filter(c => c.type === 'دروس من') : messengerChats.filter(c => c.type === filter)
+  const courseTab = role === 'teacher' ? 'معلمان' : 'دروس من'
+  const filtered = filter === 'همه'
+    ? messengerChats
+    : (filter === 'دروس من' || filter === 'معلمان')
+      ? messengerChats.filter(c => c.type === 'دروس من')
+      : messengerChats.filter(c => c.type === filter)
   return <div className="screen home messenger-light" dir="rtl">
     <header className="home-header">
       <QuickLinks navigate={navigate} active="پیام رسان" />
     </header>
-    <div className="chips">{['همه', 'دروس من', 'گروه', 'شخصی', 'کانال'].map(x => <button key={x} className={filter === x ? 'active' : ''} onClick={() => setFilter(x)}>{x}</button>)}</div>
+    <div className="chips">{['همه', courseTab, 'گروه', 'شخصی', 'کانال'].map(x => <button key={x} className={filter === x ? 'active' : ''} onClick={() => setFilter(x)}>{x}</button>)}</div>
     <main className="conversation-list">
       {started && <button className="class-banner-active" onClick={() => navigate('call')}>
         <Icon name="video" />
