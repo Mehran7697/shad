@@ -4872,6 +4872,75 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .admin-svc-receipt-row.total strong { color: var(--green-dark); font-size: 13px; }
 
 .admin-sched-table td { padding: 5px 4px; }
+/* جدول برنامه کلاسی: ستون «روز» فیکس، بقیه ستون‌ها اسکرول افقی */
+.admin-sched-table { width: max-content; min-width: 0; }
+/* عرض ستون‌ها با کم/زیاد شدن زنگ ثابت می‌ماند */
+.admin-sched-table thead th:not(:first-child) { width: 78px; }
+.admin-sched-wrap { width: max-content; max-width: 100%; }
+.admin-sched-table thead th:first-child,
+.admin-sched-table tbody .schedule-day-name {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  box-shadow: -6px 0 6px -6px rgb(0 0 0 / .14);
+}
+.admin-sched-table thead th:first-child { background: #f3f8f7; z-index: 2; }
+.admin-sched-table tbody .schedule-day-name { background: #fbfdfc; }
+/* شمارندهٔ تعداد زنگ */
+.period-stepper {
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
+  border: 1px solid var(--line); border-radius: 13px; background: white;
+  padding: 6px 8px;
+}
+.period-stepper button {
+  width: 28px; height: 28px; flex: none;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--green-soft, #e7f5f0); color: var(--green-dark);
+  font-size: 15px; font-weight: 800; line-height: 1;
+  display: grid; place-items: center;
+}
+.period-stepper button:disabled { opacity: .35; }
+.period-stepper button:active:not(:disabled) { transform: scale(.93); }
+.period-stepper strong { font-size: 12px; color: var(--ink); min-width: 14px; text-align: center; }
+/* سرستون زنگ: کلیکی برای تعیین ساعت */
+.period-head {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 100%; border: 0; background: transparent; padding: 0;
+  font: inherit; color: inherit; cursor: pointer;
+}
+.period-head strong { font-size: 11px; font-weight: 800; }
+.period-head small { font-size: 8.5px; color: var(--muted); direction: ltr; unicode-bidi: plaintext; }
+.period-head:active strong { color: var(--green); }
+/* پاپ‌آپ وسط‌صفحهٔ ساعت زنگ */
+.period-pop-overlay { align-items: center; }
+.period-pop {
+  width: min(92%, 360px); background: white; border-radius: 22px;
+  padding: 16px 18px 18px; box-shadow: 0 24px 60px rgb(0 0 0 / .25);
+  animation: fadeIn .18s ease-out;
+}
+.period-pop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.period-time-row { display: flex; align-items: center; gap: 5px; }
+.period-time-row input {
+  width: 100%; min-width: 0; text-align: center;
+  padding: 11px 4px; font-size: 12px; direction: ltr;
+}
+.period-time-row i { font-style: normal; color: var(--muted); font-weight: 800; }
+/* برچسب دائمی ساعت/دقیقه زیر هر ورودی */
+.pt-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; }
+.pt-cell small { font-size: 9px; font-weight: 700; color: var(--muted); }
+/* بخش خالی کردن یک روز */
+.sched-clear-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+.sched-clear-btn {
+  height: 45px; border: 1px solid #f3c9c4; border-radius: 13px;
+  background: #fdecea; color: #c0392b;
+  font-size: 11px; font-weight: 800; cursor: pointer;
+}
+.sched-clear-btn:active { transform: scale(.98); }
+.period-pop-error {
+  margin-top: 11px; padding: 9px 11px; border-radius: 11px;
+  background: #fdecea; color: #c0392b; font-size: 11px; font-weight: 700;
+  text-align: center;
+}
 .admin-sched-cell {
   width: 100%; min-height: 58px; padding: 7px 6px; border: 1px dashed #d9ece6;
   border-radius: 10px; background: #f7fcfa; display: flex; flex-direction: column;
