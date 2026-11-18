@@ -4901,10 +4901,24 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 }
 
 .mg-cell.sel { border-color: var(--green); box-shadow: 0 0 0 2px rgb(17 156 120 / .18); font-weight: 800; }
-/* خانهٔ تعطیل رسمی در تقویم */
-.mg-cell.off { background: #fdeaea; border-color: #f3cfcf; color: #c0392b; font-weight: 800; font-size: 7.5px; }
+/* خانهٔ تعطیل رسمی در تقویم: هاشور زرد/سفید + متن زرد روی چیپ تیره */
+.mg-cell.off {
+  background: repeating-linear-gradient(-45deg, #ffe27a 0 4px, #ffffff 4px 8px);
+  border-color: #ecd694;
+  color: #ffca28;
+  font-weight: 800;
+  font-size: 7.5px;
+}
 .month-page .mg-cell.off { font-size: 10.5px; }
 .mg-cell.off:active { transform: none; }
+.mg-cell.off .off-label {
+  display: inline-block;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #2f2a1a;
+  color: #ffca28;
+  line-height: 1.2;
+}
 
 /* ===== خانهٔ مدیر: هدر اعلان‌ها + پیام‌های اولیا/دانش‌آموزان/معلمان ===== */
 .admin-alerts { margin-top: 10px; background: white; border: 1px solid var(--line); border-radius: 17px; padding: 11px 12px; box-shadow: 0 4px 14px rgb(16 64 51 / .05); }

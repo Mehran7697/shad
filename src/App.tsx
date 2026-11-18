@@ -745,7 +745,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                     if (kinds.includes('event')) cellCls.push('has-event')
                     if (admIsNowMonth(calendarMonths[admMonthIdx]) && day === admNowParts[2]) cellCls.push('today')
                     return (
-                      <button type="button" key={day} className={cellCls.join(' ')} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{isOff ? 'تعطیل' : fa(day)}</button>
+                      <button type="button" key={day} className={cellCls.join(' ')} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{isOff ? <span className="off-label">تعطیل</span> : fa(day)}</button>
                     )
                   })}
                 </div>
@@ -1214,7 +1214,7 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
                     onClick={() => scrollToDay(day)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') scrollToDay(day) }}
                   >
-                    {isOff ? 'تعطیل' : fa(day)}
+                    {isOff ? <span className="off-label">تعطیل</span> : fa(day)}
                   </span>
                 )
               })}
@@ -7639,7 +7639,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   if (day === selDay) cellCls.push('sel')
                   if (monthObj.items.some(it => it.day === day)) cellCls.push('has-event')
                   return (
-                    <button type="button" key={day} className={cellCls.join(' ')} onClick={() => setSelDay(day)}>{isOff ? 'تعطیل' : fa(day)}</button>
+                    <button type="button" key={day} className={cellCls.join(' ')} onClick={() => setSelDay(day)}>{isOff ? <span className="off-label">تعطیل</span> : fa(day)}</button>
                   )
                 })}
               </div>
