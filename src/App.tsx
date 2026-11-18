@@ -167,6 +167,8 @@ type Screen =
   | 'reports'
   | 'admin'
   | 'search'
+  | 'messages'
+  | 'notifs'
   | 'auth'
 
 type IconName =
@@ -211,6 +213,7 @@ type IconName =
   | 'lock'
   | 'home'
   | 'board'
+  | 'classroom'
   | 'platform'
   | 'logout'
   | 'bag'
@@ -258,6 +261,7 @@ const paths: Record<IconName, React.ReactNode> = {
   lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>,
   home: <path d="m19 21-7-3-7 3V9l7-3 7 3Z" />,
   board: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 19h18M7 9h1M13 9h1M7 15h1M13 15h1M11 9h1" /></>,
+  classroom: <><rect x="2.5" y="2" width="14" height="9" rx="1.5" /><path d="M5 5h8M5 7.5h5" /><circle cx="19.5" cy="4.8" r="1.6" /><path d="M19.5 6.4v3.6M18.7 7.5l-2.6-1.4" /><circle cx="5" cy="14.3" r="1.35" /><path d="M2.8 17.3a2.4 2.4 0 0 1 4.4 0" /><circle cx="12" cy="14.3" r="1.35" /><path d="M9.8 17.3a2.4 2.4 0 0 1 4.4 0" /><circle cx="19" cy="14.3" r="1.35" /><path d="M16.8 17.3a2.4 2.4 0 0 1 4.4 0" /><circle cx="5" cy="19.6" r="1.35" /><path d="M2.8 22.6a2.4 2.4 0 0 1 4.4 0" /><circle cx="12" cy="19.6" r="1.35" /><path d="M9.8 22.6a2.4 2.4 0 0 1 4.4 0" /><circle cx="19" cy="19.6" r="1.35" /><path d="M16.8 22.6a2.4 2.4 0 0 1 4.4 0" /></>,
   platform: <><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></>,
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></>,
   bag: <><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10Z" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5" /></>,
@@ -438,6 +442,99 @@ const adminInbox: { name: string; role: InboxRole; roleCls: string; sub: string;
   { name: 'سارا کریمی', role: 'معلم', roleCls: 't', sub: 'دبیر علوم تجربی', msg: 'لابراتوار علوم را برای روز شنبه رزرو کردم.', time: 'شنبه', color: 'orange', initials: 'سک', unread: false },
 ]
 
+/** صفحهٔ پیام‌ها: فهرست گفتگوها با تگ نقش (والدین / دانش‌آموز / معلم) */
+function AdminMessages({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
+  const [tag, setTag] = useState<'همه' | InboxRole>('همه')
+  const unread = adminInbox.filter(m => m.unread).length
+  const rows = adminInbox.filter(m => tag === 'همه' || m.role === tag)
+  const chipCls = (r: InboxRole) => r === 'معلم' ? 'k-teacher' : r === 'والدین' ? 'k-parent' : 'k-student'
+  return (
+    <div className="screen inner-screen" dir="rtl">
+      <SubHeader screen="messages" back={goBack} rightIcon={null} subtitle={`${fa(adminInbox.length)} گفتگو · ${unread > 0 ? `${fa(unread)} پیام جدید` : 'بدون پیام جدید'}`} />
+      <div className="school-search-tags">
+        {(['همه', 'والدین', 'دانش‌آموز', 'معلم'] as const).map(t => (
+          <button type="button" key={t} className={tag === t ? 'active' : ''} onClick={() => setTag(t)}>{t}</button>
+        ))}
+      </div>
+      <main className="msg-list school-search-list">
+        <div className="school-search-count">{`${fa(rows.length)} گفتگو`}</div>
+        {rows.length === 0 && <div className="report-empty-hint">پیامی با این تگ وجود ندارد.</div>}
+        {rows.map((m, i) => (
+          <button type="button" className="school-search-row" key={`${m.name}-${i}`} onClick={() => navigate('chat')}>
+            <span className={`adm-search-chip ${chipCls(m.role)}`}>{m.role}</span>
+            <span className={`avatar ${m.color} msg-avatar`}>{m.initials}</span>
+            <span className="admin-row-copy">
+              <span className="msg-row-top">
+                <strong>{m.name}</strong>
+                {m.unread && <i className="msg-unread" />}
+              </span>
+              <small>{m.msg}</small>
+            </span>
+            <time className="msg-row-time">{m.time}</time>
+            <Icon name="chevron" size={16} />
+          </button>
+        ))}
+      </main>
+    </div>
+  )
+}
+
+/** اعلان‌های کلاسی: غیبت، تأخیر و زنگ نرفتن (دکمهٔ زنگولهٔ خانهٔ مدیر) */
+type NotifKind = 'absent' | 'late' | 'missed'
+const adminNotifs: { cls: string; name: string; kind: NotifKind; msg: string; time: string; unread?: boolean }[] = [
+  { cls: '۹۰۱', name: 'آراد حسینی', kind: 'absent', msg: 'امروز کلا نیامده؛ غیبت ثبت شد.', time: '۰۷:۵۰', unread: true },
+  { cls: '۹۰۱', name: 'مبینا اکبری', kind: 'missed', msg: 'زنگ اول را نرفته است.', time: '۰۸:۱۰', unread: true },
+  { cls: '۹۰۲', name: 'پارسا کاظمی', kind: 'late', msg: 'با ۲۰ دقیقه تأخیر وارد کلاس شد.', time: '۰۸:۲۰', unread: true },
+  { cls: '۹۰۲', name: 'غزل امیری', kind: 'absent', msg: 'امروز غایب است و کلا نیامده.', time: '۰۷:۵۰' },
+  { cls: '۹۰۳', name: 'مهدی عباسی', kind: 'missed', msg: 'زنگ ورزش را نرفته است.', time: '۰۹:۴۵' },
+  { cls: '۹۰۳', name: 'نیلوفر یوسفی', kind: 'late', msg: 'دیرتر از موعد وارد مدرسه شد.', time: '۰۸:۳۵' },
+]
+const notifKindMeta: Record<NotifKind, { label: string; cls: string }> = {
+  absent: { label: 'غیبت', cls: 'k-absent' },
+  late: { label: 'تأخیر', cls: 'k-late' },
+  missed: { label: 'زنگ نرفته', cls: 'k-missed' },
+}
+
+/** صفحهٔ اعلان‌ها: استاتوس هر کلاس با تگ «همه» و تگ کلاس‌ها */
+function ClassNotifs({ navigate, goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
+  const [cls, setCls] = useState('همه')
+  const rows = adminNotifs.filter(n => cls === 'همه' || n.cls === cls)
+  const unread = adminNotifs.filter(n => n.unread).length
+  return (
+    <div className="screen inner-screen" dir="rtl">
+      <SubHeader screen="notifs" back={goBack} rightIcon={null} subtitle={`${fa(adminNotifs.length)} اعلان · ${unread > 0 ? `${fa(unread)} جدید` : 'بدون جدید'}`} />
+      <div className="school-search-cls">
+        {['همه', ...adminClasses].map(c => (
+          <button type="button" key={c} className={cls === c ? 'active' : ''} onClick={() => setCls(c)}>{c === 'همه' ? 'همه' : `کلاس ${c}`}</button>
+        ))}
+      </div>
+      <main className="msg-list school-search-list">
+        <div className="school-search-count">{`${fa(rows.length)} اعلان`}</div>
+        {rows.length === 0 && <div className="report-empty-hint">اعلانی برای این کلاس ثبت نشده است.</div>}
+        {rows.map((n, i) => {
+          const km = notifKindMeta[n.kind]
+          return (
+            <button
+              type="button"
+              className="school-search-row"
+              key={`${n.name}-${i}`}
+              onClick={() => { adminStartCls = n.cls; touchAdminClass(n.cls); adminStartTab = 'حضور و غیاب'; navigate('admin') }}
+            >
+              <span className={`adm-search-chip ${km.cls}`}>{km.label}</span>
+              <span className="admin-row-copy">
+                <span className="msg-row-top"><strong>{n.name}</strong>{n.unread && <i className="msg-unread" />}</span>
+                <small>{n.msg}</small>
+              </span>
+              <span className="sr-cls-tag">{`کلاس ${n.cls}`}</span>
+              <Icon name="chevron" size={16} />
+            </button>
+          )
+        })}
+      </main>
+    </div>
+  )
+}
+
 function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [active, setActive] = useState(role !== 'student' ? 'مدرسه من' : 'خانه')
   const subjects = [
@@ -451,7 +548,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admNowParts = toEn(nowShamsi().date).split('/').map(Number)
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
-  const inboxUnread = adminInbox.filter(m => m.unread).length
+  const notifUnread = adminNotifs.filter(n => n.unread).length
 
   const contentPlaceholder = (
     <div className="school-home">
@@ -612,17 +709,17 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
               {/* هدر اعلان‌ها + پیام‌های اولیا، دانش‌آموزان و معلمان */}
               <div className="admin-alerts">
                 <div className="admin-alerts-head">
-                  <button type="button" className="admin-msg-btn" aria-label="پیام‌ها" onClick={() => navigate('chat')}>
+                  <button type="button" className="admin-msg-btn" aria-label="پیام‌ها" onClick={() => navigate('messages')}>
                     <Icon name="send" size={16} />
                     <b>{fa(adminInbox.length)}</b>
                   </button>
                   <div className="admin-alerts-title">
                     <strong>پیام‌ها و اعلان‌ها</strong>
-                    <small>{`${fa(adminInbox.length)} پیام از اولیا، دانش‌آموزان و معلمان`}</small>
+                    <small>{`${fa(adminInbox.length)} پیام · ${fa(notifUnread)} اعلان کلاسی`}</small>
                   </div>
-                  <button type="button" className="admin-bell" aria-label="اعلان‌ها" onClick={() => navigate('chat')}>
-                    <Icon name="bell" size={17} />
-                    {inboxUnread > 0 && <b>{fa(inboxUnread)}</b>}
+                  <button type="button" className="admin-bell" aria-label="اعلان‌ها" onClick={() => navigate('notifs')}>
+                    <Icon name="classroom" size={18} />
+                    {notifUnread > 0 && <b>{fa(notifUnread)}</b>}
                   </button>
                 </div>
               </div>
@@ -639,14 +736,16 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   {Array.from({ length: calendarMonths[admMonthIdx].days }, (_, i) => {
                     const day = i + 1
                     if (!calShowsDay(calendarMonths[admMonthIdx].offset, day)) return null
+                    const isOff = !!calendarMonths[admMonthIdx].holidays?.includes(day)
                     const kinds = calendarMonths[admMonthIdx].items.filter(it => it.day === day).map(it => it.kind)
                     const cellCls = ['mg-cell', 'is-clickable']
+                    if (isOff) cellCls.push('off')
                     if (kinds.includes('assignment')) cellCls.push('has-assignment')
                     if (kinds.includes('exam')) cellCls.push('has-exam')
                     if (kinds.includes('event')) cellCls.push('has-event')
                     if (admIsNowMonth(calendarMonths[admMonthIdx]) && day === admNowParts[2]) cellCls.push('today')
                     return (
-                      <button type="button" key={day} className={cellCls.join(' ')} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{fa(day)}</button>
+                      <button type="button" key={day} className={cellCls.join(' ')} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{isOff ? 'تعطیل' : fa(day)}</button>
                     )
                   })}
                 </div>
@@ -893,6 +992,8 @@ type CalMonth = {
   days: number
   offset: number
   today: number
+  /** روزهای تعطیل رسمی (شمارهٔ روز در ماه) */
+  holidays?: number[]
   items: CalItem[]
 }
 /* تقویم فقط روزهای شنبه تا چهارشنبه را نشان می‌دهد (پنجشنبه/جمعه حذف شدند) */
@@ -932,7 +1033,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0,
+    label: 'آبان ۱۴۰۵', days: 30, offset: 5, today: 0, holidays: [22],
     items: [
       { day: 3, kind: 'assignment', subject: 'ریاضی', title: 'تمرین فصل ۴', due: '۳ آبان' },
       { day: 3, kind: 'exam', subject: 'علوم', title: 'آزمونک فصل ۴', due: '۳ آبان' },
@@ -957,7 +1058,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0,
+    label: 'دی ۱۴۰۵', days: 30, offset: 2, today: 0, holidays: [2, 16],
     items: [
       { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 دی' },
       { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 دی' },
@@ -968,7 +1069,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0,
+    label: 'بهمن ۱۴۰۵', days: 30, offset: 4, today: 0, holidays: [4, 22],
     items: [
       { day: 9, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '9 بهمن' },
       { day: 9, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '9 بهمن' },
@@ -979,7 +1080,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0,
+    label: 'اسفند ۱۴۰۵', days: 29, offset: 6, today: 0, holidays: [9, 19, 20, 29],
     items: [
       { day: 10, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '10 اسفند' },
       { day: 10, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '10 اسفند' },
@@ -990,7 +1091,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0,
+    label: 'فروردین ۱۴۰۶', days: 31, offset: 0, today: 0, holidays: [1, 2, 3, 4, 12, 13, 14],
     items: [
       { day: 11, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '11 فروردین' },
       { day: 11, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '11 فروردین' },
@@ -1001,7 +1102,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0,
+    label: 'اردیبهشت ۱۴۰۶', days: 31, offset: 3, today: 0, holidays: [24, 27],
     items: [
       { day: 5, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '5 اردیبهشت' },
       { day: 5, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '5 اردیبهشت' },
@@ -1012,7 +1113,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0,
+    label: 'خرداد ۱۴۰۶', days: 31, offset: 6, today: 0, holidays: [4, 14, 15, 24, 25],
     items: [
       { day: 6, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '6 خرداد' },
       { day: 6, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '6 خرداد' },
@@ -1034,7 +1135,7 @@ const calendarMonths: CalMonth[] = [
     ],
   },
   {
-    label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0,
+    label: 'مرداد ۱۴۰۶', days: 31, offset: 5, today: 0, holidays: [3, 11, 12, 20, 29],
     items: [
       { day: 8, kind: 'assignment', subject: 'ریاضی', title: 'تمرین ماهانه', due: '8 مرداد' },
       { day: 8, kind: 'event', subject: 'کلاس', title: 'مرور درس', due: '8 مرداد' },
@@ -1095,7 +1196,9 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
               {Array.from({ length: m.days }, (_, i) => {
                 const day = i + 1
                 if (!calShowsDay(m.offset, day)) return null
+                const isOff = !!m.holidays?.includes(day)
                 const cls = ['mg-cell']
+                if (isOff) cls.push('off')
                 if (day === m.today) cls.push('today')
                 const kinds = kindsOnDay(day)
                 if (kinds.has('assignment')) cls.push('has-assignment')
@@ -1111,7 +1214,7 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
                     onClick={() => scrollToDay(day)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') scrollToDay(day) }}
                   >
-                    {fa(day)}
+                    {isOff ? 'تعطیل' : fa(day)}
                   </span>
                 )
               })}
@@ -1121,6 +1224,7 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
               <span><i className="dot assignment" />تکلیف</span>
               <span><i className="dot exam" />آزمون</span>
               <span><i className="dot event" />رویداد</span>
+              <span><i className="dot off" />تعطیل</span>
             </div>
           </div>
         </div>
@@ -1618,6 +1722,8 @@ const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> =
   'grade-register': { title: 'ثبت نمره', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   storage: { title: 'مدیریت حافظه', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
   admin: { title: 'سرویس آموزش', subtitle: 'پنل مدیریت مدرسه' },
+  messages: { title: 'پیام‌ها', subtitle: 'اولیا، دانش‌آموزان و معلمان' },
+  notifs: { title: 'اعلان‌ها', subtitle: 'وضعیت حضور و غیاب کلاس‌ها' },
 }
 
 function SubHeader({ screen, back, rightIcon = 'more', onRightClick, rightLabel = 'بیشتر', rightText, rightExtra, showSearchBtn = false, onSearchClick, title, subtitle, searchOpen = false, searchValue = '', onSearchChange, onSearchClose, searchPlaceholder = 'جست‌وجو...' }: {
@@ -7527,11 +7633,13 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                 {Array.from({ length: monthObj.days }, (_, i) => {
                   const day = i + 1
                   if (!calShowsDay(monthObj.offset, day)) return null
+                  const isOff = !!monthObj.holidays?.includes(day)
                   const cellCls = ['mg-cell', 'is-clickable']
+                  if (isOff) cellCls.push('off')
                   if (day === selDay) cellCls.push('sel')
                   if (monthObj.items.some(it => it.day === day)) cellCls.push('has-event')
                   return (
-                    <button type="button" key={day} className={cellCls.join(' ')} onClick={() => setSelDay(day)}>{fa(day)}</button>
+                    <button type="button" key={day} className={cellCls.join(' ')} onClick={() => setSelDay(day)}>{isOff ? 'تعطیل' : fa(day)}</button>
                   )
                 })}
               </div>
@@ -8240,6 +8348,8 @@ export default function App() {
     {screen === 'reports' && <Reports goBack={goBack} role={role}/>}
     {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
     {screen === 'search' && <SchoolSearch navigate={navigate} goBack={goBack}/>}
+    {screen === 'messages' && <AdminMessages navigate={navigate} goBack={goBack}/>}
+    {screen === 'notifs' && <ClassNotifs navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
     {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
     {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}

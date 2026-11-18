@@ -353,6 +353,7 @@
 .month-legend .dot.assignment, .month-tasks .dot.assignment { background: #f59e0b; }
 .month-legend .dot.exam, .month-tasks .dot.exam { background: #6366f1; }
 .month-legend .dot.event, .month-tasks .dot.event { background: #14b8a6; }
+.month-legend .dot.off { background: #e06666; }
 .mt-group.kind-assignment em { color: #b45309; }
 .mt-group.kind-exam em { color: #4f46e5; }
 .mt-group.kind-event em { color: #0f766e; }
@@ -612,6 +613,18 @@
 .adm-search-chip.k-teacher { background: #3f8efc; }
 .adm-search-chip.k-student { background: #f59f2b; }
 .adm-search-chip.k-parent { background: #8b5cf6; }
+.adm-search-chip.k-absent { background: #ef5b5b; }
+.adm-search-chip.k-late { background: #f59f2b; }
+.adm-search-chip.k-missed { background: #8b5cf6; }
+
+/* ---- ردیف گفتگو در صفحهٔ پیام‌ها ---- */
+.school-search-row .msg-avatar { width: 30px; height: 30px; flex: none; font-size: 10px; border-radius: 50%; }
+.school-search-row .adm-search-chip { min-width: 46px; padding: 0 7px; }
+.msg-row-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.msg-row-top strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-unread { width: 7px; height: 7px; border-radius: 50%; background: #ef5b5b; flex: none; }
+.school-search-row .admin-row-copy small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-row-time { font-size: 9px; color: var(--muted); flex: none; }
 
 /* ---- فیلتر کلاس در صفحهٔ افراد ---- */
 .school-search-cls {
@@ -4888,6 +4901,10 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 }
 
 .mg-cell.sel { border-color: var(--green); box-shadow: 0 0 0 2px rgb(17 156 120 / .18); font-weight: 800; }
+/* خانهٔ تعطیل رسمی در تقویم */
+.mg-cell.off { background: #fdeaea; border-color: #f3cfcf; color: #c0392b; font-weight: 800; font-size: 7.5px; }
+.month-page .mg-cell.off { font-size: 10.5px; }
+.mg-cell.off:active { transform: none; }
 
 /* ===== خانهٔ مدیر: هدر اعلان‌ها + پیام‌های اولیا/دانش‌آموزان/معلمان ===== */
 .admin-alerts { margin-top: 10px; background: white; border: 1px solid var(--line); border-radius: 17px; padding: 11px 12px; box-shadow: 0 4px 14px rgb(16 64 51 / .05); }
@@ -4897,7 +4914,7 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .admin-alerts-title small { font-size: 9.5px; color: var(--muted); }
 .admin-msg-btn { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; border: 0; background: var(--green); color: white; display: grid; place-items: center; }
 .admin-msg-btn:active { transform: scale(.94); }
-.admin-bell { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; border: 1px solid #d9ede5; background: var(--green-soft, #e7f5f0); color: var(--green-dark); display: grid; place-items: center; }
+.admin-bell { position: relative; width: 34px; height: 34px; flex: none; border-radius: 9px; border: 1px solid #d9ede5; background: var(--green-soft, #e7f5f0); color: var(--green-dark); display: grid; place-items: center; }
 .admin-bell:active { transform: scale(.94); }
 .admin-msg-btn b, .admin-bell b { position: absolute; top: -5px; left: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ef5b5b; color: #fff; font-size: 9px; font-style: normal; display: grid; place-items: center; border: 1.5px solid white; }
 /* admin management: classes / teachers / students */
