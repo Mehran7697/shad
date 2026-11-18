@@ -950,18 +950,18 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
             <thead>
               <tr>
                 <th>نام و نام‌خانوادگی</th>
-                <th>کلاس / درس</th>
+                <th>کلاس</th>
+                <th>درس</th>
                 <th>نقش</th>
                 <th>پیام</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => {
-                const meta = r.kind === 'معلم'
-                  ? (r.sub || '—')
-                  : r.kind === 'دانش‌آموز'
-                    ? (r.cls ? `کلاس ${r.cls}` : (r.sub || '—'))
-                    : (r.cls ? `کلاس ${r.cls}` : (r.sub || '—'))
+                const classNo = r.kind === 'معلم'
+                  ? (adminClasses[i % adminClasses.length] || '—')
+                  : (r.cls || '—')
+                const lesson = r.kind === 'معلم' ? (r.sub || '—') : '—'
                 return (
                 <tr key={`${r.name}-${i}`}>
                   <td>
@@ -969,7 +969,8 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
                       <strong>{r.name}</strong>
                     </button>
                   </td>
-                  <td className="people-meta-cell">{meta}</td>
+                  <td className="people-meta-cell">{classNo === '—' ? '—' : classNo}</td>
+                  <td className="people-meta-cell">{lesson}</td>
                   <td><span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span></td>
                   <td>
                     <button
@@ -7512,7 +7513,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   <thead>
                     <tr>
                       <th>نام و نام‌خانوادگی</th>
-                      <th>کلاس / درس</th>
+                      <th>کلاس</th>
+                      <th>درس</th>
                       <th>نقش</th>
                       <th>پیام</th>
                     </tr>
@@ -7525,7 +7527,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                             <strong>{t.name}</strong>
                           </button>
                         </td>
-                        <td className="people-meta-cell">{t.subject}{(t.subjects && t.subjects.length > 1) ? ` · ${t.subjects.slice(1).join('، ')}` : ''}</td>
+                        <td className="people-meta-cell">{adminClasses[ti % adminClasses.length] || '—'}</td>
+                        <td className="people-meta-cell">{t.subject}{(t.subjects && t.subjects.length > 1) ? `، ${t.subjects.slice(1).join('، ')}` : ''}</td>
                         <td><span className="adm-search-chip k-teacher">معلم</span></td>
                         <td>
                           <button
@@ -7564,7 +7567,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   <thead>
                     <tr>
                       <th>نام و نام‌خانوادگی</th>
-                      <th>کلاس / درس</th>
+                      <th>کلاس</th>
+                      <th>درس</th>
                       <th>نقش</th>
                       <th>پیام</th>
                     </tr>
@@ -7581,7 +7585,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                             <strong>{name}</strong>
                           </button>
                         </td>
-                        <td className="people-meta-cell">کلاس {cls}</td>
+                        <td className="people-meta-cell">{cls}</td>
+                        <td className="people-meta-cell">—</td>
                         <td><span className="adm-search-chip k-student">دانش‌آموز</span></td>
                         <td>
                           <button

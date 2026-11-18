@@ -5104,24 +5104,30 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 /* نام */
 .people-table.report-detail-table th:nth-child(1),
 .people-table.report-detail-table td:nth-child(1) {
-  width: 34% !important;
-  text-align: right !important;
-}
-/* کلاس / درس */
-.people-table.report-detail-table th:nth-child(2),
-.people-table.report-detail-table td:nth-child(2) {
   width: 28% !important;
   text-align: right !important;
 }
-/* نقش */
+/* کلاس */
+.people-table.report-detail-table th:nth-child(2),
+.people-table.report-detail-table td:nth-child(2) {
+  width: 14% !important;
+  text-align: center !important;
+}
+/* درس */
 .people-table.report-detail-table th:nth-child(3),
 .people-table.report-detail-table td:nth-child(3) {
-  width: 18% !important;
+  width: 22% !important;
+  text-align: right !important;
+}
+/* نقش */
+.people-table.report-detail-table th:nth-child(4),
+.people-table.report-detail-table td:nth-child(4) {
+  width: 16% !important;
   text-align: center !important;
 }
 /* پیام */
-.people-table.report-detail-table th:nth-child(4),
-.people-table.report-detail-table td:nth-child(4) {
+.people-table.report-detail-table th:nth-child(5),
+.people-table.report-detail-table td:nth-child(5) {
   width: 20% !important;
   text-align: center !important;
 }
