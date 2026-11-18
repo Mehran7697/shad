@@ -352,19 +352,32 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
 function Messenger({ navigate, role }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [started] = useState(classStarted)
   const [filter, setFilter] = useState('همه')
-  const courseTab = role === 'admin' ? 'معلمان' : 'دروس من'
-  const filtered = filter === 'همه'
-    ? messengerChats
-    : (filter === 'دروس من' || filter === 'معلمان')
-      ? messengerChats.filter(c => c.type === 'دروس من')
-      : messengerChats.filter(c => c.type === filter)
+  const isAdmin = role === 'admin'
+  const courseTab = isAdmin ? 'معلمان' : 'دروس من'
+  const teacherChats: MsgChat[] = adminTeachers.map((t, i) => ({
+    name: t.name,
+    preview: `${t.subject} · گفتگوی مستقیم با دبیر`,
+    time: i === 0 ? 'امروز' : 'دیروز',
+    type: 'معلمان',
+    color: (['green', 'blue', 'orange', 'purple', 'cyan'] as const)[i % 5],
+    initials: t.initial || t.name[0],
+  }))
+  const filtered: MsgChat[] = (() => {
+    if (filter === 'همه') {
+      if (isAdmin) return [...teacherChats, ...messengerChats.filter(c => c.type !== 'دروس من')]
+      return messengerChats
+    }
+    if (filter === 'معلمان') return teacherChats
+    if (filter === 'دروس من') return messengerChats.filter(c => c.type === 'دروس من')
+    return messengerChats.filter(c => c.type === filter)
+  })()
   return <div className="screen home messenger-light" dir="rtl">
     <header className="home-header">
       <QuickLinks navigate={navigate} active="پیام رسان" />
     </header>
     <div className="chips">{['همه', courseTab, 'گروه', 'شخصی', 'کانال'].map(x => <button key={x} className={filter === x ? 'active' : ''} onClick={() => setFilter(x)}>{x}</button>)}</div>
     <main className="conversation-list">
-      {started && <button className="class-banner-active" onClick={() => navigate('call')}>
+      {started && !isAdmin && <button className="class-banner-active" onClick={() => navigate('call')}>
         <Icon name="video" />
         <div>
           <strong>کلاس هم‌اکنون در حال برگزاری است</strong>
@@ -372,10 +385,24 @@ function Messenger({ navigate, role }: { navigate: (screen: Screen) => void; goB
         </div>
         <Icon name="chevron" />
       </button>}
-      {filtered.map(c => <button className="conversation" key={c.name} onClick={() => navigate('chat')}>
-        <div className={`avatar ${c.color} ${c.icon ? 'iconed' : ''}`}>{c.icon ? <Icon name={c.icon} /> : c.initials}</div>
-        <div className="conversation-copy"><div><strong>{c.name}{c.verified && <span className="verified"><Icon name="check" size={11} /></span>}</strong>{c.time && <time>{c.time}</time>}</div><div><p>{c.preview}</p>{c.badge ? <b className="unread">{c.badge}</b> : <span className="read-mark">✓✓</span>}</div></div>
-      </button>)}
+      {filtered.map(c => {
+        const openChat = isAdmin && (filter === 'معلمان' || c.type === 'معلمان') ? 'conversation' : 'chat'
+        return (
+          <button className="conversation" key={`${c.type}-${c.name}`} onClick={() => navigate(openChat)}>
+            <div className={`avatar ${c.color}${c.icon ? ' iconed' : ''}`}>{c.icon ? <Icon name={c.icon} /> : c.initials}</div>
+            <div className="conversation-copy">
+              <div>
+                <strong>{c.name}{c.verified && <span className="verified"><Icon name="check" size={11} /></span>}</strong>
+                {c.time && <time>{c.time}</time>}
+              </div>
+              <div>
+                <p>{c.preview}</p>
+                {c.badge ? <b className="unread">{c.badge}</b> : <span className="read-mark">✓✓</span>}
+              </div>
+            </div>
+          </button>
+        )
+      })}
     </main>
     <BottomMenu navigate={navigate} active="گفتگو" />
   </div>
@@ -894,17 +921,17 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
     if (!inCls(c)) return
     ;(classStudents[c] || []).forEach(name => {
       if (tag === 'دانش‌آموز' && hit(name)) {
-        rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, cls: c, go: () => { reportStartStudent = name; adminStartReportCls = c; navigate('reports') } })
+        rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, cls: c, go: () => navigate('conversation') })
       }
       const p = parentNameOf(name)
       if (tag === 'والدین' && hit(p)) {
-        rows.push({ kind: 'والدین', name: p, sub: name, cls: c, childName: name, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'دانش‌آموزان'; navigate('admin') } })
+        rows.push({ kind: 'والدین', name: p, sub: name, cls: c, childName: name, go: () => navigate('conversation') })
       }
     })
   })
   adminTeachers.forEach((t) => {
     if (tag === 'معلم' && hit(t.name)) {
-      rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => { reportStartTeacher = t.name; navigate('reports') } })
+      rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => navigate('conversation') })
     }
   })
   adminClasses.forEach(c => {
@@ -7544,7 +7571,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                     {adminTeachers.map((t, ti) => (
                       <tr key={t.name}>
                         <td>
-                          <button type="button" className="people-name-btn" onClick={() => { setTeacherIdx(ti); setTab('حضور معلمان') }}>
+                          <button type="button" className="people-name-btn" onClick={() => navigate('conversation')}>
                             <strong>{t.name}</strong>
                           </button>
                         </td>
@@ -7600,7 +7627,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                           <button
                             type="button"
                             className="people-name-btn"
-                            onClick={() => { reportStartStudent = name; adminStartReportCls = cls; navigate('reports') }}
+                            onClick={() => navigate('conversation')}
                           >
                             <strong>{name}</strong>
                           </button>
