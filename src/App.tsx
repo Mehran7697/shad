@@ -7348,9 +7348,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     return () => window.clearInterval(timer)
   }, [tab])
 
-  const ownedServices = schoolServices.filter(s => adminOwnedServices.includes(s.id))
-  const svcMonthly = ownedServices.reduce((sum, s) => sum + s.price, 0)
-
   const buyService = (s: SchoolService) => {
     if (!adminOwnedServices.includes(s.id)) adminOwnedServices = [...adminOwnedServices, s.id]
     setSvcBuy(null)
