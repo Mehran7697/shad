@@ -5104,38 +5104,20 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 /* نام */
 .people-table.report-detail-table th:nth-child(1),
 .people-table.report-detail-table td:nth-child(1) {
-  width: 28% !important;
-  text-align: right !important;
-}
-/* کلاس */
-.people-table.report-detail-table th:nth-child(2),
-.people-table.report-detail-table td:nth-child(2) {
-  width: 14% !important;
-  text-align: center !important;
-}
-/* درس */
-.people-table.report-detail-table th:nth-child(3),
-.people-table.report-detail-table td:nth-child(3) {
-  width: 22% !important;
+  width: 48% !important;
   text-align: right !important;
 }
 /* نقش */
-.people-table.report-detail-table th:nth-child(4),
-.people-table.report-detail-table td:nth-child(4) {
-  width: 16% !important;
+.people-table.report-detail-table th:nth-child(2),
+.people-table.report-detail-table td:nth-child(2) {
+  width: 26% !important;
   text-align: center !important;
 }
 /* پیام */
-.people-table.report-detail-table th:nth-child(5),
-.people-table.report-detail-table td:nth-child(5) {
-  width: 20% !important;
+.people-table.report-detail-table th:nth-child(3),
+.people-table.report-detail-table td:nth-child(3) {
+  width: 26% !important;
   text-align: center !important;
-}
-.people-meta-cell {
-  font-size: 11.5px !important;
-  color: var(--ink);
-  font-weight: 600;
-  line-height: 1.45;
 }
 .people-name-btn {
   width: 100%;
@@ -5184,199 +5166,3 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   white-space: nowrap;
 }
 .people-msg-btn:active { transform: scale(.96); background: var(--green-soft); }
-
-
-/* چیدمان ستون‌ها بر اساس نوع جدول افراد */
-.people-table-student.report-detail-table th:nth-child(1),
-.people-table-student.report-detail-table td:nth-child(1) { width: 40% !important; text-align: right !important; }
-.people-table-student.report-detail-table th:nth-child(2),
-.people-table-student.report-detail-table td:nth-child(2) { width: 18% !important; text-align: center !important; }
-.people-table-student.report-detail-table th:nth-child(3),
-.people-table-student.report-detail-table td:nth-child(3) { width: 20% !important; text-align: center !important; }
-.people-table-student.report-detail-table th:nth-child(4),
-.people-table-student.report-detail-table td:nth-child(4) { width: 22% !important; text-align: center !important; }
-
-.people-table-parent.report-detail-table th:nth-child(1),
-.people-table-parent.report-detail-table td:nth-child(1) { width: 28% !important; text-align: right !important; }
-.people-table-parent.report-detail-table th:nth-child(2),
-.people-table-parent.report-detail-table td:nth-child(2) { width: 14% !important; text-align: center !important; }
-.people-table-parent.report-detail-table th:nth-child(3),
-.people-table-parent.report-detail-table td:nth-child(3) { width: 24% !important; text-align: right !important; }
-.people-table-parent.report-detail-table th:nth-child(4),
-.people-table-parent.report-detail-table td:nth-child(4) { width: 16% !important; text-align: center !important; }
-.people-table-parent.report-detail-table th:nth-child(5),
-.people-table-parent.report-detail-table td:nth-child(5) { width: 18% !important; text-align: center !important; }
-
-.people-table-teacher.report-detail-table th:nth-child(1),
-.people-table-teacher.report-detail-table td:nth-child(1) { width: 26% !important; text-align: right !important; }
-.people-table-teacher.report-detail-table th:nth-child(2),
-.people-table-teacher.report-detail-table td:nth-child(2) { width: 12% !important; text-align: center !important; }
-.people-table-teacher.report-detail-table th:nth-child(3),
-.people-table-teacher.report-detail-table td:nth-child(3) { width: 24% !important; text-align: right !important; }
-.people-table-teacher.report-detail-table th:nth-child(4),
-.people-table-teacher.report-detail-table td:nth-child(4) { width: 18% !important; text-align: center !important; }
-.people-table-teacher.report-detail-table th:nth-child(5),
-.people-table-teacher.report-detail-table td:nth-child(5) { width: 20% !important; text-align: center !important; }
-
-
-/* بنر اسلایدر تبلیغاتی سرویس‌های مدیر */
-.admin-promo-slider {
-  margin: 0 0 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.admin-promo-card {
-  width: 100%;
-  border: 0;
-  border-radius: 18px;
-  padding: 14px 14px 12px;
-  text-align: right;
-  color: white;
-  box-shadow: 0 10px 24px rgb(17 80 70 / .16);
-  background: linear-gradient(135deg, #12b886 0%, #0b8f6a 55%, #087a5e 100%);
-}
-.admin-promo-slider.tone-blue .admin-promo-card {
-  background: linear-gradient(135deg, #4aa8e8 0%, #2f8fd0 55%, #1f6fad 100%);
-  box-shadow: 0 10px 24px rgb(31 90 150 / .18);
-}
-.admin-promo-slider.tone-amber .admin-promo-card {
-  background: linear-gradient(135deg, #f0b429 0%, #e09a16 55%, #c57d0a 100%);
-  box-shadow: 0 10px 24px rgb(160 100 10 / .18);
-}
-.admin-promo-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.admin-promo-badge {
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.2);
-  border: 1px solid rgba(255,255,255,.28);
-  font-size: 10px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-}
-.admin-promo-off {
-  font-size: 12px;
-  font-weight: 800;
-  background: rgba(0,0,0,.18);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-.admin-promo-body {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-.admin-promo-ic {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(255,255,255,.2);
-}
-.admin-promo-body strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 800;
-  margin-bottom: 3px;
-}
-.admin-promo-body small {
-  display: block;
-  font-size: 11px;
-  line-height: 1.7;
-  opacity: .95;
-}
-.admin-promo-body em {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-style: normal;
-  font-size: 13px;
-  font-weight: 800;
-}
-.admin-promo-body em i {
-  font-style: normal;
-  font-size: 11px;
-  font-weight: 600;
-  opacity: .75;
-  text-decoration: line-through;
-}
-.admin-promo-dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-.admin-promo-dots button {
-  width: 7px;
-  height: 7px;
-  border: 0;
-  border-radius: 50%;
-  padding: 0;
-  background: #c9d5d8;
-}
-.admin-promo-dots button.active {
-  width: 18px;
-  border-radius: 999px;
-  background: var(--green);
-}
-.admin-promo-slider.tone-blue .admin-promo-dots button.active { background: #2f8fd0; }
-.admin-promo-slider.tone-amber .admin-promo-dots button.active { background: #e09a16; }
-
-
-/* لیست سرویس‌ها: دو کارت در هر ردیف + جست‌وجو */
-.admin-svc-toolbar { margin: 0 0 12px; display: flex; flex-direction: column; gap: 10px; }
-.admin-svc-search {
-  display: flex; align-items: center; gap: 8px;
-  height: 42px; padding: 0 12px; border-radius: 13px;
-  border: 1px solid var(--line); background: white; color: var(--muted);
-}
-.admin-svc-search input {
-  flex: 1; border: 0; outline: 0; background: transparent;
-  color: var(--ink); font-size: 12.5px;
-}
-.admin-svc-cats { margin: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-.admin-svc-cats::-webkit-scrollbar { display: none; }
-.admin-svc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.admin-svc-card.compact {
-  padding: 12px;
-  margin-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 118px;
-}
-.admin-svc-card.compact .admin-svc-head {
-  align-items: flex-start;
-  gap: 8px;
-}
-.admin-svc-card.compact .admin-svc-ic {
-  width: 34px; height: 34px; border-radius: 10px;
-}
-.admin-svc-card.compact .admin-row-copy strong {
-  font-size: 12px;
-  line-height: 1.55;
-}
-.admin-svc-card.compact .admin-svc-actions {
-  margin-top: auto;
-}
-.admin-svc-card.compact .admin-svc-btn.buy {
-  width: 100%;
-  height: 34px;
-  font-size: 10.5px;
-  padding: 0 8px;
-}

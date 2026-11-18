@@ -7800,7 +7800,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
             </div>
             <div className="section-heading" style={{ marginTop: 14 }}>
               <strong>رویدادهای روز {fa(selDay)}</strong>
-              <button type="button" className="admin-add-btn" onClick={() => setEvSheet(true)}>ثبت رویداد</button>
             </div>
             {dayHoliday && (
               <div className="admin-event-row kind-event" style={{ borderColor: '#ecd694', background: '#fffbeb' }}>
@@ -8097,6 +8096,17 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
           </>
         )}
       </main>
+
+      {tab === 'تقویم رویدادها' && (
+        <button
+          type="button"
+          className="fab"
+          aria-label="ثبت رویداد"
+          onClick={() => setEvSheet(true)}
+        >
+          <Icon name="plus" />
+        </button>
+      )}
 
       {/* ===== sheet: مدیریت (کلاس/دبیر/دانش‌آموز) ===== */}
       {mgSheet && (
