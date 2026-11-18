@@ -7245,7 +7245,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     return isNowMonth(calendarMonths[monthIdx]) ? nowJd : 1
   })
   const [evSheet, setEvSheet] = useState(false)
-  const [evKind, setEvKind] = useState<CalKind>('event')
   const [evSubject, setEvSubject] = useState('مدرسه')
   const [evTitle, setEvTitle] = useState('')
   const [schedEdit, setSchedEdit] = useState<{ day: number; time: number } | null>(null)
