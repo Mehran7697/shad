@@ -7119,7 +7119,7 @@ const adminScheduleSubjects: { subject: string; teacher: string }[] = [
 ]
 function defaultAdminSchedule(clsIdx: number): (AdminSlot | null)[][] {
   const grid: (AdminSlot | null)[][] = []
-  for (let d = 0; d < 5; d++) {
+  for (let d = 0; d < 6; d++) {
     const row: (AdminSlot | null)[] = []
     for (let t = 0; t < scheduleTimes.length; t++) {
       const r = seedRand(61, clsIdx, d, t)
@@ -7690,7 +7690,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   </tr>
                 </thead>
                 <tbody>
-                  {faDayFull.slice(0, 5).map((dayName, d) => (
+                  {faDayFull.slice(0, 6).map((dayName, d) => (
                     <tr key={dayName}>
                       <th scope="row" className="schedule-day-name">{dayName}</th>
                       {scheduleTimes.map((t, ti) => {
