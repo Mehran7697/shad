@@ -944,22 +944,43 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
     <main className="msg-list school-search-list">
       <div className="school-search-count">{query ? `${fa(total)} نتیجه` : `${fa(total)} مورد`}</div>
       {total === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
-      {tag === 'معلم' && rows.map((r, i) => (
-        <button type="button" className="school-search-row" key={`${r.name}-${i}`} onClick={r.go}>
-          <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
-          <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
-          <Icon name="chevron" size={16} />
-        </button>
-      ))}
-      {/* تگ‌های دانش‌آموز/والدین: ردیف جداگانهٔ هر فرد (+ تگ کلاس برای والدین) */}
-      {(tag === 'دانش‌آموز' || tag === 'والدین') && rows.map((r, i) => (
-        <button type="button" className="school-search-row" key={`${r.name}-${i}`} onClick={r.go}>
-          <span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span>
-          <span className="admin-row-copy"><strong>{r.name}</strong><small>{r.sub}</small></span>
-          {tag === 'والدین' && r.cls && <span className="sr-cls-tag">{r.cls}</span>}
-          <Icon name="chevron" size={16} />
-        </button>
-      ))}
+      {(tag === 'معلم' || tag === 'دانش‌آموز' || tag === 'والدین') && rows.length > 0 && (
+        <div className="assignment-table-wrap people-table-wrap">
+          <table className="report-detail-table people-table" dir="rtl">
+            <thead>
+              <tr>
+                <th>نام و نام‌خانوادگی</th>
+                <th>نقش</th>
+                <th>پیام</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={`${r.name}-${i}`}>
+                  <td>
+                    <button type="button" className="people-name-btn" onClick={r.go}>
+                      <strong>{r.name}</strong>
+                      {r.sub && <small>{r.sub}</small>}
+                    </button>
+                  </td>
+                  <td><span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span></td>
+                  <td>
+                    <button
+                      type="button"
+                      className="people-msg-btn"
+                      aria-label={`پیام به ${r.name}`}
+                      onClick={() => navigate('conversation')}
+                    >
+                      <Icon name="chat" size={16} />
+                      پیام
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {/* تگ «کلاس»: کارت کامل پنل مدیر — کلیک روی هدر → گزارش همان کلاس */}
       {tag === 'کلاس' && cards.map(g => {
         const students = classStudents[g.cls] || []
@@ -7477,23 +7498,43 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {tab === 'معلمان' && (
           <>
             {adminTeachers.length === 0 && <div className="report-empty-hint">دبیری ثبت نشده است.</div>}
-            {adminTeachers.map((t, ti) => (
-              <div className="admin-student-row" key={t.name}>
-                <div className="admin-avatar">{t.initial}</div>
-                <div className="admin-row-copy"><strong>{t.name}</strong><small>{t.subject}</small></div>
-                <button type="button" className="admin-row-btn" onClick={() => { setTeacherIdx(ti); setTab('حضور معلمان') }}>حضور</button>
-                <button
-                  type="button"
-                  className="admin-event-del"
-                  aria-label="حذف دبیر"
-                  onClick={() => {
-                    adminTeachers.splice(ti, 1)
-                    if (teacherIdx === ti) setTeacherIdx(-1)
-                    rerender()
-                  }}
-                >×</button>
+            {adminTeachers.length > 0 && (
+              <div className="assignment-table-wrap people-table-wrap">
+                <table className="report-detail-table people-table" dir="rtl">
+                  <thead>
+                    <tr>
+                      <th>نام و نام‌خانوادگی</th>
+                      <th>نقش</th>
+                      <th>پیام</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminTeachers.map((t, ti) => (
+                      <tr key={t.name}>
+                        <td>
+                          <button type="button" className="people-name-btn" onClick={() => { setTeacherIdx(ti); setTab('حضور معلمان') }}>
+                            <strong>{t.name}</strong>
+                            <small>{t.subject}</small>
+                          </button>
+                        </td>
+                        <td><span className="adm-search-chip k-teacher">معلم</span></td>
+                        <td>
+                          <button
+                            type="button"
+                            className="people-msg-btn"
+                            aria-label={`پیام به ${t.name}`}
+                            onClick={() => navigate('conversation')}
+                          >
+                            <Icon name="chat" size={16} />
+                            پیام
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            )}
           </>
         )}
 
@@ -7508,26 +7549,47 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               </label>
             </div>
             {(classStudents[cls] || []).length === 0 && <div className="report-empty-hint">دانش‌آموزی در این کلاس ثبت نشده است.</div>}
-            {(classStudents[cls] || []).map((name, si) => {
-              const st = date.holiday ? null : attStatusOf(clsIdx, si, dateIdx)
-              return (
-                <div className="admin-student-row" key={name}>
-                  <div className="admin-avatar">{name[0]}</div>
-                  <div className="admin-row-copy"><strong>{name}</strong><small>کلاس {cls}</small></div>
-                  {st && <span className={`admin-status-chip st-${st === 'حاضر' ? 'ok' : st === 'تأخیر' ? 'late' : 'abs'}`}>{st}</span>}
-                  <button
-                    type="button"
-                    className="admin-event-del"
-                    aria-label="حذف دانش‌آموز"
-                    onClick={() => {
-                      const arr = classStudents[cls]
-                      const idx = arr.indexOf(name)
-                      if (idx >= 0) { arr.splice(idx, 1); rerender() }
-                    }}
-                  >×</button>
-                </div>
-              )
-            })}
+            {(classStudents[cls] || []).length > 0 && (
+              <div className="assignment-table-wrap people-table-wrap">
+                <table className="report-detail-table people-table" dir="rtl">
+                  <thead>
+                    <tr>
+                      <th>نام و نام‌خانوادگی</th>
+                      <th>نقش</th>
+                      <th>پیام</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(classStudents[cls] || []).map((name) => (
+                      <tr key={name}>
+                        <td>
+                          <button
+                            type="button"
+                            className="people-name-btn"
+                            onClick={() => { reportStartStudent = name; adminStartReportCls = cls; navigate('reports') }}
+                          >
+                            <strong>{name}</strong>
+                            <small>کلاس {cls}</small>
+                          </button>
+                        </td>
+                        <td><span className="adm-search-chip k-student">دانش‌آموز</span></td>
+                        <td>
+                          <button
+                            type="button"
+                            className="people-msg-btn"
+                            aria-label={`پیام به ${name}`}
+                            onClick={() => navigate('conversation')}
+                          >
+                            <Icon name="chat" size={16} />
+                            پیام
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         )}
 
