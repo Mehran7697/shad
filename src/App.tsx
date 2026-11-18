@@ -7215,14 +7215,14 @@ function touchAdminClass(c: string) {
 const adminTabs = ['کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها', 'سرویس‌ها'] as const
 
 /** سرویس‌های قابل خرید مدرسه — هر سرویس به یک بخش اصلی برنامه وصل است */
-type SchoolService = { id: string; name: string; desc: string; price: number; icon: IconName; screen: Screen; features: string[] }
+type SchoolService = { id: string; name: string; desc: string; price: number; icon: IconName; screen: Screen; features: string[]; category: string }
 const schoolServices: SchoolService[] = [
-  { id: 'quiz', name: 'سرویس آزمون‌ساز', desc: 'ساخت آزمون از روی درس با تصحیح خودکار', price: 490000, icon: 'exam', screen: 'exam', features: ['سؤالات چهارگزینه‌ای و تشریحی', 'تصحیح و نمره‌دهی خودکار', 'گزارش نتایج کلاس'] },
-  { id: 'content', name: 'سرویس تولید محتوا و طرح درس', desc: 'طرح درس، برگه تمرین و منابع آموزشی', price: 390000, icon: 'book', screen: 'materials', features: ['طرح درس متناسب با کتاب', 'برگه تمرین چاپی', 'منابع صوتی و تصویری'] },
-  { id: 'report', name: 'سرویس گزارش‌گیری پیشرفته', desc: 'خروجی PDF و اکسل از گزارش‌های مدرسه', price: 290000, icon: 'chart', screen: 'reports', features: ['گزارش فردی و جمعی', 'خروجی چاپی و اکسل', 'نمودار عملکرد دانش‌آموزان'] },
-  { id: 'attendance', name: 'سرویس حضور و غیاب', desc: 'ثبت و پیگیری حضور دانش‌آموزان', price: 250000, icon: 'attendance', screen: 'attendance', features: ['ثبت روزانه با یک لمس', 'گزارش غیبت والدین', 'آمار ماهانه کلاس'] },
-  { id: 'gradebook', name: 'سرویس دفتر نمره', desc: 'ثبت، محاسبه و اعلام نمرات', price: 320000, icon: 'pencil', screen: 'gradebook', features: ['نمره‌دهی گروهی', 'میانگین وزنی خودکار', 'ارسال نمره به والدین'] },
-  { id: 'parents', name: 'سرویس ارتباط با والدین', desc: 'پیام‌رسانی و اطلاع‌رسانی به خانواده‌ها', price: 190000, icon: 'chat', screen: 'messenger', features: ['گروه کلاسی والدین', 'اعلان فوری مدرسه', 'تاریخچه گفت‌وگو'] },
+  { id: 'quiz', name: 'سرویس آزمون‌ساز', desc: 'ساخت آزمون از روی درس با تصحیح خودکار', price: 490000, icon: 'exam', screen: 'exam', category: 'آموزشی', features: ['سؤالات چهارگزینه‌ای و تشریحی', 'تصحیح و نمره‌دهی خودکار', 'گزارش نتایج کلاس'] },
+  { id: 'content', name: 'سرویس تولید محتوا و طرح درس', desc: 'طرح درس، برگه تمرین و منابع آموزشی', price: 390000, icon: 'book', screen: 'materials', category: 'آموزشی', features: ['طرح درس متناسب با کتاب', 'برگه تمرین چاپی', 'منابع صوتی و تصویری'] },
+  { id: 'report', name: 'سرویس گزارش‌گیری پیشرفته', desc: 'خروجی PDF و اکسل از گزارش‌های مدرسه', price: 290000, icon: 'chart', screen: 'reports', category: 'گزارش', features: ['گزارش فردی و جمعی', 'خروجی چاپی و اکسل', 'نمودار عملکرد دانش‌آموزان'] },
+  { id: 'attendance', name: 'سرویس حضور و غیاب', desc: 'ثبت و پیگیری حضور دانش‌آموزان', price: 250000, icon: 'attendance', screen: 'attendance', category: 'مدیریتی', features: ['ثبت روزانه با یک لمس', 'گزارش غیبت والدین', 'آمار ماهانه کلاس'] },
+  { id: 'gradebook', name: 'سرویس دفتر نمره', desc: 'ثبت، محاسبه و اعلام نمرات', price: 320000, icon: 'pencil', screen: 'gradebook', category: 'مدیریتی', features: ['نمره‌دهی گروهی', 'میانگین وزنی خودکار', 'ارسال نمره به والدین'] },
+  { id: 'parents', name: 'سرویس ارتباط با والدین', desc: 'پیام‌رسانی و اطلاع‌رسانی به خانواده‌ها', price: 190000, icon: 'chat', screen: 'messenger', category: 'ارتباطات', features: ['گروه کلاسی والدین', 'اعلان فوری مدرسه', 'تاریخچه گفت‌وگو'] },
 ]
 /** سرویس‌های فعال‌شدهٔ مدرسه (ساختگی — فقط در state برنامه) */
 let adminOwnedServices: string[] = ['attendance']
@@ -7338,6 +7338,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [svcBuy, setSvcBuy] = useState<SchoolService | null>(null)
   const [svcToast, setSvcToast] = useState<string | null>(null)
   const [promoIdx, setPromoIdx] = useState(0)
+  const [svcQuery, setSvcQuery] = useState('')
+  const [svcCategory, setSvcCategory] = useState('همه')
   useEffect(() => {
     if (tab !== 'سرویس‌ها') return
     const timer = window.setInterval(() => {
@@ -8035,43 +8037,66 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               )
             })()}
 
-            <div className="admin-svc-summary">
-              <div className="admin-kpi"><strong>{fa(ownedServices.length)} از {fa(schoolServices.length)}</strong><span>سرویس فعال مدرسه</span></div>
-              <div className="admin-kpi"><strong>{fa(svcMonthly.toLocaleString('en-US'))}</strong><span>تومان هزینه ماهانه</span></div>
+            <div className="admin-svc-toolbar">
+              <div className="admin-svc-search">
+                <Icon name="search" size={16} />
+                <input
+                  type="search"
+                  value={svcQuery}
+                  onChange={e => setSvcQuery(e.target.value)}
+                  placeholder="جست‌وجوی سرویس..."
+                />
+              </div>
+              <div className="admin-chip-row admin-svc-cats">
+                {['همه', 'آموزشی', 'مدیریتی', 'گزارش', 'ارتباطات'].map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`admin-chip${svcCategory === cat ? ' active' : ''}`}
+                    onClick={() => setSvcCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="section-heading"><strong>سرویس‌های قابل خرید</strong><span>برای کل مدرسه</span></div>
-
-            {schoolServices.map(s => {
-              const owned = adminOwnedServices.includes(s.id)
-              return (
-                <div className={`admin-svc-card${owned ? ' active' : ''}`} key={s.id}>
-                  <div className="admin-svc-head">
-                    <span className="admin-svc-ic"><Icon name={s.icon} size={20} /></span>
-                    <div className="admin-row-copy">
-                      <strong>{s.name}</strong>
-                      <small>{s.desc}</small>
+            <div className="admin-svc-grid">
+              {schoolServices
+                .filter(s => svcCategory === 'همه' || s.category === svcCategory)
+                .filter(s => {
+                  const q = svcQuery.trim()
+                  if (!q) return true
+                  return s.name.includes(q) || s.category.includes(q) || s.desc.includes(q)
+                })
+                .map(s => {
+                  const owned = adminOwnedServices.includes(s.id)
+                  return (
+                    <div className={`admin-svc-card compact${owned ? ' active' : ''}`} key={s.id}>
+                      <div className="admin-svc-head">
+                        <span className="admin-svc-ic"><Icon name={s.icon} size={18} /></span>
+                        <div className="admin-row-copy">
+                          <strong>{s.name}</strong>
+                        </div>
+                      </div>
+                      <div className="admin-svc-actions">
+                        <button type="button" className="admin-svc-btn buy" onClick={() => setSvcBuy(s)}>
+                          مشاهده اشتراک و فعالسازی
+                        </button>
+                      </div>
                     </div>
-                    {owned
-                      ? <span className="admin-status-chip st-ok">فعال</span>
-                      : <span className="admin-svc-price">{fa(s.price.toLocaleString('en-US'))} تومان<small>/ماه</small></span>}
-                  </div>
-                  <ul className="admin-svc-feats">
-                    {s.features.map(f => <li key={f}>{f}</li>)}
-                  </ul>
-                  <div className="admin-svc-actions">
-                    <button type="button" className="admin-svc-btn buy" onClick={() => setSvcBuy(s)}>مشاهده اشتراک و وضعیت</button>
-                    {owned && (
-                      <>
-                        <button type="button" className="admin-svc-btn open" onClick={() => navigate(s.screen)}>ورود به بخش</button>
-                        <button type="button" className="admin-svc-btn cancel" onClick={() => cancelService(s)}>لغو اشتراک</button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            <p className="admin-svc-note">سرویس‌ها برای کل مدرسه فعال می‌شوند و معلمان به‌صورت خودکار به بخش مرتبط دسترسی می‌گیرند. خرید در این نسخه نمایشی است.</p>
+                  )
+                })}
+            </div>
+            {schoolServices
+              .filter(s => svcCategory === 'همه' || s.category === svcCategory)
+              .filter(s => {
+                const q = svcQuery.trim()
+                if (!q) return true
+                return s.name.includes(q) || s.category.includes(q) || s.desc.includes(q)
+              }).length === 0 && (
+              <div className="report-empty-hint">سرویسی با این جست‌وجو پیدا نشد.</div>
+            )}
           </>
         )}
       </main>
