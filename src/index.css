@@ -68,6 +68,7 @@
 .avatar.purple { background: linear-gradient(145deg, #a783dd, #7058ac); }
 .avatar.green { background: linear-gradient(145deg, #58c58d, #26945d); }
 .avatar.orange { background: linear-gradient(145deg, #f4ac68, #d67640); }
+.avatar.red { background: linear-gradient(145deg, #f17676, #c74343); }
 .avatar.cyan { background: linear-gradient(145deg, #55c5d8, #258ca1); }
 .avatar.navy { background: linear-gradient(145deg, #66849f, #344f67); }
 .conversation-copy { min-width: 0; flex: 1; }
@@ -319,7 +320,7 @@
 .month-card-head .month-nav:last-child { justify-self: end; }
 .month-card-head .month-nav:active { transform: scale(.95); }
 .month-card-head .month-nav:disabled { opacity: .45; }
-.month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 2px; }
+.month-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px 2px; }
 .mg-dayname { font-size: 7.5px; font-weight: 700; text-align: center; color: var(--muted); padding-bottom: 2px; }
 .mg-cell { height: 17px; display: grid; place-items: center; font-size: 8.5px; color: var(--ink); background: white; border: 1px solid #eaf2ef; border-radius: 6px; }
 .mg-cell.empty { background: transparent; border: 0; }
@@ -4887,6 +4888,18 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 }
 
 .mg-cell.sel { border-color: var(--green); box-shadow: 0 0 0 2px rgb(17 156 120 / .18); font-weight: 800; }
+
+/* ===== خانهٔ مدیر: هدر اعلان‌ها + پیام‌های اولیا/دانش‌آموزان/معلمان ===== */
+.admin-alerts { margin-top: 10px; background: white; border: 1px solid var(--line); border-radius: 17px; padding: 11px 12px; box-shadow: 0 4px 14px rgb(16 64 51 / .05); }
+.admin-alerts-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.admin-alerts-title { display: flex; flex-direction: column; gap: 1px; text-align: center; }
+.admin-alerts-title strong { font-size: 12.5px; color: var(--ink); }
+.admin-alerts-title small { font-size: 9.5px; color: var(--muted); }
+.admin-msg-btn { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; border: 0; background: var(--green); color: white; display: grid; place-items: center; }
+.admin-msg-btn:active { transform: scale(.94); }
+.admin-bell { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; border: 1px solid #d9ede5; background: var(--green-soft, #e7f5f0); color: var(--green-dark); display: grid; place-items: center; }
+.admin-bell:active { transform: scale(.94); }
+.admin-msg-btn b, .admin-bell b { position: absolute; top: -5px; left: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ef5b5b; color: #fff; font-size: 9px; font-style: normal; display: grid; place-items: center; border: 1.5px solid white; }
 /* admin management: classes / teachers / students */
 .admin-class-card {
   background: white; border: 1px solid var(--line); border-radius: 17px;

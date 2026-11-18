@@ -289,6 +289,7 @@ const messengerChats: MsgChat[] = [
   { name: 'پیام‌های ذخیره شده', preview: 'تصویر', time: '۰۹:۰۵', type: 'شخصی', color: 'blue', initials: '', icon: 'bookmark' },
   { name: 'اعلانات ورود', preview: 'ورود به حساب کاربری: در تاریخ ۱۴۰۵...', time: 'دوشنبه', type: 'رسمی', color: 'orange', initials: 'اع', verified: true },
   { name: 'ایمان نوری', preview: '1308035836286934785_1019013593...', time: 'دوشنبه', type: 'شخصی', color: 'blue', initials: 'ان' },
+  { name: 'امیرمهدی داورزنی مقدم', preview: 'سلام، وقت بخیر 👋', time: 'دوشنبه', type: 'شخصی', color: 'cyan', initials: 'اد' },
   { name: 'راهبرد و توسعه', preview: 'ایمان: طرح ارتقاء پیام رسان آموزشی.docx.', time: 'دوشنبه', type: 'گروه', color: 'red', initials: 'را' },
   { name: 'مسعود محبوبی', preview: 'https://docs.google.com/spreadsheet...', time: 'شنبه', type: 'شخصی', color: 'purple', initials: 'مم' },
   { name: 'اطلاع‌رسانی شاد', preview: 'شاد جدید رسید! نسخه جدید شاد 🎉🚀', time: 'مهر ۲۸', type: 'کانال', color: 'green', initials: 'ش', verified: true },
@@ -428,6 +429,15 @@ function AdminDrawer({ open, onClose, navigate }: { open: boolean; onClose: () =
   )
 }
 
+/** پیام‌های رسیده به مدیر از اولیا، دانش‌آموزان و معلمان (خانهٔ مدیر) */
+type InboxRole = 'والدین' | 'دانش‌آموز' | 'معلم'
+const adminInbox: { name: string; role: InboxRole; roleCls: string; sub: string; msg: string; time: string; color: string; initials: string; unread: boolean }[] = [
+  { name: 'زهرا احمدی', role: 'والدین', roleCls: 'p', sub: 'والدین آراد حسینی · کلاس ۹۰۱', msg: 'سلام، فردا آراد مراجعه پزشکی دارد و غیبت می‌زنید.', time: '۰۹:۴۰', color: 'purple', initials: 'زا', unread: true },
+  { name: 'فاطمه محمدی', role: 'دانش‌آموز', roleCls: 's', sub: 'کلاس ۹۰۱', msg: 'خانم رضایی، فرم امضاشده را شنبه می‌آورم.', time: '۰۸:۵۵', color: 'blue', initials: 'فم', unread: true },
+  { name: 'رضا محمدی', role: 'معلم', roleCls: 't', sub: 'دبیر ریاضی', msg: 'برگهٔ آزمون کلاس ۹۰۲ تصحیح شد، نمرات را در گزارش گذاشتم.', time: 'دیروز', color: 'green', initials: 'رم', unread: false },
+  { name: 'سارا کریمی', role: 'معلم', roleCls: 't', sub: 'دبیر علوم تجربی', msg: 'لابراتوار علوم را برای روز شنبه رزرو کردم.', time: 'شنبه', color: 'orange', initials: 'سک', unread: false },
+]
+
 function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [active, setActive] = useState(role !== 'student' ? 'مدرسه من' : 'خانه')
   const subjects = [
@@ -441,6 +451,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   const admNowParts = toEn(nowShamsi().date).split('/').map(Number)
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
   const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
+  const inboxUnread = adminInbox.filter(m => m.unread).length
 
   const contentPlaceholder = (
     <div className="school-home">
@@ -598,6 +609,23 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
         <div className="school-home" style={{ padding: '0 15px' }}>
           {role === 'admin' ? (
             <>
+              {/* هدر اعلان‌ها + پیام‌های اولیا، دانش‌آموزان و معلمان */}
+              <div className="admin-alerts">
+                <div className="admin-alerts-head">
+                  <button type="button" className="admin-msg-btn" aria-label="پیام‌ها" onClick={() => navigate('chat')}>
+                    <Icon name="send" size={16} />
+                    <b>{fa(adminInbox.length)}</b>
+                  </button>
+                  <div className="admin-alerts-title">
+                    <strong>پیام‌ها و اعلان‌ها</strong>
+                    <small>{`${fa(adminInbox.length)} پیام از اولیا، دانش‌آموزان و معلمان`}</small>
+                  </div>
+                  <button type="button" className="admin-bell" aria-label="اعلان‌ها" onClick={() => navigate('chat')}>
+                    <Icon name="bell" size={17} />
+                    {inboxUnread > 0 && <b>{fa(inboxUnread)}</b>}
+                  </button>
+                </div>
+              </div>
               {/* تقویم */}
               <div className="month-card month-page calendar-top-card" style={{ marginTop: 10 }}>
                 <div className="month-card-head">
@@ -606,10 +634,11 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <button type="button" className="month-nav" disabled={admMonthIdx === calendarMonths.length - 1} onClick={() => setAdmMonthIdx(i => Math.min(calendarMonths.length - 1, i + 1))}>بعدی</button>
                 </div>
                 <div className="month-grid">
-                  {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => <span key={d} className="mg-dayname">{d}</span>)}
-                  {Array.from({ length: calendarMonths[admMonthIdx].offset }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
+                  {calDayNames.map(d => <span key={d} className="mg-dayname">{d}</span>)}
+                  {Array.from({ length: calLeadingBlanks(calendarMonths[admMonthIdx].offset) }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
                   {Array.from({ length: calendarMonths[admMonthIdx].days }, (_, i) => {
                     const day = i + 1
+                    if (!calShowsDay(calendarMonths[admMonthIdx].offset, day)) return null
                     const kinds = calendarMonths[admMonthIdx].items.filter(it => it.day === day).map(it => it.kind)
                     const cellCls = ['mg-cell', 'is-clickable']
                     if (kinds.includes('assignment')) cellCls.push('has-assignment')
@@ -866,6 +895,10 @@ type CalMonth = {
   today: number
   items: CalItem[]
 }
+/* تقویم فقط روزهای شنبه تا چهارشنبه را نشان می‌دهد (پنجشنبه/جمعه حذف شدند) */
+const calDayNames = ['ش', 'ی', 'د', 'س', 'چ']
+const calLeadingBlanks = (offset: number) => (offset < 5 ? offset : 0)
+const calShowsDay = (offset: number, day: number) => (offset + day - 1) % 7 < 5
 const calendarMonths: CalMonth[] = [
   {
     label: 'مهر ۱۴۰۵', days: 30, offset: 3, today: 4,
@@ -1053,14 +1086,15 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
               <button type="button" className="month-nav" disabled={monthIdx === months.length - 1} onClick={() => setMonthIdx(i => Math.min(months.length - 1, i + 1))}>بعدی</button>
             </div>
             <div className="month-grid">
-              {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => (
+              {calDayNames.map(d => (
                 <span key={d} className="mg-dayname">{d}</span>
               ))}
-              {Array.from({ length: m.offset }, (_, i) => (
+              {Array.from({ length: calLeadingBlanks(m.offset) }, (_, i) => (
                 <span key={`e${i}`} className="mg-cell empty" />
               ))}
               {Array.from({ length: m.days }, (_, i) => {
                 const day = i + 1
+                if (!calShowsDay(m.offset, day)) return null
                 const cls = ['mg-cell']
                 if (day === m.today) cls.push('today')
                 const kinds = kindsOnDay(day)
@@ -7488,10 +7522,11 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                 <button type="button" className="month-nav" disabled={monthIdx === calendarMonths.length - 1} onClick={() => setMonthIdx(i => Math.min(calendarMonths.length - 1, i + 1))}>بعدی</button>
               </div>
               <div className="month-grid">
-                {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map(d => <span key={d} className="mg-dayname">{d}</span>)}
-                {Array.from({ length: monthObj.offset }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
+                {calDayNames.map(d => <span key={d} className="mg-dayname">{d}</span>)}
+                {Array.from({ length: calLeadingBlanks(monthObj.offset) }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
                 {Array.from({ length: monthObj.days }, (_, i) => {
                   const day = i + 1
+                  if (!calShowsDay(monthObj.offset, day)) return null
                   const cellCls = ['mg-cell', 'is-clickable']
                   if (day === selDay) cellCls.push('sel')
                   if (monthObj.items.some(it => it.day === day)) cellCls.push('has-event')
