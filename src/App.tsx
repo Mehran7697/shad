@@ -352,7 +352,7 @@ function BottomMenu({ navigate, active }: { navigate: (screen: Screen) => void; 
 function Messenger({ navigate, role }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
   const [started] = useState(classStarted)
   const [filter, setFilter] = useState('همه')
-  const courseTab = role === 'teacher' ? 'معلمان' : 'دروس من'
+  const courseTab = role === 'admin' ? 'معلمان' : 'دروس من'
   const filtered = filter === 'همه'
     ? messengerChats
     : (filter === 'دروس من' || filter === 'معلمان')
