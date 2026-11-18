@@ -8001,13 +8001,12 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                     {s.features.map(f => <li key={f}>{f}</li>)}
                   </ul>
                   <div className="admin-svc-actions">
-                    {owned ? (
+                    <button type="button" className="admin-svc-btn buy" onClick={() => setSvcBuy(s)}>مشاهده اشتراک و وضعیت</button>
+                    {owned && (
                       <>
                         <button type="button" className="admin-svc-btn open" onClick={() => navigate(s.screen)}>ورود به بخش</button>
                         <button type="button" className="admin-svc-btn cancel" onClick={() => cancelService(s)}>لغو اشتراک</button>
                       </>
-                    ) : (
-                      <button type="button" className="admin-svc-btn buy" onClick={() => setSvcBuy(s)}>خرید اشتراک</button>
                     )}
                   </div>
                 </div>
@@ -8109,24 +8108,39 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         </div>
       )}
 
-      {/* ===== sheet: تأیید خرید سرویس ===== */}
+      {/* ===== sheet: مشاهده اشتراک و وضعیت سرویس ===== */}
       {svcBuy && (
         <div className="overlay group-grade-overlay" onClick={() => setSvcBuy(null)}>
           <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
             <div className="sheet-handle" />
             <div className="sheet-title">
               <div>
-                <strong>فعال‌سازی {svcBuy.name}</strong>
-                <span>برای کل مدرسه · پرداخت ماهانه</span>
+                <strong>مشاهده اشتراک و وضعیت</strong>
+                <span>{svcBuy.name}</span>
               </div>
               <IconButton icon="close" label="بستن" onClick={() => setSvcBuy(null)} />
             </div>
             <div className="admin-svc-receipt">
+              <div className="admin-svc-receipt-row">
+                <span>وضعیت اشتراک</span>
+                <strong>{adminOwnedServices.includes(svcBuy.id) ? 'فعال' : 'غیرفعال'}</strong>
+              </div>
               <div className="admin-svc-receipt-row"><span>سرویس</span><strong>{svcBuy.name}</strong></div>
               <div className="admin-svc-receipt-row"><span>دامنه</span><strong>{fa(adminClasses.length)} کلاس · {fa(Object.values(classStudents).reduce((s, a) => s + a.length, 0))} دانش‌آموز</strong></div>
-              <div className="admin-svc-receipt-row total"><span>هزینه ماهانه</span><strong>{fa(svcBuy.price.toLocaleString('en-US'))} تومان</strong></div>
+              <div className="admin-svc-receipt-row"><span>هزینه ماهانه</span><strong>{fa(svcBuy.price.toLocaleString('en-US'))} تومان</strong></div>
+              <div className="admin-svc-receipt-row total">
+                <span>وضعیت پرداخت</span>
+                <strong>{adminOwnedServices.includes(svcBuy.id) ? 'پرداخت‌شده · دوره جاری' : 'بدون اشتراک فعال'}</strong>
+              </div>
             </div>
-            <button type="button" className="admin-primary-btn" onClick={() => buyService(svcBuy)}>پرداخت و فعال‌سازی</button>
+            {adminOwnedServices.includes(svcBuy.id) ? (
+              <div className="admin-svc-actions" style={{ marginTop: 10 }}>
+                <button type="button" className="admin-svc-btn open" onClick={() => { setSvcBuy(null); navigate(svcBuy.screen) }}>ورود به بخش</button>
+                <button type="button" className="admin-svc-btn cancel" onClick={() => { cancelService(svcBuy); setSvcBuy(null) }}>لغو اشتراک</button>
+              </div>
+            ) : (
+              <button type="button" className="admin-primary-btn" onClick={() => buyService(svcBuy)}>فعال‌سازی اشتراک</button>
+            )}
           </div>
         </div>
       )}
