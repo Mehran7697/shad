@@ -7227,6 +7227,14 @@ const schoolServices: SchoolService[] = [
 /** سرویس‌های فعال‌شدهٔ مدرسه (ساختگی — فقط در state برنامه) */
 let adminOwnedServices: string[] = ['attendance']
 
+type ServicePromo = { serviceId: string; badge: string; title: string; text: string; discount: string; tone: 'green' | 'blue' | 'amber' }
+const servicePromos: ServicePromo[] = [
+  { serviceId: 'quiz', badge: 'پیشنهاد ویژه', title: 'آزمون‌ساز هوشمند', text: 'برای مدرسه شما ۳۰٪ تخفیف فعال‌سازی اولین ماه', discount: '۳۰٪', tone: 'green' },
+  { serviceId: 'report', badge: 'آفر مدیر', title: 'گزارش‌گیری پیشرفته', text: 'دو ماه اول با ۲۰٪ تخفیف + خروجی اکسل رایگان', discount: '۲۰٪', tone: 'blue' },
+  { serviceId: 'parents', badge: 'پکیج خانواده', title: 'ارتباط با والدین', text: 'خرید سالانه با ۴۰٪ تخفیف نسبت به ماهانه', discount: '۴۰٪', tone: 'amber' },
+  { serviceId: 'content', badge: 'پیشنهاد امروز', title: 'تولید محتوا و طرح درس', text: '۲۵٪ تخفیف ویژه مدارس تا پایان ماه', discount: '۲۵٪', tone: 'green' },
+]
+
 const adminEventSubjects = ['مدرسه', ...adminClasses.map(c => `کلاس ${c}`)]
 const adminAudiences = ['همه', 'دبیران', 'دانش‌آموزان', 'کلاس خاص', 'رویداد خاص']
 const adminAudienceCounts: Record<string, number> = { 'همه': 70, 'دبیران': 12, 'دانش‌آموزان': 58, 'کلاس خاص': 18, 'رویداد خاص': 24 }
@@ -7329,6 +7337,14 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [newSubject, setNewSubject] = useState('علوم تجربی')
   const [svcBuy, setSvcBuy] = useState<SchoolService | null>(null)
   const [svcToast, setSvcToast] = useState<string | null>(null)
+  const [promoIdx, setPromoIdx] = useState(0)
+  useEffect(() => {
+    if (tab !== 'سرویس‌ها') return
+    const timer = window.setInterval(() => {
+      setPromoIdx(i => (i + 1) % servicePromos.length)
+    }, 4200)
+    return () => window.clearInterval(timer)
+  }, [tab])
 
   const ownedServices = schoolServices.filter(s => adminOwnedServices.includes(s.id))
   const svcMonthly = ownedServices.reduce((sum, s) => sum + s.price, 0)
@@ -7976,6 +7992,49 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {/* ================= سرویس‌ها ================= */}
         {tab === 'سرویس‌ها' && (
           <>
+            {(() => {
+              const promo = servicePromos[promoIdx]
+              const svc = schoolServices.find(s => s.id === promo.serviceId)
+              if (!svc) return null
+              const priced = Math.round(svc.price * (1 - parseInt(promo.discount, 10) / 100))
+              return (
+                <div className={`admin-promo-slider tone-${promo.tone}`}>
+                  <button
+                    type="button"
+                    className="admin-promo-card"
+                    onClick={() => setSvcBuy(svc)}
+                  >
+                    <div className="admin-promo-top">
+                      <span className="admin-promo-badge">{promo.badge}</span>
+                      <span className="admin-promo-off">{promo.discount} تخفیف</span>
+                    </div>
+                    <div className="admin-promo-body">
+                      <span className="admin-promo-ic"><Icon name={svc.icon} size={22} /></span>
+                      <div>
+                        <strong>{promo.title}</strong>
+                        <small>{promo.text}</small>
+                        <em>
+                          {fa(priced.toLocaleString('en-US'))} تومان
+                          <i>{fa(svc.price.toLocaleString('en-US'))}</i>
+                        </em>
+                      </div>
+                    </div>
+                  </button>
+                  <div className="admin-promo-dots" role="tablist" aria-label="اسلایدر پیشنهادها">
+                    {servicePromos.map((p, i) => (
+                      <button
+                        key={p.serviceId + i}
+                        type="button"
+                        className={i === promoIdx ? 'active' : ''}
+                        aria-label={`پیشنهاد ${fa(i + 1)}`}
+                        onClick={() => setPromoIdx(i)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
             <div className="admin-svc-summary">
               <div className="admin-kpi"><strong>{fa(ownedServices.length)} از {fa(schoolServices.length)}</strong><span>سرویس فعال مدرسه</span></div>
               <div className="admin-kpi"><strong>{fa(svcMonthly.toLocaleString('en-US'))}</strong><span>تومان هزینه ماهانه</span></div>
