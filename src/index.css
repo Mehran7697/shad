@@ -4985,11 +4985,9 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .admin-alerts-title { display: flex; flex-direction: column; gap: 1px; text-align: center; }
 .admin-alerts-title strong { font-size: 12.5px; color: var(--ink); }
 .admin-alerts-title small { font-size: 9.5px; color: var(--muted); }
-.admin-msg-btn { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; border: 0; background: var(--green); color: white; display: grid; place-items: center; }
-.admin-msg-btn:active { transform: scale(.94); }
 .admin-bell { position: relative; width: 34px; height: 34px; flex: none; border-radius: 9px; border: 1px solid #d9ede5; background: var(--green-soft, #e7f5f0); color: var(--green-dark); display: grid; place-items: center; }
 .admin-bell:active { transform: scale(.94); }
-.admin-msg-btn b, .admin-bell b { position: absolute; top: -5px; left: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ef5b5b; color: #fff; font-size: 9px; font-style: normal; display: grid; place-items: center; border: 1.5px solid white; }
+.admin-bell b { position: absolute; top: -5px; left: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ef5b5b; color: #fff; font-size: 9px; font-style: normal; display: grid; place-items: center; border: 1.5px solid white; }
 /* admin management: classes / teachers / students */
 .admin-class-card {
   background: white; border: 1px solid var(--line); border-radius: 17px;
@@ -5454,3 +5452,4 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .class-report-result { color: var(--green-dark); font-size: 12px; }
 .class-report-name { font: inherit; font-weight: 700; background: transparent; border: 0; color: var(--green-dark); min-height: 38px; }
 .class-report .collective-table th:nth-child(2)[rowspan], .class-report .collective-table thead tr:only-child th:nth-child(2), .class-report .collective-table tbody td:nth-child(2) { position: sticky; inset-inline-start: 0; background: #f4faf7; z-index: 1; }
+.directory-read-state { display: inline-flex; align-items: center; color: var(--green-dark); font-size: 11px; }

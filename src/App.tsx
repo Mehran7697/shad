@@ -741,13 +741,9 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
               {/* هدر اعلان‌ها + پیام‌های اولیا، دانش‌آموزان و معلمان */}
               <div className="admin-alerts">
                 <div className="admin-alerts-head">
-                  <button type="button" className="admin-msg-btn" aria-label="پیام‌ها" onClick={() => navigate('messages')}>
-                    <Icon name="send" size={16} />
-                    <b>{fa(adminInbox.length)}</b>
-                  </button>
                   <div className="admin-alerts-title">
-                    <strong>پیام‌ها و اعلان‌ها</strong>
-                    <small>{`${fa(adminInbox.length)} پیام · ${fa(notifUnread)} اعلان کلاسی`}</small>
+                    <strong>اعلان‌های مدرسه</strong>
+                    <small>{`${fa(notifUnread)} اعلان کلاسی`}</small>
                   </div>
                   <button type="button" className="admin-bell" aria-label="اعلان‌ها" onClick={() => navigate('notifs')}>
                     <Icon name="classroom" size={18} />
@@ -901,7 +897,7 @@ function parentNameOf(student: string) {
 }
 
 type SearchTag = 'معلم' | 'مدیر' | 'والدین' | 'دانش‌آموز' | 'کلاس'
-type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string }
+type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string; inbox?: (typeof adminInbox)[number] }
 type DirectoryReport = { kind: SearchTag; entry: DirectoryEntry }
 const directoryGroups: Record<SearchTag, string> = {
   'معلم': 'معلمان', 'مدیر': 'مدیر', 'والدین': 'والدین', 'دانش‌آموز': 'دانش‌آموزان', 'کلاس': 'کلاس‌ها',
@@ -952,7 +948,7 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
   let entries: DirectoryEntry[]
   switch (tag) {
     case 'معلم':
-      entries = adminTeachers.map(t => ({ name: t.name, detail: teacherSubjectsOf(t).join('، ') }))
+      entries = adminTeachers.map(t => ({ name: t.name, detail: teacherSubjectsOf(t).join('، '), inbox: adminInbox.find(m => m.role === 'معلم' && m.name === t.name) }))
       break
     case 'مدیر':
       entries = [{ name: 'مدیر مدرسه', detail: 'اعلان‌ها و رویدادهای ثبت‌شده' }]
@@ -961,9 +957,13 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
       entries = classList.map(cls => ({ name: 'کلاس ' + cls, cls, detail: fa(classStudents[cls]?.length || 0) + ' دانش‌آموز' }))
       break
     default:
-      entries = classList.flatMap(cls => (classStudents[cls] || []).map(student => tag === 'والدین'
-        ? { name: parentNameOf(student), child: student, cls, detail: 'فرزند: ' + student + ' · کلاس ' + cls }
-        : { name: student, cls, detail: 'کلاس ' + cls }))
+      entries = classList.flatMap(cls => (classStudents[cls] || []).map(student => {
+        if (tag === 'والدین') {
+          const inbox = adminInbox.find(m => m.role === tag && m.sub === 'والدین ' + student + ' · کلاس ' + cls)
+          return { name: inbox?.name ?? parentNameOf(student), child: student, cls, detail: 'فرزند: ' + student + ' · کلاس ' + cls, inbox }
+        }
+        return { name: student, cls, detail: 'کلاس ' + cls, inbox: adminInbox.find(m => m.role === tag && m.name === student) }
+      }))
   }
   const normalize = (text: string) => toEn(text).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\s‌]+/g, '')
   const query = normalize(q)
@@ -999,7 +999,16 @@ function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goB
         {tag !== 'مدیر' && <div className="directory-secondary">
           {tag === 'کلاس' ? (['حضور و غیاب', 'برنامه کلاسی'] as const).map(tab => <button key={tab} onClick={() => {
             adminStartCls = entry.cls!; touchAdminClass(entry.cls!); adminStartTab = tab; navigate('admin')
-          }}>{tab}</button>) : <button aria-label={'پیام به ' + entry.name} onClick={() => { directoryScroll.current = window.scrollY; setContact(entry) }}><Icon name="chat" size={15} /> پیام</button>}
+          }}>{tab}</button>) : <button aria-label={'پیام به ' + entry.name + (entry.inbox ? '، ' + (entry.inbox.unread ? 'خوانده‌نشده' : 'خوانده‌شده') : '')} onClick={() => {
+            directoryScroll.current = window.scrollY
+            if (entry.inbox) entry.inbox.unread = false
+            setContact(entry)
+          }}>
+            <Icon name="chat" size={15} /> پیام
+            {entry.inbox && <span className="directory-read-state" title={entry.inbox.unread ? 'خوانده‌نشده' : 'خوانده‌شده'}>
+              {entry.inbox.unread ? '●' : <Icon name="check" size={13} />}
+            </span>}
+          </button>}
         </div>}
       </article>)}
     </main>
@@ -1691,6 +1700,7 @@ function Conversation({ goBack, contact }: { navigate?: (screen: Screen) => void
       <IconButton icon="more" label="گزینه‌های بیشتر" />
     </header>
     <main className="messages">
+      {contact?.inbox && <div className="message-row received"><div className="message-bubble"><p>{contact.inbox.msg}</p><span>{contact.inbox.time}</span></div></div>}
       {!contact && <><div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">لاک پشت کوچولو</strong><p>با یه در شیشه و خمیر بازی بسازش! 🎨</p><span>۰۹:۰۵</span></div></div>
       <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="image" /></div><div><strong>تصویر</strong><small>۱٫۲ مگابایت · JPG</small></div><button type="button" className={`bookmark-btn ${savedIds['conv-img'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
