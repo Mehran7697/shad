@@ -1085,18 +1085,8 @@
   border-radius: 12px;
   background: #fff;
   color: var(--text);
-  cursor: pointer;
+  cursor: default;
   overflow: hidden;
-}
-
-.assignment-date-picker input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 2;
 }
 
 .assignment-date-icon {
@@ -5356,3 +5346,111 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   white-space: nowrap;
 }
 .people-msg-btn:active { transform: scale(.96); background: var(--green-soft); }
+
+/* ===================== انتخاب‌گر تاریخ شمسی (روز · ماه · سال) ===================== */
+.jalali-date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 13px;
+  padding: 11px 12px 12px;
+}
+.inner-content > .jalali-date-picker { margin-top: 12px; }
+.ds-head { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; }
+.ds-head .ds-label { color: var(--muted); }
+.ds-head .ds-date { font-size: 12px; color: var(--text); margin-inline-start: auto; }
+.jalali-date-picker.is-off .ds-date { color: var(--muted); }
+.ds-all {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ds-all.on { background: var(--green); border-color: var(--green); color: #fff; }
+.ds-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.ds-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ds-cell > span { font-size: 11px; font-weight: 600; color: var(--muted); }
+.ds-cell select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background-color: white;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ds-cell select:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+.schedule-view-switch, .schedule-day-tabs { display: flex; gap: 4px; margin-top: 14px; }
+.schedule-view-switch { background: #f1f5f4; padding: 4px; border-radius: 12px; }
+.schedule-view-switch button, .schedule-day-tabs button {
+  flex: 1; border: 0; background: transparent; color: var(--muted); border-radius: 9px; min-height: 40px; font: inherit;
+}
+.schedule-view-switch button[aria-pressed=true] { background: white; color: var(--green-dark); font-weight: 700; box-shadow: 0 1px 4px #173d291a; }
+.schedule-day-tabs { overflow-x: auto; }
+.schedule-day-tabs button { white-space: nowrap; padding: 0 5px; font-size: 12px; border: 1px solid var(--line); }
+.schedule-day-tabs button[aria-pressed=true] { background: var(--green-dark); border-color: var(--green-dark); color: white; }
+.schedule-day-bar { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 6px; }
+.schedule-day-bar details { position: relative; }
+.schedule-day-bar summary { list-style: none; cursor: pointer; padding: 10px; color: var(--muted); }
+.schedule-day-bar details button { position: absolute; inset-inline-end: 0; z-index: 2; white-space: nowrap; padding: 12px; border-radius: 10px; background: white; color: #a83232; border: 1px solid var(--line); box-shadow: 0 4px 14px #223a321a; }
+.schedule-agenda { display: grid; gap: 8px; }
+.schedule-period { display: grid; grid-template-columns: 110px 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+.schedule-period button { display: grid; align-content: center; gap: 4px; min-height: 66px; padding: 8px 12px; border: 0; text-align: start; background: white; }
+.schedule-period .schedule-period-time { background: #f3f8f6; border-inline-end: 1px solid var(--line); }
+.schedule-period-time strong { display: flex; align-items: center; gap: 8px; color: var(--green-dark); }
+.schedule-period small { color: var(--muted); font-size: 12px; }
+.schedule-period-time small { justify-self: start; }
+.admin-sched-cell.empty span { color: var(--green-dark); font-size: 10px; }
+.directory-screen { background: #f6f8f7; }
+.directory-groups { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); padding: 3px; border-radius: 12px; background: #e9efed; }
+.directory-groups button { min-height: 42px; border: 0; padding: 0 2px; border-radius: 9px; background: transparent; color: #425851; font-size: 12px; }
+.directory-groups button[aria-pressed=true] { background: white; color: var(--green-dark); font-weight: 700; box-shadow: 0 1px 4px #173d2920; }
+.directory-tools { display: flex; gap: 8px; margin: 14px 0 20px; }
+.directory-search, .directory-tools select { background: white; border: 1px solid var(--line); border-radius: 10px; min-height: 44px; }
+.directory-search { display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px; padding-inline: 10px; color: var(--muted); }
+.directory-search input { border: 0; background: transparent; width: 100%; min-width: 0; padding: 9px 0; font-size: 13px; }
+.directory-tools select { padding-inline: 6px; color: var(--ink); font-size: 12px; }
+.directory-card, .directory-activity { border: 1px solid var(--line); border-radius: 14px; background: white; margin-bottom: 10px; }
+.directory-report { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 12px; text-align: start; background: transparent; border: 0; border-radius: 14px; color: var(--ink); }
+.directory-avatar { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: 12px; color: var(--green-dark); background: var(--green-soft); font-weight: 700; }
+.directory-person { display: grid; flex: 1; gap: 3px; }
+.directory-person strong, .directory-activity strong { font-size: 14px; }
+.directory-person small, .directory-activity small { color: var(--muted); font-size: 12px; }
+.directory-link, .directory-secondary button { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.directory-link { color: var(--green-dark); font-weight: 700; }
+.directory-secondary { display: flex; gap: 12px; border-top: 1px solid var(--line); padding-inline: 12px; }
+.directory-secondary button { min-height: 40px; border: 0; color: #435850; background: transparent; }
+.directory-activity { display: grid; gap: 5px; padding: 12px; }
+.directory-activity p { margin: 0; font-size: 13px; }
+.class-report { background: #f6f8f7; }
+.class-report-context { padding: 14px; background: white; border: 1px solid var(--line); border-radius: 16px; }
+.class-report-fields { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.class-report-fields label { display: grid; gap: 4px; color: #53635e; font-size: 12px; }
+.class-report select { height: 44px; max-width: 100%; border: 1px solid var(--line); border-radius: 10px; background: white; padding-inline: 8px; color: var(--ink); font: inherit; font-size: 13px; }
+.class-report-fields select { width: 100%; font-weight: 700; }
+.class-report-teachers { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12px; color: var(--green-dark); }
+.class-report-modes { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 12px; background: #e7eeeb; margin: 16px 0 12px; }
+.class-report-modes button { display: flex; justify-content: center; align-items: center; gap: 6px; min-height: 42px; border: 0; border-radius: 9px; background: transparent; color: #475950; }
+.class-report-modes button[aria-pressed=true] { background: white; color: var(--green-dark); font-weight: 700; box-shadow: 0 1px 4px #143c2a22; }
+.class-report .report-search-row { min-height: 44px; margin: 0; background: white; }
+.class-report .report-search-row input { min-width: 0; }
+.class-report-roster { background: white; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.class-report-roster button { display: flex; align-items: center; width: 100%; gap: 9px; min-height: 64px; padding: 10px 12px; border: 0; background: white; text-align: start; color: var(--ink); }
+.class-report-roster button + button { border-top: 1px solid var(--line); }
+.class-report-roster button:focus-visible { outline-offset: -3px; }
+.class-report-student { display: grid; flex: 1; gap: 2px; font-size: 14px; }
+.class-report-student small { color: var(--muted); font-size: 11px; }
+.class-report-result { color: var(--green-dark); font-size: 12px; }
+.class-report-name { font: inherit; font-weight: 700; background: transparent; border: 0; color: var(--green-dark); min-height: 38px; }
+.class-report .collective-table th:nth-child(2)[rowspan], .class-report .collective-table thead tr:only-child th:nth-child(2), .class-report .collective-table tbody td:nth-child(2) { position: sticky; inset-inline-start: 0; background: #f4faf7; z-index: 1; }

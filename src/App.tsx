@@ -900,149 +900,108 @@ function parentNameOf(student: string) {
   return `${searchParentFirsts[h % searchParentFirsts.length]} ${family}`
 }
 
-type SearchTag = 'کلاس' | 'معلم' | 'دانش‌آموز' | 'والدین'
-type SearchRow = { kind: 'دانش‌آموز' | 'معلم' | 'والدین' | 'کلاس'; name: string; sub: string; cls?: string; childName?: string; go: () => void }
+type SearchTag = 'معلم' | 'مدیر' | 'والدین' | 'دانش‌آموز' | 'کلاس'
+type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string }
+type DirectoryReport = { kind: SearchTag; entry: DirectoryEntry }
+const directoryGroups: Record<SearchTag, string> = {
+  'معلم': 'معلمان', 'مدیر': 'مدیر', 'والدین': 'والدین', 'دانش‌آموز': 'دانش‌آموزان', 'کلاس': 'کلاس‌ها',
+}
+const directoryActions: Record<SearchTag, string> = {
+  'معلم': 'گزارش کار', 'مدیر': 'گزارش فعالیت', 'والدین': 'گزارش فرزند', 'دانش‌آموز': 'گزارش تحصیلی', 'کلاس': 'گزارش کلاس',
+}
 
-/** separate Telegram-like search page with tag filters (admin) */
 function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
   const [q, setQ] = useState('')
-  const [tag, setTag] = useState<SearchTag>(() => {
-    const t = adminStartSearchTag
-    adminStartSearchTag = null
-    return t ?? 'کلاس'
-  })
+  const [tag, setTag] = useState<SearchTag>(() => adminStartSearchTag ?? 'معلم')
+  useEffect(() => { adminStartSearchTag = null }, [])
   const [clsF, setClsF] = useState('همه')
-  const query = q.trim()
-  const en = toEn(query)
-  const hit = (s: string) => !query || s.includes(query) || toEn(s).includes(en)
-  const inCls = (c: string) => clsF === 'همه' || clsF === c
-  const rows: SearchRow[] = []
-  adminClasses.forEach(c => {
-    if (!inCls(c)) return
-    ;(classStudents[c] || []).forEach(name => {
-      if (tag === 'دانش‌آموز' && hit(name)) {
-        rows.push({ kind: 'دانش‌آموز', name, sub: `کلاس ${c}`, cls: c, go: () => navigate('conversation') })
-      }
-      const p = parentNameOf(name)
-      if (tag === 'والدین' && hit(p)) {
-        rows.push({ kind: 'والدین', name: p, sub: name, cls: c, childName: name, go: () => navigate('conversation') })
-      }
-    })
-  })
-  adminTeachers.forEach((t) => {
-    if (tag === 'معلم' && hit(t.name)) {
-      rows.push({ kind: 'معلم', name: t.name, sub: t.subject, go: () => navigate('conversation') })
-    }
-  })
-  adminClasses.forEach(c => {
-    if (!inCls(c)) return
-    if (tag === 'کلاس' && hit(c)) {
-      rows.push({ kind: 'کلاس', name: `کلاس ${c}`, sub: `${fa((classStudents[c] || []).length)} دانش‌آموز`, cls: c, go: () => { adminStartCls = c; touchAdminClass(c); adminStartTab = 'کلاس‌ها'; navigate('admin') } })
-    }
-  })
-  const chipCls = (kind: SearchRow['kind']) => kind === 'کلاس' ? 'k-class' : kind === 'معلم' ? 'k-teacher' : kind === 'والدین' ? 'k-parent' : 'k-student'
+  const [report, setReport] = useState<DirectoryReport | null>(null)
+  const [contact, setContact] = useState<DirectoryEntry | null>(null)
+  const directoryScroll = useRef(0)
+  useEffect(() => {
+    window.scrollTo(0, report || contact ? 0 : directoryScroll.current)
+  }, [report, contact])
 
-  // ---- نمایش کارتی فقط برای تگ «کلاس» ----
-  /** آیا این کلاس با جست‌وجوی فعلی مطابقت دارد؟ (نام کلاس یا یکی از اعضایش) */
-  const classMatch = (c: string) => !query || hit(c) || (classStudents[c] || []).some(hit)
-  const cards = tag === 'کلاس'
-    ? adminClasses.filter(inCls).filter(classMatch).map(c => ({ cls: c }))
-    : []
-  const total = tag === 'کلاس' ? cards.length : rows.length
-
-  return <div className="screen school-search-screen" dir="rtl">
-    <header className="school-search-head">
-      <div className="school-search-bar">
-        <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
-        <span className="school-search-ic"><Icon name="search" size={18} /></span>
-        <input value={q} onChange={e => setQ(e.target.value)} autoFocus placeholder="جست‌وجوی دانش‌آموز، معلم، والدین..." />
-        {q && <button type="button" className="school-search-clear" aria-label="پاک کردن" onClick={() => setQ('')}><Icon name="close" size={15} /></button>}
-      </div>
-    </header>
-    <div className="school-search-tags">
-      {(['کلاس', 'معلم', 'دانش‌آموز', 'والدین'] as SearchTag[]).map(t => (
-        <button type="button" key={t} className={tag === t ? 'active' : ''} onClick={() => setTag(t)}>{t}</button>
-      ))}
-    </div>
-    {tag !== 'معلم' && (
-      <div className="school-search-cls">
-        {['همه', ...adminClasses].map(c => (
-          <button type="button" key={c} className={clsF === c ? 'active' : ''} onClick={() => setClsF(c)}>
-            {c === 'همه' ? 'همه' : `کلاس ${c}`}
-          </button>
-        ))}
-      </div>
-    )}
-    <main className="msg-list school-search-list">
-      <div className="school-search-count">{query ? `${fa(total)} نتیجه` : `${fa(total)} مورد`}</div>
-      {total === 0 && <div className="report-empty-hint">نتیجه‌ای پیدا نشد.</div>}
-      {(tag === 'معلم' || tag === 'دانش‌آموز' || tag === 'والدین') && rows.length > 0 && (
-        <div className="assignment-table-wrap people-table-wrap">
-          <table className={`report-detail-table people-table people-table-${tag === 'معلم' ? 'teacher' : tag === 'والدین' ? 'parent' : 'student'}`} dir="rtl">
-            <thead>
-              <tr>
-                <th>نام و نام‌خانوادگی</th>
-                <th>کلاس</th>
-                {tag === 'معلم' && <th>درس</th>}
-                {tag === 'والدین' && <th>نام فرزند</th>}
-                <th>نقش</th>
-                <th>پیام</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => {
-                const classNo = r.kind === 'معلم'
-                  ? (adminClasses[i % adminClasses.length] || '—')
-                  : (r.cls || '—')
-                return (
-                <tr key={`${r.name}-${i}`}>
-                  <td>
-                    <button type="button" className="people-name-btn" onClick={r.go}>
-                      <strong>{r.name}</strong>
-                    </button>
-                  </td>
-                  <td className="people-meta-cell">{classNo}</td>
-                  {tag === 'معلم' && <td className="people-meta-cell">{r.sub || '—'}</td>}
-                  {tag === 'والدین' && <td className="people-meta-cell">{r.childName || r.sub || '—'}</td>}
-                  <td><span className={`adm-search-chip ${chipCls(r.kind)}`}>{r.kind}</span></td>
-                  <td>
-                    <button
-                      type="button"
-                      className="people-msg-btn"
-                      aria-label={`پیام به ${r.name}`}
-                      onClick={() => navigate('conversation')}
-                    >
-                      <Icon name="chat" size={16} />
-                      پیام
-                    </button>
-                  </td>
-                </tr>
-                )
-              })}
-            </tbody>
-          </table>
+  if (contact) return <Conversation contact={contact} goBack={() => setContact(null)} />
+  if (report?.kind === 'مدیر') {
+    const events = calendarMonths.flatMap(m => m.items.filter(item => item.admin).map(item => ({
+      title: item.title, date: fa(item.day) + ' ' + m.label,
+    })))
+    return <div className="screen inner-screen">
+      <SubHeader screen="search" title="گزارش فعالیت مدیر" subtitle={report.entry.name} back={() => setReport(null)} rightIcon={null} />
+      <main className="inner-content">
+        <div className="section-heading"><strong>مدرسه تحت مدیریت</strong></div>
+        <div className="week-summary-banner">
+          <div className="week-summary-item"><strong>{fa(adminClasses.length)}</strong><span>کلاس</span></div>
+          <div className="week-summary-item"><strong>{fa(adminTeachers.length)}</strong><span>معلم</span></div>
+          <div className="week-summary-item"><strong>{fa(adminClasses.reduce((count, c) => count + (classStudents[c]?.length || 0), 0))}</strong><span>دانش‌آموز</span></div>
         </div>
-      )}
-      {/* تگ «کلاس»: کارت کامل پنل مدیر — کلیک روی هدر → گزارش همان کلاس */}
-      {tag === 'کلاس' && cards.map(g => {
-        const students = classStudents[g.cls] || []
-        return (
-          <div className="admin-class-card" key={g.cls}>
-            <button type="button" className="admin-class-head sr-cls-head" onClick={() => { adminStartReportCls = g.cls; navigate('reports') }}>
-              <span className="admin-class-badge">{g.cls}</span>
-              <span className="admin-row-copy">
-                <strong>کلاس {g.cls}</strong>
-                <small>{fa(students.length)} دانش‌آموز</small>
-              </span>
-              <Icon name="chevron" size={16} />
-            </button>
-            <div className="admin-kpis">
-              <button type="button" className="admin-kpi admin-kpi-action" onClick={() => { adminStartCls = g.cls; touchAdminClass(g.cls); adminStartTab = 'حضور و غیاب'; navigate('admin') }}>حضور و غیاب</button>
-              <button type="button" className="admin-kpi admin-kpi-action" onClick={() => { adminStartCls = g.cls; touchAdminClass(g.cls); adminStartTab = 'برنامه کلاسی'; navigate('admin') }}>برنامه کلاسی</button>
-            </div>
-          </div>
-        )
-      })}
+        <div className="section-heading"><strong>اعلان‌های ارسال‌شده</strong><span>{fa(adminAnnouncementStore.length)} اعلان</span></div>
+        {adminAnnouncementStore.length === 0 && <p className="report-empty-hint">هنوز اعلانی از طرف مدیر ارسال نشده است.</p>}
+        {adminAnnouncementStore.map(a => <article className="directory-activity" key={a.id}><strong>{a.title}</strong><small>{a.target} · {a.time}</small>{a.text && <p>{a.text}</p>}</article>)}
+        <div className="section-heading"><strong>رویدادهای ثبت‌شده</strong><span>{fa(events.length)} رویداد</span></div>
+        {events.length === 0 && <p className="report-empty-hint">هنوز رویدادی از طرف مدیر ثبت نشده است.</p>}
+        {events.map((event, i) => <article className="directory-activity" key={i}><strong>{event.title}</strong><small>{event.date}</small></article>)}
+      </main>
+    </div>
+  }
+  if (report) return <Reports role="admin" directoryReport={report} goBack={() => setReport(null)} />
+
+  const classFilter = tag === 'والدین' || tag === 'دانش‌آموز' || tag === 'کلاس'
+  const classList = adminClasses.filter(c => clsF === 'همه' || clsF === c)
+  let entries: DirectoryEntry[]
+  switch (tag) {
+    case 'معلم':
+      entries = adminTeachers.map(t => ({ name: t.name, detail: teacherSubjectsOf(t).join('، ') }))
+      break
+    case 'مدیر':
+      entries = [{ name: 'مدیر مدرسه', detail: 'اعلان‌ها و رویدادهای ثبت‌شده' }]
+      break
+    case 'کلاس':
+      entries = classList.map(cls => ({ name: 'کلاس ' + cls, cls, detail: fa(classStudents[cls]?.length || 0) + ' دانش‌آموز' }))
+      break
+    default:
+      entries = classList.flatMap(cls => (classStudents[cls] || []).map(student => tag === 'والدین'
+        ? { name: parentNameOf(student), child: student, cls, detail: 'فرزند: ' + student + ' · کلاس ' + cls }
+        : { name: student, cls, detail: 'کلاس ' + cls }))
+  }
+  const normalize = (text: string) => toEn(text).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\s‌]+/g, '')
+  const query = normalize(q)
+  const visible = entries.filter(entry => {
+    const members = tag === 'کلاس' && entry.cls ? classStudents[entry.cls] || [] : []
+    return [entry.name, entry.detail, ...members].some(value => normalize(value).includes(query))
+  })
+  const placeholders: Record<SearchTag, string> = {
+    'معلم': 'نام معلم یا درس', 'مدیر': 'نام یا نقش مدیر', 'والدین': 'نام والد یا فرزند',
+    'دانش‌آموز': 'نام دانش‌آموز یا کلاس', 'کلاس': 'شمارهٔ کلاس یا نام دانش‌آموز',
+  }
+  return <div className="screen inner-screen directory-screen" dir="rtl">
+    <SubHeader screen="search" back={goBack} rightIcon={null} />
+    <main className="inner-content">
+      <div className="directory-groups" role="group" aria-label="گروه افراد">
+        {(Object.keys(directoryGroups) as SearchTag[]).map(group => <button type="button" key={group} aria-pressed={tag === group}
+          onClick={() => { setTag(group); setQ(''); setClsF('همه') }}>{directoryGroups[group]}</button>)}
+      </div>
+      <div className="directory-tools">
+        <label className="directory-search"><Icon name="search" size={17} /><input type="search" aria-label={placeholders[tag]} placeholder={placeholders[tag]} value={q} onChange={e => setQ(e.target.value)} /></label>
+        {classFilter && <select aria-label="فیلتر کلاس" value={clsF} onChange={e => setClsF(e.target.value)}>
+          <option value="همه">همهٔ کلاس‌ها</option>{adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)}
+        </select>}
+      </div>
+      <div className="section-heading"><strong>{directoryGroups[tag]}</strong><span aria-live="polite">{fa(visible.length)} {tag === 'کلاس' ? 'کلاس' : 'نفر'}</span></div>
+      {!visible.length && <p className="report-empty-hint">موردی پیدا نشد. {classFilter ? 'نام یا فیلتر کلاس را تغییر دهید.' : 'عبارت دیگری را جست‌وجو کنید.'}</p>}
+      {visible.map(entry => <article className="directory-card" key={[entry.cls, entry.name, entry.child].join('-')}>
+        <button className="directory-report" onClick={() => { directoryScroll.current = window.scrollY; setReport({ kind: tag, entry }) }}>
+          <span className="directory-avatar" aria-hidden="true">{tag === 'کلاس' ? <Icon name="classes" size={19} /> : entry.name[0]}</span>
+          <span className="directory-person"><strong>{entry.name}</strong><small>{entry.detail}</small></span>
+          <span className="directory-link">{directoryActions[tag]} <Icon name="chevron" size={13} /></span>
+        </button>
+        {tag !== 'مدیر' && <div className="directory-secondary">
+          {tag === 'کلاس' ? (['حضور و غیاب', 'برنامه کلاسی'] as const).map(tab => <button key={tab} onClick={() => {
+            adminStartCls = entry.cls!; touchAdminClass(entry.cls!); adminStartTab = tab; navigate('admin')
+          }}>{tab}</button>) : <button aria-label={'پیام به ' + entry.name} onClick={() => { directoryScroll.current = window.scrollY; setContact(entry) }}><Icon name="chat" size={15} /> پیام</button>}
+        </div>}
+      </article>)}
     </main>
   </div>
 }
@@ -1229,9 +1188,9 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
   }
   const [monthIdx, setMonthIdx] = useState(0)
   const m = months[monthIdx]
-  const kindsOnDay = (day: number) => new Set(m.items.filter(it => it.day === day).map(it => it.kind))
+  const kindsOnDay = (day: number) => new Set(m.items.filter(it => it.day === day && it.kind === 'event').map(it => it.kind))
   const daysWithItems = [...new Set([
-    ...m.items.map(it => it.day),
+    ...m.items.filter(it => it.kind === 'event').map(it => it.day),
     ...(m.holidays?.map(h => h.day) ?? []),
   ])].sort((a, b) => a - b)
 
@@ -1268,8 +1227,6 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
                 if (isOff) cls.push('off')
                 if (day === m.today) cls.push('today')
                 const kinds = kindsOnDay(day)
-                if (kinds.has('assignment')) cls.push('has-assignment')
-                if (kinds.has('exam')) cls.push('has-exam')
                 if (kinds.has('event')) cls.push('has-event')
                 if (kinds.size || isOff) cls.push('is-clickable')
                 return (
@@ -1289,8 +1246,6 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
             </div>
             <div className="month-legend">
               <strong className="legend-title">راهنما</strong>
-              <span><i className="dot assignment" />تکلیف</span>
-              <span><i className="dot exam" />آزمون</span>
               <span><i className="dot event" />رویداد</span>
               <span><i className="dot off" />تعطیل</span>
             </div>
@@ -1302,7 +1257,7 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
               <div className="report-empty-hint">رویدادی برای این ماه ثبت نشده است.</div>
             )}
             {daysWithItems.map(day => {
-              const list = m.items.filter(it => it.day === day)
+              const list = m.items.filter(it => it.day === day && it.kind === 'event')
               const hol = holidayOf(m, day)
               return (
                 <div className="mt-group kind-by-date" key={day} id={`cal-day-${day}`}>
@@ -1319,16 +1274,7 @@ function CalendarPage({ navigate, goBack }: { navigate: (screen: Screen) => void
                       className={`cal-item-link kind-${it.kind}`}
                       key={`${it.day}-${it.kind}-${it.title}`}
                       onClick={() => {
-                        if (it.kind === 'assignment') {
-                          assignmentContext = { subject: it.subject, klass: 'کلاس ۹۰۱' }
-                          navigate('assignment')
-                          return
-                        }
-                        if (it.kind === 'exam') {
-                          navigate('exam')
-                          return
-                        }
-                        // event → classroom / chat context
+                        // رویداد → کلاس / گفت‌وگو
                         navigate('classroom')
                       }}
                     >
@@ -1724,7 +1670,7 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
   </div>
 }
 
-function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: () => void }) {
+function Conversation({ goBack, contact }: { navigate?: (screen: Screen) => void; goBack: () => void; contact?: DirectoryEntry }) {
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState<string[]>([])
   const [saveSheetOpen, setSaveSheetOpen] = useState(false)
@@ -1732,20 +1678,20 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string | null>(null)
   const send = () => { if (message.trim()) { setSent([...sent, message]); setMessage('') } }
-  const chat = messengerChats[0]
+  const chat: MsgChat = contact ? { name: contact.name, initials: contact.name[0], color: 'green', type: 'person', preview: '' } : messengerChats[0]
   return <div className="screen chat-screen conversation-light" dir="rtl">
     <header className="chat-header">
       <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <div className={`avatar ${chat.color} ${chat.icon ? 'iconed' : ''}`}>{chat.icon ? <Icon name={chat.icon} /> : chat.initials}</div>
       <button className="chat-person">
         <strong>{chat.name}{chat.verified && <span className="verified"><Icon name="check" size={11} /></span>}</strong>
-        <span>آنلاین</span>
+        <span>{contact ? contact.detail : 'آنلاین'}</span>
       </button>
       <IconButton icon="phone" label="تماس صوتی" />
       <IconButton icon="more" label="گزینه‌های بیشتر" />
     </header>
     <main className="messages">
-      <div className="day"><span>امروز</span></div>
+      {!contact && <><div className="day"><span>امروز</span></div>
       <div className="message-row received"><div className="message-bubble"><strong className="sender">لاک پشت کوچولو</strong><p>با یه در شیشه و خمیر بازی بسازش! 🎨</p><span>۰۹:۰۵</span></div></div>
       <div className="message-row received"><div className="message-bubble attachment-card"><div className="file-icon"><Icon name="image" /></div><div><strong>تصویر</strong><small>۱٫۲ مگابایت · JPG</small></div><button type="button" className={`bookmark-btn ${savedIds['conv-img'] ? 'saved' : ''}`} aria-label="ذخیره فایل" onClick={() => {
             if (savedIds['conv-img']) {
@@ -1759,6 +1705,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
           }}><Icon name="bookmark" /></button><span>۰۹:۰۶</span></div></div>
       <div className="message-row sent"><div className="message-bubble"><p>عالیه! چطور ساخته میشه؟</p><span>۰۹:۱۰ <b>✓✓</b></span></div></div>
       <div className="message-row received"><div className="message-bubble"><p>با یه در شیشه خالی و خمیر بازی شروع کن 🐢</p><span>۰۹:۱۲</span></div></div>
+      </>}
       {sent.map((text, i) => <div className="message-row sent" key={i}><div className="message-bubble"><p>{text}</p><span>اکنون <b>✓</b></span></div></div>)}
     </main>
     <div className="composer-wrap">
@@ -1785,6 +1732,7 @@ function Conversation({ goBack }: { navigate: (screen: Screen) => void; goBack: 
 }
 
 const screenMeta: Partial<Record<Screen, { title: string; subtitle: string }>> = {
+  search: { title: 'افراد مدرسه', subtitle: 'گزارش‌ها و ارتباط با افراد' },
   calendar: { title: 'تقویم', subtitle: 'مهر ۱۴۰۵ · همه دروس' },
   materials: { title: 'منابع کلاسی', subtitle: 'کلاس علوم تجربی' },
   assignment: { title: 'جزئیات تکلیف', subtitle: 'علوم تجربی · کلاس ۹۰۱' },
@@ -2172,12 +2120,6 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
     return result
   }
 
-  const toInputDate = (date: Date) => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
@@ -2262,7 +2204,7 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
             <small>هفته قبل</small>
           </button>
 
-          <label className="assignment-date-picker">
+          <div className="assignment-date-picker">
             <span className="assignment-date-icon">
               <Icon name="calendar" />
             </span>
@@ -2271,27 +2213,11 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
               <strong>
                 {formatDate(weekStart)} تا {formatDate(weekEnd)}
               </strong>
-              <small>برای انتخاب تاریخ کلیک کنید</small>
+              <small>تاریخ را از منوهای زیر تغییر دهید</small>
             </span>
 
             <span className="assignment-date-chevron">⌄</span>
-
-            <input
-              type="date"
-              value={toInputDate(selectedDate)}
-              onChange={(e) => {
-                if (e.target.value) {
-                  const [year, month, day] =
-                    e.target.value.split('-').map(Number)
-
-                  setSelectedDate(
-                    new Date(year, month - 1, day, 12)
-                  )
-                }
-              }}
-              aria-label="انتخاب تاریخ"
-            />
-          </label>
+          </div>
 
           <button
             type="button"
@@ -2304,6 +2230,14 @@ function Assignments({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scr
             <small>هفته بعد</small>
           </button>
         </div>
+
+        <JalaliDatePicker
+          value={shamsiOf(selectedDate).date}
+          onChange={v => {
+            const p = parseJalali(v)
+            if (p) setSelectedDate(gregorianOfJalali(p))
+          }}
+        />
 
         <div className="assignment-week-list">
           {weekDays.map((day, index) => {
@@ -2501,6 +2435,13 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
     setToast('تغییرات تکلیف ذخیره شد')
     setTimeout(() => setToast(null), 1400)
   }
+
+  // مهلت تحویل: تاریخ (جلالی) و ساعت از رشتهٔ deadline جدا خوانده می‌شوند
+  const deadlineRange = reportDateRange()
+  const dlTimeMatch = /(\d{1,2}):(\d{2})/.exec(toEn(draft.deadline))
+  const dlTime = dlTimeMatch ? `${dlTimeMatch[1].padStart(2, '0')}:${dlTimeMatch[2]}` : ''
+  const dlToken = draft.deadline.trim().split(/\s+/)[0]
+  const dlDate = parseJalali(dlToken) ? dlToken : deadlineRange[0]
 
   const addAttachment = (type: 'file' | 'image' | 'voice') => {
     const labels = {
@@ -2805,14 +2746,15 @@ function Assignment({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
         <label className="field"><span>توضیحات</span>
           <textarea rows={4} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} />
         </label>
-        <label className="field"><span>مهلت تحویل</span>
-          <div className="two-fields">
-            <select aria-label="تاریخ" onChange={e => setDraft(d => ({ ...d, deadline: e.target.value }))}>
-              <option value="">تاریخ</option>
-              {reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <input type="time" onChange={e => setDraft(d => ({ ...d, deadline: (d.deadline || '') + ' ' + e.target.value }))} />
-          </div>
+        <div className="field"><span>مهلت تحویل</span>
+          <JalaliDatePicker
+            label="تاریخ"
+            value={dlDate}
+            onChange={v => setDraft(d => ({ ...d, deadline: dlTime ? `${v} ${dlTime}` : v }))}
+          />
+        </div>
+        <label className="field"><span>ساعت</span>
+          <input type="time" value={dlTime} onChange={e => setDraft(d => ({ ...d, deadline: `${dlDate} ${e.target.value}` }))} />
         </label>
         <button type="button" className="upload">
           <Icon name="paperclip" />
@@ -3305,6 +3247,8 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
   const [published, setPublished] = useState(false)
   const [subject, setSubject] = useState(assignmentContext?.subject || '')
   const [klass, setKlass] = useState(assignmentContext?.klass || '')
+  const [deadlineDate, setDeadlineDate] = useState(() => reportDateRange()[0])
+  const [deadlineTime, setDeadlineTime] = useState('')
   const [recording, setRecording] = useState(false)
   const [recSeconds, setRecSeconds] = useState(0)
   const [voiceNote, setVoiceNote] = useState<{ url: string | null; seconds: number } | null>(null)
@@ -3510,7 +3454,16 @@ function AssignmentCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: 
       </div>
 
       <button className="upload"><Icon name="paperclip" /><div><strong>افزودن فایل</strong><span>PDF، تصویر یا فایل متنی</span></div><Icon name="plus" /></button>
-      <label className="field"><span>مهلت تحویل</span><div className="two-fields"><select><option value="">تاریخ</option>{reportDateRange().map(d => <option key={d} value={d}>{d}</option>)}</select><input type="time" /></div></label>
+      <div className="field"><span>مهلت تحویل</span>
+        <JalaliDatePicker
+          label="تاریخ"
+          value={deadlineDate}
+          onChange={setDeadlineDate}
+        />
+      </div>
+      <label className="field"><span>ساعت تحویل</span>
+        <input type="time" value={deadlineTime} onChange={e => setDeadlineTime(e.target.value)} />
+      </label>
     </main>
     <div className="sticky-action">
       <button onClick={() => { setPublished(true); setTimeout(() => goBack(), 900) }}>
@@ -3538,12 +3491,6 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
     return result
   }
 
-  const toInputDate = (date: Date) => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
@@ -4413,27 +4360,27 @@ function Exam({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) =>
             <span>‹</span>
             <small>هفته قبل</small>
           </button>
-          <label className="assignment-date-picker">
+          <div className="assignment-date-picker">
             <span className="assignment-date-icon"><Icon name="calendar" /></span>
             <span className="assignment-date-text">
               <strong>{formatDate(weekStart)} تا {formatDate(weekEnd)}</strong>
-              <small>برای انتخاب تاریخ کلیک کنید</small>
+              <small>تاریخ را از منوهای زیر تغییر دهید</small>
             </span>
             <span className="assignment-date-chevron">›</span>
-            <input
-              type="date"
-              value={toInputDate(selectedDate)}
-              onChange={e => {
-                if (!e.target.value) return
-                setSelectedDate(new Date(e.target.value + 'T12:00:00'))
-              }}
-            />
-          </label>
+          </div>
           <button type="button" className="assignment-week-arrow" onClick={() => setSelectedDate(addDays(weekStart, 7))}>
             <span>›</span>
             <small>هفته بعد</small>
           </button>
         </div>
+
+        <JalaliDatePicker
+          value={shamsiOf(selectedDate).date}
+          onChange={v => {
+            const p = parseJalali(v)
+            if (p) setSelectedDate(gregorianOfJalali(p))
+          }}
+        />
 
         <div className="assignment-week-list">
           {weekDays.map((dayName, dayIndex) => {
@@ -4670,27 +4617,15 @@ function ExamCreate({ goBack }: { navigate?: (s: Screen) => void; goBack: () => 
         </div>
       )}
 
-      <label className="field">
-        <span>شروع</span>
-        <div className="two-fields">
-          <select value={startDay} onChange={e => setStartDay(e.target.value)}>
-            <option value="">تاریخ شروع</option>
-            {examDateRange().map(d => <option key={`s-${d}`} value={d}>{d}</option>)}
-          </select>
-          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} aria-label="ساعت شروع" />
-        </div>
-      </label>
+      <div className="field"><span>شروع</span>
+        <JalaliDatePicker label="تاریخ شروع" value={startDay} onChange={setStartDay} />
+        <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} aria-label="ساعت شروع" />
+      </div>
 
-      <label className="field">
-        <span>پایان</span>
-        <div className="two-fields">
-          <select value={endDay} onChange={e => setEndDay(e.target.value)}>
-            <option value="">تاریخ پایان</option>
-            {examDateRange().map(d => <option key={`e-${d}`} value={d}>{d}</option>)}
-          </select>
-          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} aria-label="ساعت پایان" />
-        </div>
-      </label>
+      <div className="field"><span>پایان</span>
+        <JalaliDatePicker label="تاریخ پایان" value={endDay} onChange={setEndDay} />
+        <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} aria-label="ساعت پایان" />
+      </div>
 
       <div className="score-kind-hint" style={{ marginTop: 4 }}>
         برخلاف تکلیف، حتماً بازهٔ زمانی شروع و پایان دارد.
@@ -4824,7 +4759,6 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
   const absent = Object.values(status).filter(x => x === 'غایب').length
   const late = Object.values(status).filter(x => x === 'تأخیر').length
 
-  const dateOptions = Array.from(new Set(history.map(h => h.dateLabel)))
   const searchQ = searchQuery.trim()
   const filteredHistory = searchQ
     ? history.filter(h => h.dateLabel.includes(searchQ) || h.dayLabel.includes(searchQ) || h.timeLabel.includes(searchQ))
@@ -4938,22 +4872,20 @@ function Attendance({ goBack, role = 'teacher' }: { navigate: (s: Screen) => voi
                 <IconButton icon="close" label="بستن" onClick={() => setExportOpen(false)} />
               </div>
               <div className="group-grade-body">
-                <div className="two-fields">
-                  <label className="field">
-                    <span>از تاریخ</span>
-                    <select value={exportFrom} onChange={e => setExportFrom(e.target.value)}>
-                      <option value="">همه</option>
-                      {dateOptions.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </label>
-                  <label className="field">
-                    <span>تا تاریخ</span>
-                    <select value={exportTo} onChange={e => setExportTo(e.target.value)}>
-                      <option value="">همه</option>
-                      {dateOptions.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </label>
-                </div>
+                <JalaliDatePicker
+                  label="از تاریخ"
+                  value={exportFrom}
+                  allowAll
+                  onAll={() => setExportFrom('')}
+                  onChange={setExportFrom}
+                />
+                <JalaliDatePicker
+                  label="تا تاریخ"
+                  value={exportTo}
+                  allowAll
+                  onAll={() => setExportTo('')}
+                  onChange={setExportTo}
+                />
                 <p className="group-grade-hint">
                   خروجی شامل حاضر، غایب و تأخیر هر روز در بازه انتخابی است.
                 </p>
@@ -5389,6 +5321,106 @@ function nowShamsi() {
   return shamsiOf(new Date())
 }
 
+// ===================== انتخاب‌گر تاریخ با سه منو (روز · ماه · سال) =====================
+
+type JalDate = { y: number; m: number; d: number }
+
+/** تجزیهٔ رشتهٔ تاریخ جلالی مثل «۱۴۰۵/۰۷/۱۵» */
+function parseJalali(s: string): JalDate | null {
+  const parts = toEn(String(s ?? '').trim()).split('/').map(Number)
+  if (parts.length !== 3 || parts.some(n => !Number.isFinite(n))) return null
+  const [y, m, d] = parts
+  if (y < 1000 || y > 1800 || m < 1 || m > 12 || d < 1 || d > 31) return null
+  return { y, m, d }
+}
+
+function fmtJalali(j: JalDate): string {
+  return `${fa(j.y)}/${fa(String(j.m).padStart(2, '0'))}/${fa(String(j.d).padStart(2, '0'))}`
+}
+
+/** تعداد روزهای ماه جلالی (اسفند با بررسی سال کبیسه) */
+function jalaliDaysInMonth(y: number, m: number): number {
+  if (m <= 6) return 31
+  if (m <= 11) return 30
+  const lastDay = gregorianOfJalali({ y: y + 1, m: 1, d: 1 })
+  lastDay.setDate(lastDay.getDate() - 1)
+  return parseJalali(shamsiOf(lastDay).date)!.d
+}
+
+/** میلادیِ معادل یک تاریخ جلالی (ساعت ۱۲ ظهر) */
+function gregorianOfJalali(j: JalDate): Date {
+  const doy = j.m <= 6 ? (j.m - 1) * 31 + j.d - 1 : 186 + (j.m - 7) * 30 + j.d - 1
+  const base = new Date(j.y + 621, 2, 21, 12)
+  const guess = new Date(base)
+  guess.setDate(base.getDate() + doy)
+  const target = fmtJalali(j)
+  for (let i = -10; i <= 10; i++) {
+    const c = new Date(guess)
+    c.setDate(guess.getDate() + i)
+    if (shamsiOf(c).date === target) return c
+  }
+  return guess
+}
+
+/**
+ * انتخاب‌گر تاریخ با سه منوِ «روز · ماه · سال».
+ * ترتیب DOM در RTL: روز (راست) ← ماه ← سال (چپ).
+ */
+function JalaliDatePicker({
+  value, onChange, label = 'تاریخ', allowAll = false, onAll,
+}: {
+  value: string
+  onChange: (v: string) => void
+  label?: string
+  allowAll?: boolean
+  onAll?: () => void
+}) {
+  const today = parseJalali(nowShamsi().date)!
+  const parsed = parseJalali(value)
+  const cur = parsed ?? today
+  const off = allowAll && !parsed
+  const firstYear = Math.min(Math.max(today.y - 2, cur.y - 4), cur.y)
+  const commit = (next: JalDate) => {
+    const d = Math.min(next.d, jalaliDaysInMonth(next.y, next.m))
+    onChange(fmtJalali({ ...next, d }))
+  }
+
+  return (
+    <div className={`jalali-date-picker${off ? ' is-off' : ''}`} role="group" aria-label={label}>
+      <div className="ds-head">
+        <span className="ds-label">{label}</span>
+        <strong className="ds-date">{off ? 'همهٔ تاریخ‌ها' : `${fa(cur.d)} ${jalaliMonthNames[cur.m - 1]} ${fa(cur.y)}`}</strong>
+        {allowAll && (
+          <button type="button" className={`ds-all${off ? ' on' : ''}`} onClick={onAll}>همه</button>
+        )}
+      </div>
+      <div className="ds-grid">
+        {([
+          { key: 'd', title: 'روز', from: 1, to: jalaliDaysInMonth(cur.y, cur.m) },
+          { key: 'm', title: 'ماه', from: 1, to: 12 },
+          { key: 'y', title: 'سال', from: firstYear, to: firstYear + 4 },
+        ] as const).map(({ key, title, from, to }) => (
+          <label key={key} className="ds-cell">
+            <span>{title}</span>
+            <select
+              value={off ? '' : cur[key]}
+              onChange={e => commit({ ...cur, [key]: Number(e.target.value) })}
+            >
+              {off && <option value="" disabled>انتخاب</option>}
+              {Array.from({ length: to - from + 1 }, (_, index) => {
+                const number = from + index
+                return <option key={number} value={number}>
+                  {key === 'm' ? jalaliMonthNames[number - 1] : fa(number)}
+                </option>
+              })}
+            </select>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** today + next 20 days, as Shamsi date options for scheduling */
 function examDateRange(): string[] {
   const out: string[] = []
@@ -5482,12 +5514,13 @@ function Gradebook({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
     <main className="inner-content">
       {uniqueDates.length > 0 && (
         <div className="grade-filter-row">
-          <label className="field grade-filter-field"><span>فیلتر تاریخ</span>
-            <select value={filterDate} onChange={e => setFilterDate(e.target.value)}>
-              <option value="">همهٔ تاریخ‌ها</option>
-              {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
+          <JalaliDatePicker
+            label="فیلتر تاریخ"
+            value={filterDate}
+            allowAll
+            onAll={() => setFilterDate('')}
+            onChange={setFilterDate}
+          />
         </div>
       )}
       <div className="section-heading" style={{ marginTop: 8 }}>
@@ -5610,24 +5643,14 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
           <div><strong className="green-text">{scoreKind === 'کمی' ? fa(avg) : '—'}</strong><span>میانگین</span></div>
         </div>
 
-        <div className="two-fields">
-          <label className="field">
-            <span>نوع دسته‌بندی</span>
-            <select value={category} onChange={e => setCategory(e.target.value)}>
-              <option value="">انتخاب کنید</option>
-              {suggestedTypes.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </label>
-          <label className="field">
-            <span>تاریخ</span>
-            <input
-              type="text"
-              placeholder="۱۴۰۵/۰۸/۱۷"
-              value={pickDate}
-              onChange={e => setPickDate(e.target.value)}
-            />
-          </label>
-        </div>
+        <label className="field">
+          <span>نوع دسته‌بندی</span>
+          <select value={category} onChange={e => setCategory(e.target.value)}>
+            <option value="">انتخاب کنید</option>
+            {suggestedTypes.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </label>
+        <JalaliDatePicker label="تاریخ" value={pickDate} onChange={setPickDate} />
 
         <div className={category ? '' : 'grade-form-locked'} aria-disabled={!category}>
           <label className="field">
@@ -5749,16 +5772,11 @@ function GradeRegister({ goBack }: { navigate: (s: Screen) => void; goBack: () =
               <IconButton icon="close" label="بستن" onClick={() => setConfirmOpen(false)} />
             </div>
             <div className="group-grade-body">
-              <div className="two-fields">
-                <label className="field">
-                  <span>تاریخ</span>
-                  <input type="text" placeholder="۱۴۰۵/۰۸/۱۷" value={confirmDate} onChange={e => setConfirmDate(e.target.value)} />
-                </label>
-                <label className="field">
-                  <span>ساعت</span>
-                  <input type="text" inputMode="numeric" placeholder="۱۰:۳۰" value={confirmTime} onChange={e => setConfirmTime(e.target.value)} />
-                </label>
-              </div>
+              <JalaliDatePicker label="تاریخ" value={confirmDate} onChange={setConfirmDate} />
+              <label className="field">
+                <span>ساعت</span>
+                <input type="text" inputMode="numeric" placeholder="۱۰:۳۰" value={confirmTime} onChange={e => setConfirmTime(e.target.value)} />
+              </label>
               <div className="score-kind-scales" style={{ marginTop: 4 }}>
                 <button type="button" onClick={() => { setConfirmDate(now.date); setConfirmTime(now.time) }}>همین الان</button>
               </div>
@@ -5905,20 +5923,23 @@ const categoryOptions = [
   'حضور و غیاب',
 ]
 
-function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: UserRole }) {
+const persianNameOrder = new Intl.Collator('fa-IR')
+function compareStudentNames(a: string, b: string) {
+  const familyName = (name: string) => name.trim().replace(/^\S+\s+/, '')
+  return persianNameOrder.compare(familyName(a), familyName(b)) || persianNameOrder.compare(a, b)
+}
+
+function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => void; role?: UserRole; directoryReport?: DirectoryReport }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
-  const [selected, setSelected] = useState<string | null>(() => {
-    const n = reportStartStudent
-    reportStartStudent = null
-    return n
-  })
-  const [selectedTeacher, setSelectedTeacher] = useState<string | null>(() => {
-    const n = reportStartTeacher
-    reportStartTeacher = null
-    return n
-  })
+  const [selected, setSelected] = useState<string | null>(directoryReport?.kind === 'والدین'
+    ? directoryReport.entry.child ?? null
+    : directoryReport?.kind === 'دانش‌آموز' ? directoryReport.entry.name : null)
+  const [selectedTeacher, setSelectedTeacher] = useState<string | null>(
+    directoryReport?.kind === 'معلم' ? directoryReport.entry.name : null
+  )
   const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
+  const [classCategory, setClassCategory] = useState('آزمون')
   const [teacherTab, setTeacherTab] = useState('ساعت کاری')
   const [studentQuery, setStudentQuery] = useState('')
   const [detailTab, setDetailTab] = useState('بازخورد کلاسی')
@@ -5940,11 +5961,7 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
   const [exportPage, setExportPage] = useState(false)
   /** مقدار ویژهٔ چیپ «همه» — نمایش دانش‌آموزان تمام کلاس‌ها */
   const ALL_CLASSES = '__all__'
-  const [repCls, setRepCls] = useState(() => {
-    const c = adminStartReportCls
-    adminStartReportCls = null
-    return c && adminClasses.includes(c) ? c : adminClasses[0] || '۹۰۱'
-  })
+  const [repCls, setRepCls] = useState(directoryReport?.entry.cls ?? adminClasses[0] ?? '۹۰۱')
   /** درس انتخاب‌شدهٔ مدیر در گزارش (جابجایی بین درس‌ها + نمایش دبیر هر درس) */
   const [repSubject, setRepSubject] = useState<string>(() => adminSubjectList()[0] || '')
   /** لیست دانش‌آموزان نمایش‌داده‌شده — مدیر بر اساس کلاس انتخاب‌شده (یا همهٔ کلاس‌ها)، بقیه فهرست ثابت */
@@ -6022,6 +6039,7 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
   if (exportPage) {
     const allMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
     const studentMatches = repStudents.filter(n => !filterStudentQuery.trim() || n.includes(filterStudentQuery.trim()))
+    if (role === 'admin') studentMatches.sort(compareStudentNames)
     const toggleCategory = (c: string) => {
       setFilterCategories(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
     }
@@ -6291,7 +6309,7 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
       <div className="screen inner-screen">
         <SubHeader
           screen="gradebook"
-          back={() => setSelectedTeacher(null)}
+          back={directoryReport?.kind === 'معلم' ? goBack : () => setSelectedTeacher(null)}
           title={teacher.name}
           subtitle={`گزارش کار معلم · ${subjects.join('، ')}`}
           rightIcon={null}
@@ -6386,9 +6404,18 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
 
   // 1) First: student list
   if (!selected) {
+    const isAdmin = role === 'admin'
+    const category = isAdmin ? classCategory : detailTab
+    const openStudent = (name: string) => {
+      setSelected(name)
+      setDetailTab(isAdmin ? classCategory : 'بازخورد کلاسی')
+      setWeekIndex(0)
+      setPeriodValue(null)
+    }
     const visibleStudents = repStudents.filter(n => !studentQuery.trim() || n.includes(studentQuery.trim()))
+    if (isAdmin) visibleStudents.sort(compareStudentNames)
     const entries = (() => {
-      switch (detailTab) {
+      switch (category) {
         case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
         case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
         case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
@@ -6397,19 +6424,22 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
         default: return ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴', 'هفته ۵']
       }
     })()
-    const isPctTab = detailTab === 'حضور و غیاب'
-    const tabIdx = collectiveCats.indexOf(detailTab)
+    const isPctTab = category === 'حضور و غیاب'
+    const tabIdx = collectiveCats.indexOf(category)
     /** بذر تغییر امتیازها بر اساس درس انتخاب‌شدهٔ مدیر — هر درس گزارش متفاوتی دارد */
+    const studentIndex = (name: string) => isAdmin && repCls === ALL_CLASSES
+      ? (classStudents[adminClasses.find(c => classStudents[c]?.includes(name)) || ''] || []).indexOf(name)
+      : repStudents.indexOf(name)
     const subjIdx = Math.max(0, adminSubjectList().indexOf(repSubject))
     const subjSeed = role === 'admin' ? subjIdx * 4 : 0
     const scoresFor = (name: string) => {
-      const si = repStudents.indexOf(name)
+      const si = studentIndex(name)
       return entries.map((_, ei) => {
         if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5 + subjSeed) % 15))}٪`
-        if (detailTab === 'فعالیت کلاسی') {
+        if (category === 'فعالیت کلاسی') {
           return (si + ei * 2 + subjSeed) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
         }
-        if (detailTab === 'بازخورد کلاسی') {
+        if (category === 'بازخورد کلاسی') {
           const opts = ['۳+', '۰', '۲−', '۵+', '۱−', '۰', '۴+']
           return opts[(si + ei * 2 + subjSeed) % opts.length]
         }
@@ -6438,16 +6468,41 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
     const overallAvg = fmtAvg(avgOf(
       visibleStudents.map(name => avgOf(rowNums(name))).filter((n): n is number => n !== null)
     ))
-    return <div className="screen inner-screen">
+    const months = academicMonths
+    const attFor = (name: string) => {
+      const si = studentIndex(name)
+      return months.map((_, mi) => {
+        const delay = (si * 3 + mi * 2) % 3
+        const absent = (si * 5 + mi * 3) % 3
+        return { delay, absent }
+      })
+    }
+    const sumPair = (pairs: { delay: number; absent: number }[]) => ({
+      delay: pairs.reduce((s, p) => s + p.delay, 0),
+      absent: pairs.reduce((s, p) => s + p.absent, 0),
+    })
+    const studentResult = (name: string) => {
+      if (category === 'حضور و غیاب') {
+        const { delay, absent } = sumPair(attFor(name))
+        return fa(absent) + ' غیبت · ' + fa(delay) + ' تأخیر'
+      }
+      const marks = scoresFor(name)
+      if (category === 'فعالیت کلاسی') return fa(marks.filter(v => v === 'خیلی خوب').length) + ' از ' + fa(entries.length) + ' خیلی خوب'
+      if (category === 'بازخورد کلاسی') return fa(marks.filter(v => v.endsWith('+')).length) + ' بازخورد مثبت'
+      return 'میانگین ' + rowAvg(name)
+    }
+    return <div className={isAdmin ? 'screen inner-screen class-report' : 'screen inner-screen'}>
       <SubHeader
         screen="gradebook"
         back={goBack}
         title="گزارش‌های کلاس"
         subtitle={role === 'admin'
-          ? `کلاس ${repCls === ALL_CLASSES ? 'همه' : repCls} · درس ${repSubject}`
+          ? `${repCls === ALL_CLASSES ? 'همهٔ کلاس‌ها' : 'کلاس ' + repCls} · درس ${repSubject}`
           : reportMode === 'collective' ? 'گزارش جمعی همه دانش‌آموزان' : 'انتخاب دانش‌آموز'}
         rightIcon={null}
-        rightExtra={(
+        rightText={isAdmin ? 'خروجی' : undefined}
+        onRightClick={isAdmin ? () => setExportPage(true) : undefined}
+        rightExtra={!isAdmin && (
           <div className="header-mode-toggle" role="group" aria-label="حالت گزارش">
             <button
               type="button"
@@ -6467,60 +6522,39 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
         )}
       />
       <main className="inner-content">
+        {isAdmin && <>
+          <section className="class-report-context" aria-label="محدودهٔ گزارش">
+            <div className="class-report-fields">
+              <label>کلاس<select value={repCls} onChange={e => {
+                setRepCls(e.target.value)
+                setStudentQuery('')
+                setFilterStudents([])
+                setFilterAllStudents(true)
+              }}>
+                <option value={ALL_CLASSES}>همهٔ کلاس‌ها</option>
+                {adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)}
+              </select></label>
+              <label>درس<select value={repSubject} onChange={e => setRepSubject(e.target.value)}>
+                {adminSubjectList().map(subject => <option key={subject}>{subject}</option>)}
+              </select></label>
+            </div>
+            <div className="class-report-teachers"><Icon name="person" size={15} />دبیر درس · {(subjectTeachersMap()[repSubject] || []).join('، ') || '—'}</div>
+          </section>
+          <div className="class-report-modes" role="group" aria-label="نمای گزارش">
+            <button aria-pressed={reportMode === 'individual'} onClick={() => setReportMode('individual')}><Icon name="users" size={16} />مرور کلاس</button>
+            <button aria-pressed={reportMode === 'collective'} onClick={() => setReportMode('collective')}><Icon name="grid" size={16} />جدول مقایسه</button>
+          </div>
+        </>}
         <div className="report-topbar">
+          {isAdmin && <select className="class-report-category" aria-label="موضوع گزارش" value={category} onChange={e => setClassCategory(e.target.value)}>
+            {collectiveCats.map(cat => <option key={cat}>{cat}</option>)}
+          </select>}
           <div className="report-search-row">
             <Icon name="search" size={16} />
-            <input
-              type="search"
-              placeholder="جست‌وجوی نام دانش‌آموز..."
-              value={studentQuery}
-              onChange={e => setStudentQuery(e.target.value)}
-            />
+            <input type="search" aria-label="جست‌وجوی نام دانش‌آموز" placeholder={isAdmin ? 'نام دانش‌آموز…' : 'جست‌وجوی نام دانش‌آموز...'} value={studentQuery} onChange={e => setStudentQuery(e.target.value)} />
           </div>
-          <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>
+          {!isAdmin && <button type="button" className="export-mini" onClick={() => setExportPage(true)}>خروجی</button>}
         </div>
-        {role === 'admin' && (
-          <div className="report-filters">
-            <div className="chips compact report-cls-list">
-              <button
-                type="button"
-                className={repCls === ALL_CLASSES ? 'active' : ''}
-                onClick={() => { setRepCls(ALL_CLASSES); setSelected(null); setStudentQuery('') }}
-              >
-                همه
-              </button>
-              {adminClasses.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  className={c === repCls ? 'active' : ''}
-                  onClick={() => { setRepCls(c); setSelected(null); setStudentQuery('') }}
-                >
-                  کلاس {c}
-                </button>
-              ))}
-            </div>
-            <div className="chips compact report-subj-list">
-              {adminSubjectList().map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  className={s === repSubject ? 'active' : ''}
-                  onClick={() => setRepSubject(s)}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <div className="report-subj-teacher">
-              <Icon name="book" size={14} />
-              <span>
-                دبیر درس <b>{repSubject}</b>:{' '}
-                <b>{(subjectTeachersMap()[repSubject] || []).join('، ') || '—'}</b>
-              </span>
-            </div>
-          </div>
-        )}
         {reportMode === 'individual' ? (
           <>
             <div className="section-heading">
@@ -6529,11 +6563,22 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
             </div>
             {visibleStudents.length === 0 ? (
               <div className="report-empty-hint">دانش‌آموزی با این نام پیدا نشد.</div>
-            ) : visibleStudents.map((name) => (
+            ) : isAdmin ? <div className="class-report-roster">
+              {visibleStudents.map(name => (
+                <button key={name} onClick={() => openStudent(name)} aria-label={'گزارش ' + name}>
+                  <span className="directory-avatar" aria-hidden="true">{name[0]}</span>
+                  <span className="class-report-student"><strong>{name}</strong>
+                    {repCls === ALL_CLASSES && <small>کلاس {adminClasses.find(c => classStudents[c]?.includes(name))}</small>}
+                  </span>
+                  <span className="class-report-result">{studentResult(name)}</span>
+                  <Icon name="chevron" size={15} />
+                </button>
+              ))}
+            </div> : visibleStudents.map((name) => (
               <button
                 className="student student-row-photo"
                 key={name}
-                onClick={() => { setSelected(name); setDetailTab('بازخورد کلاسی'); setWeekIndex(0); setPeriodValue(null) }}
+                onClick={() => openStudent(name)}
                 style={{width:'100%', border:0, background:'transparent', cursor:'pointer'}}
               >
                 <img
@@ -6548,37 +6593,24 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
         ) : (
           <>
             <div className="section-heading">
-              <strong>گزارش جمعی</strong>
+              <strong>{isAdmin ? 'مقایسهٔ ' + category : 'گزارش جمعی'}</strong>
               <span>{fa(visibleStudents.length)} نفر</span>
             </div>
-            <div className="chips compact scrollable student-detail-tabs" style={{ marginBottom: 10 }}>
+            {!isAdmin && <div className="chips compact scrollable student-detail-tabs" style={{ marginBottom: 10 }}>
               {collectiveCats.map(tab => (
                 <button
                   key={tab}
                   type="button"
-                  className={detailTab === tab ? 'active' : ''}
+                  className={category === tab ? 'active' : ''}
                   onClick={() => setDetailTab(tab)}
                 >
                   {tab}
                 </button>
               ))}
-            </div>
+            </div>}
             {visibleStudents.length === 0 ? (
               <div className="report-empty-hint">دانش‌آموزی با این نام پیدا نشد.</div>
-            ) : detailTab === 'حضور و غیاب' ? (() => {
-              const months = ['مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد']
-              const attFor = (name: string) => {
-                const si = repStudents.indexOf(name)
-                return months.map((_, mi) => {
-                  const delay = (si * 3 + mi * 2) % 3
-                  const absent = (si * 5 + mi * 3) % 3
-                  return { delay, absent }
-                })
-              }
-              const sumPair = (pairs: { delay: number; absent: number }[]) => ({
-                delay: pairs.reduce((s, p) => s + p.delay, 0),
-                absent: pairs.reduce((s, p) => s + p.absent, 0),
-              })
+            ) : category === 'حضور و غیاب' ? (() => {
               const classMonth = months.map((_, mi) => {
                 const delays = visibleStudents.map(n => attFor(n)[mi].delay)
                 const absents = visibleStudents.map(n => attFor(n)[mi].absent)
@@ -6616,7 +6648,7 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
                         return (
                           <tr key={name}>
                             <td>{fa(i + 1)}</td>
-                            <td><strong>{name}</strong></td>
+                            <td>{isAdmin ? <button className="class-report-name" onClick={() => openStudent(name)}>{name}</button> : <strong>{name}</strong>}</td>
                             {pairs.flatMap((p, mi) => [
                               <td key={`${name}-d-${mi}`}>{p.delay ? fa(p.delay) : '—'}</td>,
                               <td key={`${name}-a-${mi}`}>{p.absent ? fa(p.absent) : '—'}</td>,
@@ -6629,7 +6661,7 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
                     </tbody>
                     <tfoot className="collective-foot">
                       <tr>
-                        <td colSpan={2}><strong>جمع کلاس</strong></td>
+                        <td colSpan={2}><strong>{isAdmin && studentQuery.trim() ? 'جمع نتایج' : 'جمع کلاس'}</strong></td>
                         {classMonth.flatMap((p, mi) => [
                           <td key={`c-d-${mi}`} className="foot-delay">{p.delay ? fa(p.delay) : '—'}</td>,
                           <td key={`c-a-${mi}`} className="foot-absent">{p.absent ? fa(p.absent) : '—'}</td>,
@@ -6649,23 +6681,23 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
                       <th>#</th>
                       <th>دانش‌آموز</th>
                       {entries.map(e => <th key={e}>{e}</th>)}
-                      {detailTab !== 'فعالیت کلاسی' && detailTab !== 'بازخورد کلاسی' && <th>میانگین وزنی</th>}
+                      {category !== 'فعالیت کلاسی' && category !== 'بازخورد کلاسی' && <th>{isAdmin ? 'میانگین' : 'میانگین وزنی'}</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {visibleStudents.map((name, i) => (
                       <tr key={name}>
                         <td>{fa(i + 1)}</td>
-                        <td><strong>{name}</strong></td>
+                        <td>{isAdmin ? <button className="class-report-name" onClick={() => openStudent(name)}>{name}</button> : <strong>{name}</strong>}</td>
                         {scoresFor(name).map((v, ei) => <td key={ei}>{v}</td>)}
-                        {detailTab !== 'فعالیت کلاسی' && detailTab !== 'بازخورد کلاسی' && <td className="avg-cell">{rowAvg(name)}</td>}
+                        {category !== 'فعالیت کلاسی' && category !== 'بازخورد کلاسی' && <td className="avg-cell">{rowAvg(name)}</td>}
                       </tr>
                     ))}
                   </tbody>
-                  {detailTab !== 'فعالیت کلاسی' && detailTab !== 'بازخورد کلاسی' && (
+                  {category !== 'فعالیت کلاسی' && category !== 'بازخورد کلاسی' && (
                     <tfoot className="collective-foot">
                       <tr>
-                        <td colSpan={2}><strong>میانگین وزنی کلاس</strong></td>
+                        <td colSpan={2}><strong>{isAdmin ? (studentQuery.trim() ? 'میانگین نتایج' : 'میانگین کلاس') : 'میانگین وزنی کلاس'}</strong></td>
                         {entries.map((e, ei) => <td key={e}>{colAvg(ei)}</td>)}
                         <td>{overallAvg}</td>
                       </tr>
@@ -6685,9 +6717,9 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
   return <div className="screen inner-screen">
     <SubHeader
       screen="gradebook"
-      back={handleBack}
+      back={directoryReport && directoryReport.kind !== 'کلاس' ? goBack : handleBack}
       title={selected ?? periodValue}
-      subtitle={selected ? (periodValue ?? undefined) : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
+      subtitle={directoryReport?.kind === 'والدین' ? 'گزارش فرزند · ' + directoryReport.entry.name : selected ? (periodValue ?? undefined) : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
       rightIcon="file"
       rightLabel="دانلود گزارش"
       onRightClick={handleDownloadFullReport}
@@ -6715,11 +6747,11 @@ function Reports({ goBack, role = 'teacher' }: { goBack: () => void; role?: User
                 <span>کلی</span>
               </div>
               <span className="fifa-flag" role="img" aria-label="ایران">🇮🇷</span>
-              <small className="fifa-class">۹۰۱</small>
+              <small className="fifa-class">{(role === 'admin' && repCls !== ALL_CLASSES ? repCls : adminClasses.find(c => classStudents[c]?.includes(selected))) || '۹۰۱'}</small>
             </div>
             <div className="fifa-bottom">
               <strong className="fifa-name">{selected}</strong>
-              <small className="fifa-sub">علوم تجربی · {periodValue}</small>
+              <small className="fifa-sub">{role === 'admin' && (!directoryReport || directoryReport.kind === 'کلاس') ? repSubject : 'علوم تجربی'}{periodValue && ' · ' + periodValue}</small>
               <div className="fifa-stats" onClick={() => setEditModalOpen(true)} style={{ cursor: 'pointer' }}>
                 <div className="fifa-col">
                   {cardStats.slice(0, 3).map(item => (
@@ -7232,12 +7264,6 @@ let adminStartDay: number | null = null
 let adminStartCls: string | null = null
 let adminStartTeacher: number | null = null
 let adminStartSearchTag: SearchTag | null = null
-/** کلاس انتخاب‌شده از کارت کلاس در جست‌وجو → باز شدن صفحهٔ گزارش روی همان کلاس */
-let adminStartReportCls: string | null = null
-/** باز کردن مستقیم گزارش فردی یک دانش‌آموز (از جست‌وجوی مدرسه) */
-let reportStartStudent: string | null = null
-/** باز کردن مستقیم گزارش کار معلم */
-let reportStartTeacher: string | null = null
 /** set by AdminPanel so drawer jumps can switch tab while panel is already mounted */
 let adminPanelRerender: (() => void) | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
@@ -7296,7 +7322,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     adminStartCls = null
     return c && adminClasses.includes(c) ? c : adminClasses[0]
   })
-  const [dateIdx, setDateIdx] = useState(0)
+  const [selectedReportDate, setSelectedReportDate] = useState(() => dates[0].date)
   const [teacherIdx, setTeacherIdx] = useState(() => {
     const t = adminStartTeacher
     adminStartTeacher = null
@@ -7324,10 +7350,11 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [periodEdit, setPeriodEdit] = useState<number | null>(null)
   const [ptDraft, setPtDraft] = useState({ sh: '', sm: '', eh: '', em: '' })
   const [ptError, setPtError] = useState('')
-  const [clearDay, setClearDay] = useState(0)
+  const [scheduleDay, setScheduleDay] = useState(() => (new Date().getDay() + 1) % 7 % 6)
+  const [weeklySchedule, setWeeklySchedule] = useState(false)
   // خالی کردن کامل یک روز از برنامهٔ کلاس انتخاب‌شده
   const clearSelectedDay = () => {
-    adminSchedules[cls][clearDay] = adminSchedules[cls][clearDay].map(() => null)
+    adminSchedules[cls][scheduleDay] = adminSchedules[cls][scheduleDay].map(() => null)
     rerender()
   }
   const schedWrapRef = useRef<HTMLDivElement>(null)
@@ -7394,7 +7421,12 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
     rerender()
   }
 
-  const date = dates[dateIdx]
+  const dateIdx = dates.findIndex(d => d.date === selectedReportDate)
+  const selected = parseJalali(selectedReportDate)!
+  const weekday = faDayFull[(gregorianOfJalali(selected).getDay() + 1) % 7]
+  const date = dates[dateIdx] ?? {
+    date: selectedReportDate, jy: selected.y, jm: selected.m, weekday, holiday: weekday === 'جمعه',
+  }
   const clsIdx = adminClasses.indexOf(cls)
   const monthDates = dates.map((d, i) => ({ d, i })).filter(x => x.d.jm === date.jm && x.d.jy === date.jy)
 
@@ -7657,19 +7689,17 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {/* ================= حضور و غیاب ================= */}
         {tab === 'حضور و غیاب' && (
           <>
-            <div className="two-fields">
-              <label className="field"><span>کلاس</span>
-                <select value={cls} onChange={e => setCls(e.target.value)}>
-                  {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </label>
-              <label className="field"><span>تاریخ</span>
-                <select value={dateIdx} onChange={e => setDateIdx(Number(e.target.value))}>
-                  {dates.map((d, i) => <option key={d.date} value={i}>{d.label}</option>)}
-                </select>
-              </label>
-            </div>
-            {date.holiday ? (
+            <label className="field"><span>کلاس</span>
+              <select value={cls} onChange={e => setCls(e.target.value)}>
+                {adminClasses.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <JalaliDatePicker
+              label="تاریخ"
+              value={date.date}
+              onChange={setSelectedReportDate}
+            />
+            {dateIdx < 0 ? <div className="report-empty-hint">برای این تاریخ گزارشی ثبت نشده است.</div> : date.holiday ? (
               <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>
             ) : (
               <>
@@ -7681,17 +7711,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                     </div>
                   ))}
                 </div>
-                <div className="section-heading"><strong>وضعیت روز انتخاب‌شده</strong></div>
-                {classStudents[cls].map((name, si) => {
-                  const st = attStatusOf(clsIdx, si, dateIdx)
-                  return (
-                    <div className="admin-student-row" key={name}>
-                      <div className="admin-avatar">{name[0]}</div>
-                      <strong>{name}</strong>
-                      <span className={`admin-status-chip st-${st === 'حاضر' ? 'ok' : st === 'تأخیر' ? 'late' : 'abs'}`}>{st}</span>
-                    </div>
-                  )
-                })}
               </>
             )}
             <div className="section-heading" style={{ marginTop: 16 }}><strong>جمع ماه {jalaliMonthNames[date.jm - 1]}</strong></div>
@@ -7739,21 +7758,20 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {/* ================= حضور معلمان ================= */}
         {tab === 'حضور معلمان' && (
           <>
-            <div className="two-fields">
-              <label className="field"><span>دبیر</span>
-                <select value={effTeacherIdx} onChange={e => setTeacherIdx(Number(e.target.value))}>
-                  <option value={-1}>همه دبیران</option>
-                  {adminTeachers.map((t, i) => <option key={t.name} value={i}>{t.name}</option>)}
-                </select>
-              </label>
-              <label className="field"><span>تاریخ</span>
-                <select value={dateIdx} onChange={e => setDateIdx(Number(e.target.value))}>
-                  {dates.map((d, i) => <option key={d.date} value={i}>{d.label}</option>)}
-                </select>
-              </label>
-            </div>
-            {date.holiday && <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>}
-            {(() => {
+            <label className="field"><span>دبیر</span>
+              <select value={effTeacherIdx} onChange={e => setTeacherIdx(Number(e.target.value))}>
+                <option value={-1}>همه دبیران</option>
+                {adminTeachers.map((t, i) => <option key={t.name} value={i}>{t.name}</option>)}
+              </select>
+            </label>
+            <JalaliDatePicker
+              label="تاریخ"
+              value={date.date}
+              onChange={setSelectedReportDate}
+            />
+            {dateIdx < 0 && <div className="report-empty-hint">برای این تاریخ گزارشی ثبت نشده است.</div>}
+            {dateIdx >= 0 && date.holiday && <div className="report-empty-hint">جمعه‌ها مدرسه تعطیل است.</div>}
+            {dateIdx >= 0 && (() => {
               const list = effTeacherIdx >= 0 ? [teacherMonthly[effTeacherIdx]] : teacherMonthly
               const sum = list.reduce((a, b) => ({
                 minutes: a.minutes + b.minutes, days: a.days + b.days,
@@ -7881,15 +7899,45 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                 </div>
               </div>
             </div>
-            <div className="report-empty-hint">برای تغییر هر بازه، روی آن بزنید.</div>
-            <div className="sched-clear-row">
-              <label className="field"><span>خالی کردن روز</span>
-                <select value={clearDay} onChange={e => setClearDay(Number(e.target.value))}>
-                  {faDayFull.slice(0, 6).map((d, i) => <option key={d} value={i}>{d}</option>)}
-                </select>
-              </label>
-              <button type="button" className="sched-clear-btn" onClick={clearSelectedDay}>خالی کردن {faDayFull[clearDay]}</button>
+            <div className="schedule-view-switch" role="group" aria-label="نمای برنامه">
+              <button aria-pressed={!weeklySchedule} onClick={() => setWeeklySchedule(false)}>برنامه روزانه</button>
+              <button aria-pressed={weeklySchedule} onClick={() => setWeeklySchedule(true)}>نمای هفتگی</button>
             </div>
+            {!weeklySchedule ? (
+              <>
+                <div className="schedule-day-tabs" role="group" aria-label="روز هفته">
+                  {faDayFull.slice(0, 6).map((name, index) => (
+                    <button key={name} aria-pressed={scheduleDay === index} onClick={() => setScheduleDay(index)}>{name}</button>
+                  ))}
+                </div>
+                <div className="schedule-day-bar">
+                  <strong>برنامهٔ {faDayFull[scheduleDay]}</strong>
+                  <details key={cls + scheduleDay}>
+                    <summary aria-label="گزینه‌های روز">•••</summary>
+                    <button onClick={e => {
+                      e.currentTarget.closest('details')?.removeAttribute('open')
+                      clearSelectedDay()
+                    }}>خالی کردن برنامهٔ {faDayFull[scheduleDay]}</button>
+                  </details>
+                </div>
+                <div className="schedule-agenda">
+                  {periodTimes.slice(0, periodCount).map((time, i) => {
+                    const slot = adminSchedules[cls][scheduleDay][i]
+                    return (
+                      <div className="schedule-period" key={i}>
+                        <button className="schedule-period-time" aria-label={`ویرایش ساعت زنگ ${fa(i + 1)}`} onClick={() => openPeriodEdit(i)}>
+                          <strong>زنگ {fa(i + 1)} <Icon name="pencil" size={12} /></strong>
+                          <small dir="ltr">{fa(time.start)} – {fa(time.end)}</small>
+                        </button>
+                        <button className="schedule-period-lesson" onClick={() => setSchedEdit({ day: scheduleDay, time: i })}>
+                          {slot ? <><strong>{slot.subject}</strong><small>{slot.teacher}</small></> : <strong>＋ افزودن درس</strong>}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            ) : (
             <div className="assignment-table-wrap admin-sched-wrap" ref={schedWrapRef}>
               <table className="schedule-table admin-sched-table" dir="rtl">
                 <thead>
@@ -7898,7 +7946,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                     {Array.from({ length: periodCount }, (_, p) => (
                       <th key={p}>
                         <button type="button" className="period-head" onClick={() => openPeriodEdit(p)}>
-                          <strong>{`زنگ ${fa(p + 1)}`}</strong>
+                          <strong>{`زنگ ${fa(p + 1)}`} <Icon name="pencil" size={10} /></strong>
                           <small>{`${fa(periodTimes[p].start)}–${fa(periodTimes[p].end)}`}</small>
                         </button>
                       </th>
@@ -7914,7 +7962,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                         return (
                           <td key={ti}>
                             <button type="button" className={`admin-sched-cell${slot ? '' : ' empty'}`} onClick={() => setSchedEdit({ day: d, time: ti })}>
-                              {slot ? (<><strong>{slot.subject}</strong><small>{slot.teacher}</small></>) : <span>—</span>}
+                              {slot ? (<><strong>{slot.subject}</strong><small>{slot.teacher}</small></>) : <span>＋ افزودن درس</span>}
                             </button>
                           </td>
                         )
@@ -7925,6 +7973,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               </table>
             </div>
 
+            )}
             {/* پاپ‌آپ تعیین ساعت شروع و پایان زنگ (وسط صفحه) */}
             {periodEdit !== null && (
               <div className="overlay period-pop-overlay" onClick={() => setPeriodEdit(null)}>
