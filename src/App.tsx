@@ -438,7 +438,7 @@ function AdminDrawer({ open, onClose, navigate }: { open: boolean; onClose: () =
     { t: 'کلاس‌ها', i: 'classes', go: () => { adminStartTab = 'کلاس‌ها'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'معلمان', i: 'person', go: () => { adminStartTab = 'معلمان'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'دانش‌آموزان', i: 'users', go: () => { adminStartTab = 'دانش‌آموزان'; adminPanelRerender?.(); navigate('admin') } },
-    { t: 'والدین', i: 'home', go: () => { adminStartSearchTag = 'والدین'; navigate('search') } },
+    { t: 'افراد مدرسه', i: 'users', go: () => navigate('search') },
     { t: 'سرویس‌ها', i: 'bag', go: () => { adminStartTab = 'سرویس‌ها'; adminPanelRerender?.(); navigate('admin') } },
     { t: 'گزارش گیری', i: 'chart', go: () => navigate('reports'), accent: true },
   ]
@@ -579,7 +579,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
   // admin (مدیر): تقویم، کلاس‌های اخیر و رویدادها
   const admNowParts = toEn(nowShamsi().date).split('/').map(Number)
   const admIsNowMonth = (mm: CalMonth) => mm.label.includes(jalaliMonthNames[admNowParts[1] - 1]) && mm.label.includes(fa(admNowParts[0]))
-  const [admMonthIdx, setAdmMonthIdx] = useState(() => Math.max(0, calendarMonths.findIndex(admIsNowMonth)))
+  const admMonthIdx = Math.max(0, calendarMonths.findIndex(admIsNowMonth))
   const notifUnread = adminNotifs.filter(n => n.unread).length
 
   const contentPlaceholder = (
@@ -738,47 +738,10 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
         <div className="school-home" style={{ padding: '0 15px' }}>
           {role === 'admin' ? (
             <>
-              {/* هدر اعلان‌ها + پیام‌های اولیا، دانش‌آموزان و معلمان */}
-              <div className="admin-alerts">
-                <div className="admin-alerts-head">
-                  <div className="admin-alerts-title">
-                    <strong>اعلان‌های مدرسه</strong>
-                    <small>{`${fa(notifUnread)} اعلان کلاسی`}</small>
-                  </div>
-                  <button type="button" className="admin-bell" aria-label="اعلان‌ها" onClick={() => navigate('notifs')}>
-                    <Icon name="classroom" size={18} />
-                    {notifUnread > 0 && <b>{fa(notifUnread)}</b>}
-                  </button>
-                </div>
-              </div>
-              {/* تقویم */}
-              <div className="month-card month-page calendar-top-card" style={{ marginTop: 10 }}>
-                <div className="month-card-head">
-                  <button type="button" className="month-nav" disabled={admMonthIdx === 0} onClick={() => setAdmMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
-                  <strong>{calendarMonths[admMonthIdx].label}</strong>
-                  <button type="button" className="month-nav" disabled={admMonthIdx === calendarMonths.length - 1} onClick={() => setAdmMonthIdx(i => Math.min(calendarMonths.length - 1, i + 1))}>بعدی</button>
-                </div>
-                <div className="month-grid">
-                  {calDayNames.map(d => <span key={d} className="mg-dayname">{d}</span>)}
-                  {Array.from({ length: calLeadingBlanks(calendarMonths[admMonthIdx].offset) }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
-                  {Array.from({ length: calendarMonths[admMonthIdx].days }, (_, i) => {
-                    const day = i + 1
-                    if (!calShowsDay(calendarMonths[admMonthIdx].offset, day)) return null
-                    const hol = holidayOf(calendarMonths[admMonthIdx], day)
-                    const isOff = !!hol
-                    const kinds = calendarMonths[admMonthIdx].items.filter(it => it.day === day && it.kind === 'event').map(it => it.kind)
-                    const cellCls = ['mg-cell', 'is-clickable']
-                    if (isOff) cellCls.push('off')
-                    if (kinds.includes('event')) cellCls.push('has-event')
-                    if (admIsNowMonth(calendarMonths[admMonthIdx]) && day === admNowParts[2]) cellCls.push('today')
-                    return (
-                      <button type="button" key={day} className={cellCls.join(' ')} title={hol?.reason} onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = day; navigate('admin') }}>{isOff ? <span className="off-label">تعطیل</span> : fa(day)}</button>
-                    )
-                  })}
-                </div>
-              </div>
-              {/* میانبرهای بزرگ زیر تقویم */}
               <div className="classroom-grid admin-shortcuts" style={{ marginTop: 14 }}>
+                <button onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = admIsNowMonth(calendarMonths[admMonthIdx]) ? admNowParts[2] : 1; navigate('admin') }}>
+                  <span><Icon name="calendar" /></span><div><strong>تقویم مدرسه</strong><small>مشاهده و ثبت رویداد</small></div><Icon name="chevron" />
+                </button>
                 <button onClick={() => navigate('search')}>
                   <span><Icon name="users" /></span>
                   <div>
@@ -789,7 +752,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                 <button onClick={() => { adminStartTab = 'برنامه کلاسی'; navigate('admin') }}>
                   <span><Icon name="board" /></span>
                   <div>
-                    <strong>برنامه ریزی</strong>
+                    <strong>برنامه کلاس‌ها</strong>
                   </div>
                   <Icon name="chevron" />
                 </button>
@@ -804,9 +767,9 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <span><Icon name="chart" /></span>
                   <div>
                     <strong>گزارش</strong>
-                  </div>
-                  <Icon name="chevron" />
+                  </div><Icon name="chevron" />
                 </button>
+                <button onClick={() => navigate('notifs')}><span><Icon name="attendance" /></span><div><strong>اعلان‌های حضور و غیاب</strong><small>{fa(notifUnread)} اعلان خوانده‌نشده</small></div><Icon name="chevron" /></button>
               </div>
             </>
           ) : (
@@ -896,122 +859,99 @@ function parentNameOf(student: string) {
   return `${searchParentFirsts[h % searchParentFirsts.length]} ${family}`
 }
 
-type SearchTag = 'معلم' | 'مدیر' | 'والدین' | 'دانش‌آموز' | 'کلاس'
-type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string; inbox?: (typeof adminInbox)[number] }
-type DirectoryReport = { kind: SearchTag; entry: DirectoryEntry }
-const directoryGroups: Record<SearchTag, string> = {
-  'معلم': 'معلمان', 'مدیر': 'مدیر', 'والدین': 'والدین', 'دانش‌آموز': 'دانش‌آموزان', 'کلاس': 'کلاس‌ها',
-}
-const directoryActions: Record<SearchTag, string> = {
-  'معلم': 'گزارش کار', 'مدیر': 'گزارش فعالیت', 'والدین': 'گزارش فرزند', 'دانش‌آموز': 'گزارش تحصیلی', 'کلاس': 'گزارش کلاس',
-}
-
-function SchoolSearch({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string; inbox?: (typeof adminInbox)[number]; kind: InboxRole }
+type DirectoryReport = { kind: 'معلم' | 'دانش‌آموز'; entry: DirectoryEntry }
+const outgoingMessages = new Map<string, string[]>()
+const teacherRoles = new Map<string, string>()
+const parentNumbers = new Map<string, string>()
+const contactKey = (p: DirectoryEntry) => [p.kind, p.name, p.cls, p.child].join('|')
+const gradeOf = (cls: string) => fa(toEn(cls).slice(0, -2))
+function SchoolSearch({ goBack }: { goBack: () => void }) {
   const [q, setQ] = useState('')
-  const [tag, setTag] = useState<SearchTag>(() => adminStartSearchTag ?? 'معلم')
-  useEffect(() => { adminStartSearchTag = null }, [])
-  const [clsF, setClsF] = useState('همه')
+  const [tab, setTab] = useState<'معلم' | 'دانش‌آموز'>('معلم')
+  const [grade, setGrade] = useState('')
+  const [cls, setCls] = useState('')
   const [report, setReport] = useState<DirectoryReport | null>(null)
   const [contact, setContact] = useState<DirectoryEntry | null>(null)
+  const [calling, setCalling] = useState<DirectoryEntry | null>(null)
+  const [number, setNumber] = useState('')
+  const [group, setGroup] = useState<InboxRole | null>(null)
+  const [groupClass, setGroupClass] = useState('')
+  const [draft, setDraft] = useState('')
+  const [notice, setNotice] = useState('')
   const directoryScroll = useRef(0)
-  useEffect(() => {
-    window.scrollTo(0, report || contact ? 0 : directoryScroll.current)
-  }, [report, contact])
-
+  useEffect(() => { window.scrollTo(0, report || contact || group ? 0 : directoryScroll.current) }, [report, contact, group])
   if (contact) return <Conversation contact={contact} goBack={() => setContact(null)} />
-  if (report?.kind === 'مدیر') {
-    const events = calendarMonths.flatMap(m => m.items.filter(item => item.admin).map(item => ({
-      title: item.title, date: fa(item.day) + ' ' + m.label,
-    })))
-    return <div className="screen inner-screen">
-      <SubHeader screen="search" title="گزارش فعالیت مدیر" subtitle={report.entry.name} back={() => setReport(null)} rightIcon={null} />
-      <main className="inner-content">
-        <div className="section-heading"><strong>مدرسه تحت مدیریت</strong></div>
-        <div className="week-summary-banner">
-          <div className="week-summary-item"><strong>{fa(adminClasses.length)}</strong><span>کلاس</span></div>
-          <div className="week-summary-item"><strong>{fa(adminTeachers.length)}</strong><span>معلم</span></div>
-          <div className="week-summary-item"><strong>{fa(adminClasses.reduce((count, c) => count + (classStudents[c]?.length || 0), 0))}</strong><span>دانش‌آموز</span></div>
-        </div>
-        <div className="section-heading"><strong>اعلان‌های ارسال‌شده</strong><span>{fa(adminAnnouncementStore.length)} اعلان</span></div>
-        {adminAnnouncementStore.length === 0 && <p className="report-empty-hint">هنوز اعلانی از طرف مدیر ارسال نشده است.</p>}
-        {adminAnnouncementStore.map(a => <article className="directory-activity" key={a.id}><strong>{a.title}</strong><small>{a.target} · {a.time}</small>{a.text && <p>{a.text}</p>}</article>)}
-        <div className="section-heading"><strong>رویدادهای ثبت‌شده</strong><span>{fa(events.length)} رویداد</span></div>
-        {events.length === 0 && <p className="report-empty-hint">هنوز رویدادی از طرف مدیر ثبت نشده است.</p>}
-        {events.map((event, i) => <article className="directory-activity" key={i}><strong>{event.title}</strong><small>{event.date}</small></article>)}
-      </main>
-    </div>
-  }
   if (report) return <Reports role="admin" directoryReport={report} goBack={() => setReport(null)} />
-
-  const classFilter = tag === 'والدین' || tag === 'دانش‌آموز' || tag === 'کلاس'
-  const classList = adminClasses.filter(c => clsF === 'همه' || clsF === c)
-  let entries: DirectoryEntry[]
-  switch (tag) {
-    case 'معلم':
-      entries = adminTeachers.map(t => ({ name: t.name, detail: teacherSubjectsOf(t).join('، '), inbox: adminInbox.find(m => m.role === 'معلم' && m.name === t.name) }))
-      break
-    case 'مدیر':
-      entries = [{ name: 'مدیر مدرسه', detail: 'اعلان‌ها و رویدادهای ثبت‌شده' }]
-      break
-    case 'کلاس':
-      entries = classList.map(cls => ({ name: 'کلاس ' + cls, cls, detail: fa(classStudents[cls]?.length || 0) + ' دانش‌آموز' }))
-      break
-    default:
-      entries = classList.flatMap(cls => (classStudents[cls] || []).map(student => {
-        if (tag === 'والدین') {
-          const inbox = adminInbox.find(m => m.role === tag && m.sub === 'والدین ' + student + ' · کلاس ' + cls)
-          return { name: inbox?.name ?? parentNameOf(student), child: student, cls, detail: 'فرزند: ' + student + ' · کلاس ' + cls, inbox }
-        }
-        return { name: student, cls, detail: 'کلاس ' + cls, inbox: adminInbox.find(m => m.role === tag && m.name === student) }
-      }))
-  }
-  const normalize = (text: string) => toEn(text).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\s‌]+/g, '')
-  const query = normalize(q)
-  const visible = entries.filter(entry => {
-    const members = tag === 'کلاس' && entry.cls ? classStudents[entry.cls] || [] : []
-    return [entry.name, entry.detail, ...members].some(value => normalize(value).includes(query))
+  const students: DirectoryEntry[] = adminClasses.flatMap(cls => classStudents[cls].map(name => ({
+    kind: 'دانش‌آموز' as const, name, cls, detail: 'کلاس ' + cls, inbox: adminInbox.find(m => m.role === 'دانش‌آموز' && m.name === name),
+  })))
+  const parents: DirectoryEntry[] = students.map(s => {
+    const inbox = adminInbox.find(m => m.role === 'والدین' && m.sub === 'والدین ' + s.name + ' · کلاس ' + s.cls)
+    return { kind: 'والدین', name: inbox?.name ?? parentNameOf(s.name), cls: s.cls, child: s.name, detail: 'والد ' + s.name + ' · ' + s.detail, inbox }
   })
-  const placeholders: Record<SearchTag, string> = {
-    'معلم': 'نام معلم یا درس', 'مدیر': 'نام یا نقش مدیر', 'والدین': 'نام والد یا فرزند',
-    'دانش‌آموز': 'نام دانش‌آموز یا کلاس', 'کلاس': 'شمارهٔ کلاس یا نام دانش‌آموز',
+  const teacherClasses = (name: string) => adminClasses.filter(c => adminSchedules[c]?.some(day => day.some(slot => slot?.teacher === name)))
+  const teachers: DirectoryEntry[] = adminTeachers.map(t => ({
+    kind: 'معلم', name: t.name, detail: (teacherRoles.get(t.name) || 'معلم') + ' · ' + teacherSubjectsOf(t).join('، ') + ' · ' + (teacherClasses(t.name).map(c => 'کلاس ' + c).join('، ') || 'بدون کلاس'),
+    inbox: adminInbox.find(m => m.role === 'معلم' && m.name === t.name),
+  }))
+  const everyone = [...teachers, ...students, ...parents]
+  const openChat = (p: DirectoryEntry) => {
+    directoryScroll.current = window.scrollY
+    if (p.inbox) p.inbox.unread = false
+    setContact(p)
   }
-  return <div className="screen inner-screen directory-screen" dir="rtl">
-    <SubHeader screen="search" back={goBack} rightIcon={null} />
+  const chatButton = (p: DirectoryEntry, label: string) => <button onClick={() => openChat(p)}><Icon name="chat" size={15} />{label}
+    {p.inbox && <span className="directory-read-state" aria-label={p.inbox.unread ? 'خوانده‌نشده' : 'خوانده‌شده'}>{p.inbox.unread ? '●' : '✓'}</span>}
+  </button>
+  const classOptions = adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)
+  if (group) {
+    const recipients = everyone.filter(p => p.kind === group && (!groupClass || (p.kind === 'معلم' ? teacherClasses(p.name).includes(groupClass) : p.cls === groupClass)))
+    return <div className="screen inner-screen"><SubHeader screen="search" title="پیام جمعی" subtitle="انتخاب گیرندگان" back={() => setGroup(null)} rightIcon={null} />
+      <main className="inner-content"><label className="field"><span>گروه گیرندگان</span><select value={group} onChange={e => setGroup(e.target.value as InboxRole)}>
+        <option value="معلم">معلمان</option><option value="والدین">والدین</option><option value="دانش‌آموز">دانش‌آموزان</option></select></label>
+        <label className="field"><span>کلاس</span><select value={groupClass} onChange={e => setGroupClass(e.target.value)}><option value="">همهٔ کلاس‌ها</option>{classOptions}</select></label>
+        <label className="field"><span>متن پیام</span><textarea rows={5} value={draft} onChange={e => setDraft(e.target.value)} /></label>
+        <button className="admin-primary-btn" disabled={!draft.trim() || !recipients.length} onClick={() => {
+          recipients.forEach(p => { const key = contactKey(p); outgoingMessages.set(key, [...outgoingMessages.get(key) || [], draft.trim()]) })
+          setNotice('پیام به گفت‌وگوی ' + fa(recipients.length) + ' نفر اضافه شد.'); setDraft(''); setGroup(null)
+        }}>ارسال به {fa(recipients.length)} نفر</button>
+      </main></div>
+  }
+  const normalize = (v: string) => toEn(v).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\s‌]+/g, '')
+  const query = normalize(q)
+  const visible = everyone.filter(p => query ? normalize([p.name, p.detail, p.kind].join(' ')).includes(query)
+    : p.kind === tab && (tab === 'معلم' ? !grade || teacherClasses(p.name).some(c => gradeOf(c) === grade) : !cls || p.cls === cls))
+    .sort((a, b) => compareStudentNames(a.name, b.name))
+  return <div className="screen inner-screen directory-screen"><SubHeader screen="search" back={goBack} rightText="پیام جمعی" onRightClick={() => { setNotice(''); setGroupClass(''); setGroup(tab) }} />
     <main className="inner-content">
-      <div className="directory-groups" role="group" aria-label="گروه افراد">
-        {(Object.keys(directoryGroups) as SearchTag[]).map(group => <button type="button" key={group} aria-pressed={tag === group}
-          onClick={() => { setTag(group); setQ(''); setClsF('همه') }}>{directoryGroups[group]}</button>)}
-      </div>
-      <div className="directory-tools">
-        <label className="directory-search"><Icon name="search" size={17} /><input type="search" aria-label={placeholders[tag]} placeholder={placeholders[tag]} value={q} onChange={e => setQ(e.target.value)} /></label>
-        {classFilter && <select aria-label="فیلتر کلاس" value={clsF} onChange={e => setClsF(e.target.value)}>
-          <option value="همه">همهٔ کلاس‌ها</option>{adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)}
-        </select>}
-      </div>
-      <div className="section-heading"><strong>{directoryGroups[tag]}</strong><span aria-live="polite">{fa(visible.length)} {tag === 'کلاس' ? 'کلاس' : 'نفر'}</span></div>
-      {!visible.length && <p className="report-empty-hint">موردی پیدا نشد. {classFilter ? 'نام یا فیلتر کلاس را تغییر دهید.' : 'عبارت دیگری را جست‌وجو کنید.'}</p>}
-      {visible.map(entry => <article className="directory-card" key={[entry.cls, entry.name, entry.child].join('-')}>
-        <button className="directory-report" onClick={() => { directoryScroll.current = window.scrollY; setReport({ kind: tag, entry }) }}>
-          <span className="directory-avatar" aria-hidden="true">{tag === 'کلاس' ? <Icon name="classes" size={19} /> : entry.name[0]}</span>
-          <span className="directory-person"><strong>{entry.name}</strong><small>{entry.detail}</small></span>
-          <span className="directory-link">{directoryActions[tag]} <Icon name="chevron" size={13} /></span>
-        </button>
-        {tag !== 'مدیر' && <div className="directory-secondary">
-          {tag === 'کلاس' ? (['حضور و غیاب', 'برنامه کلاسی'] as const).map(tab => <button key={tab} onClick={() => {
-            adminStartCls = entry.cls!; touchAdminClass(entry.cls!); adminStartTab = tab; navigate('admin')
-          }}>{tab}</button>) : <button aria-label={'پیام به ' + entry.name + (entry.inbox ? '، ' + (entry.inbox.unread ? 'خوانده‌نشده' : 'خوانده‌شده') : '')} onClick={() => {
-            directoryScroll.current = window.scrollY
-            if (entry.inbox) entry.inbox.unread = false
-            setContact(entry)
-          }}>
-            <Icon name="chat" size={15} /> پیام
-            {entry.inbox && <span className="directory-read-state" title={entry.inbox.unread ? 'خوانده‌نشده' : 'خوانده‌شده'}>
-              {entry.inbox.unread ? '●' : <Icon name="check" size={13} />}
-            </span>}
-          </button>}
-        </div>}
-      </article>)}
+      <label className="directory-search"><Icon name="search" size={17} /><input type="search" aria-label="جست‌وجو در همهٔ افراد" placeholder="جست‌وجو در همهٔ افراد مدرسه…" value={q} onChange={e => setQ(e.target.value)} /></label>
+      {!query && <><div className="class-report-modes" role="group" aria-label="گروه افراد">
+        {(['معلم','دانش‌آموز'] as const).map(t => <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>{t === 'معلم' ? 'معلمان' : 'دانش‌آموزان'}</button>)}</div>
+        <label className="field"><span>{tab === 'معلم' ? 'پایه' : 'کلاس'}</span>{tab === 'معلم'
+          ? <select value={grade} onChange={e => setGrade(e.target.value)}><option value="">همهٔ پایه‌ها</option>{[...new Set(adminClasses.map(gradeOf))].map(g => <option key={g} value={g}>پایه {g}</option>)}</select>
+          : <select value={cls} onChange={e => setCls(e.target.value)}><option value="">همهٔ کلاس‌ها</option>{classOptions}</select>}</label></>}
+      {notice && <p role="status">{notice}</p>}
+      <div className="section-heading"><strong>{query ? 'نتایج جست‌وجو' : tab === 'معلم' ? 'معلمان' : 'دانش‌آموزان'}</strong><span>{fa(visible.length)} نفر</span></div>
+      {!visible.length && <p className="report-empty-hint">فردی پیدا نشد.</p>}
+      {visible.map(p => {
+        const parent = p.kind === 'دانش‌آموز' ? parents.find(x => x.child === p.name && x.cls === p.cls) : undefined
+        return <article className="directory-card" key={contactKey(p)}>
+          <div className="directory-report"><span className="directory-avatar">{p.name[0]}</span><span className="directory-person"><strong>{p.name}</strong><small>{query && p.kind + ' · '}{p.detail}</small></span></div>
+          <div className="directory-secondary">
+            {p.kind !== 'والدین' && <button onClick={() => { directoryScroll.current = window.scrollY; if (p.kind !== 'والدین') setReport({kind: p.kind, entry:p}) }}>مشاهده گزارش</button>}
+            {chatButton(p, parent ? 'پیام به دانش‌آموز' : 'ارسال پیام')}
+            {parent && <>{chatButton(parent, 'پیام به والد')}<button onClick={() => { setCalling(parent); setNumber(parentNumbers.get(contactKey(parent)) || '') }}><Icon name="phone" size={14} />تماس با والد</button></>}
+            {p.kind === 'معلم' && <label>تغییر نقش <select aria-label={'نقش ' + p.name} defaultValue={teacherRoles.get(p.name) || 'معلم'} onChange={e => { teacherRoles.set(p.name, e.target.value); setNotice('نقش ' + p.name + ' به ' + e.target.value + ' تغییر کرد.') }}>
+              {['معلم','معاون','مربی'].map(r => <option key={r}>{r}</option>)}</select></label>}
+          </div></article>
+      })}
     </main>
+    {calling && <div className="overlay group-grade-overlay"><div className="bottom-sheet" role="dialog" aria-label="تماس با والد">
+      <div className="sheet-title"><strong>تماس با {calling.name}</strong><IconButton icon="close" label="بستن" onClick={() => setCalling(null)} /></div>
+      <label className="field"><span>شماره تماس والد</span><input dir="ltr" type="tel" value={number} onChange={e => setNumber(toEn(e.target.value))} /></label>
+      <button className="admin-primary-btn" disabled={!/^\+?\d{7,15}$/.test(number.trim())} onClick={() => { parentNumbers.set(contactKey(calling), number.trim()); window.location.href = 'tel:' + number.trim(); setCalling(null) }}>باز کردن شماره‌گیر</button>
+    </div></div>}
   </div>
 }
 
@@ -1681,12 +1621,17 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
 
 function Conversation({ goBack, contact }: { navigate?: (screen: Screen) => void; goBack: () => void; contact?: DirectoryEntry }) {
   const [message, setMessage] = useState('')
-  const [sent, setSent] = useState<string[]>([])
+  const [sent, setSent] = useState<string[]>(() => contact ? outgoingMessages.get(contactKey(contact)) || [] : [])
   const [saveSheetOpen, setSaveSheetOpen] = useState(false)
   const [saveTargetId, setSaveTargetId] = useState<string | null>(null)
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string | null>(null)
-  const send = () => { if (message.trim()) { setSent([...sent, message]); setMessage('') } }
+  const send = () => {
+    if (!message.trim()) return
+    const next = [...sent, message.trim()]
+    if (contact) outgoingMessages.set(contactKey(contact), next)
+    setSent(next); setMessage('')
+  }
   const chat: MsgChat = contact ? { name: contact.name, initials: contact.name[0], color: 'green', type: 'person', preview: '' } : messengerChats[0]
   return <div className="screen chat-screen conversation-light" dir="rtl">
     <header className="chat-header">
@@ -5942,13 +5887,13 @@ function compareStudentNames(a: string, b: string) {
 function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => void; role?: UserRole; directoryReport?: DirectoryReport }) {
   const [periodMode, setPeriodMode] = useState<'summer' | 'months' | 'terms'>('months')
   const [periodValue, setPeriodValue] = useState<string | null>('مهر')
-  const [selected, setSelected] = useState<string | null>(directoryReport?.kind === 'والدین'
-    ? directoryReport.entry.child ?? null
-    : directoryReport?.kind === 'دانش‌آموز' ? directoryReport.entry.name : null)
+  const [selected, setSelected] = useState<string | null>(directoryReport?.kind === 'دانش‌آموز' ? directoryReport.entry.name : null)
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(
     directoryReport?.kind === 'معلم' ? directoryReport.entry.name : null
   )
-  const [reportMode, setReportMode] = useState<'individual' | 'collective'>('individual')
+  const [reportMode, setReportMode] = useState<'individual' | 'collective'>(role === 'admin' ? 'collective' : 'individual')
+  const [classReportOpen, setClassReportOpen] = useState(false)
+  const [fullProfile, setFullProfile] = useState(false)
   const [classCategory, setClassCategory] = useState('آزمون')
   const [teacherTab, setTeacherTab] = useState('ساعت کاری')
   const [studentQuery, setStudentQuery] = useState('')
@@ -6412,8 +6357,16 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
     )
   }
 
-  // 1) First: student list
-  if (!selected) {
+  const subjectPicker = <label className="field"><span>درس گزارش</span><select value={repSubject} onChange={e => setRepSubject(e.target.value)}>
+    {adminSubjectList().map(subject => <option key={subject}>{subject}</option>)}</select></label>
+  if (role === 'admin' && !directoryReport && !classReportOpen) return <div className="screen inner-screen">
+    <SubHeader screen="gradebook" title="گزارش کلاس" subtitle="انتخاب کلاس و درس" back={goBack} rightIcon={null} />
+    <main className="inner-content"><label className="field"><span>کلاس</span><select value={repCls} onChange={e => {
+      setRepCls(e.target.value); setFilterStudents([]); setFilterAllStudents(true); setStudentQuery('')
+    }}><option value={ALL_CLASSES}>همهٔ کلاس‌ها</option>{adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)}</select></label>
+    {subjectPicker}<button className="admin-primary-btn" onClick={() => { setReportMode('collective'); setClassReportOpen(true) }}>مشاهده گزارش جمعی</button></main>
+  </div>
+  if (!selected || (role === 'admin' && !fullProfile)) {
     const isAdmin = role === 'admin'
     const category = isAdmin ? classCategory : detailTab
     const openStudent = (name: string) => {
@@ -6491,6 +6444,18 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
       delay: pairs.reduce((s, p) => s + p.delay, 0),
       absent: pairs.reduce((s, p) => s + p.absent, 0),
     })
+    if (selected) {
+      const values = scoresFor(selected)
+      return <div className="screen inner-screen"><SubHeader screen="gradebook" title={selected} subtitle={'گزارش درس · کلاس ' + (adminClasses.find(c => classStudents[c]?.includes(selected)) ?? repCls)}
+        back={directoryReport ? goBack : () => setSelected(null)} rightIcon={null} />
+        <main className="inner-content">{subjectPicker}
+          <label className="field"><span>موضوع گزارش</span><select value={classCategory} onChange={e => setClassCategory(e.target.value)}>{collectiveCats.map(c => <option key={c}>{c}</option>)}</select></label>
+          <div className="section-heading"><strong>{category} · {repSubject}</strong></div>
+          {isPctTab ? attFor(selected).map((a, i) => <div className="admin-student-row" key={months[i]}><strong>{months[i]}</strong><span>{fa(a.absent)} غیبت · {fa(a.delay)} تأخیر</span></div>)
+            : entries.map((label, i) => <div className="admin-student-row" key={label}><strong>{label}</strong><span>{values[i]}</span></div>)}
+          <button className="admin-primary-btn" onClick={() => setFullProfile(true)}>مشاهده پرونده کامل دانش‌آموز</button>
+        </main></div>
+    }
     const studentResult = (name: string) => {
       if (category === 'حضور و غیاب') {
         const { delay, absent } = sumPair(attFor(name))
@@ -6504,7 +6469,7 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
     return <div className={isAdmin ? 'screen inner-screen class-report' : 'screen inner-screen'}>
       <SubHeader
         screen="gradebook"
-        back={goBack}
+        back={isAdmin ? () => setClassReportOpen(false) : goBack}
         title="گزارش‌های کلاس"
         subtitle={role === 'admin'
           ? `${repCls === ALL_CLASSES ? 'همهٔ کلاس‌ها' : 'کلاس ' + repCls} · درس ${repSubject}`
@@ -6727,9 +6692,9 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
   return <div className="screen inner-screen">
     <SubHeader
       screen="gradebook"
-      back={directoryReport && directoryReport.kind !== 'کلاس' ? goBack : handleBack}
+      back={fullProfile ? () => setFullProfile(false) : directoryReport ? goBack : handleBack}
       title={selected ?? periodValue}
-      subtitle={directoryReport?.kind === 'والدین' ? 'گزارش فرزند · ' + directoryReport.entry.name : selected ? (periodValue ?? undefined) : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
+      subtitle={selected ? (periodValue ?? undefined) : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
       rightIcon="file"
       rightLabel="دانلود گزارش"
       onRightClick={handleDownloadFullReport}
@@ -6761,7 +6726,7 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
             </div>
             <div className="fifa-bottom">
               <strong className="fifa-name">{selected}</strong>
-              <small className="fifa-sub">{role === 'admin' && (!directoryReport || directoryReport.kind === 'کلاس') ? repSubject : 'علوم تجربی'}{periodValue && ' · ' + periodValue}</small>
+              <small className="fifa-sub">{'علوم تجربی'}{periodValue && ' · ' + periodValue}</small>
               <div className="fifa-stats" onClick={() => setEditModalOpen(true)} style={{ cursor: 'pointer' }}>
                 <div className="fifa-col">
                   {cardStats.slice(0, 3).map(item => (
@@ -7190,6 +7155,8 @@ const adminTeachers: { name: string; subject: string; initial: string; subjects?
   { name: 'رضا محمدی', subject: 'ریاضی', initial: 'ر' },
   { name: 'مریم حسینی', subject: 'فارسی', initial: 'م' },
   { name: 'نرگس رضایی', subject: 'عربی', initial: 'ن' },
+  { name: 'امیر نادری', subject: 'ورزش', initial: 'ا' },
+  { name: 'شیرین موحد', subject: 'هنر', initial: 'ش' },
 ]
 
 /** درس‌های یک دبیر — پیش‌فرض همان درس اصلی است */
@@ -7273,7 +7240,6 @@ let adminStartMonth: number | null = null
 let adminStartDay: number | null = null
 let adminStartCls: string | null = null
 let adminStartTeacher: number | null = null
-let adminStartSearchTag: SearchTag | null = null
 /** set by AdminPanel so drawer jumps can switch tab while panel is already mounted */
 let adminPanelRerender: (() => void) | null = null
 let adminRecentClasses: string[] = ['۹۰۱', '۹۰۲', '۹۰۳']
@@ -7283,25 +7249,15 @@ function touchAdminClass(c: string) {
 const adminTabs = ['کلاس‌ها', 'معلمان', 'دانش‌آموزان', 'حضور و غیاب', 'حضور معلمان', 'تقویم رویدادها', 'برنامه کلاسی', 'اعلان‌ها', 'سرویس‌ها'] as const
 
 /** سرویس‌های قابل خرید مدرسه — هر سرویس به یک بخش اصلی برنامه وصل است */
-type SchoolService = { id: string; name: string; desc: string; price: number; icon: IconName; screen: Screen; features: string[]; category: string }
+type SchoolService = { id: string; name: string; desc: string; price?: number; icon: IconName; screen?: Screen; features?: string[]; category: string }
 const schoolServices: SchoolService[] = [
   { id: 'quiz', name: 'سرویس آزمون‌ساز', desc: 'ساخت آزمون از روی درس با تصحیح خودکار', price: 490000, icon: 'exam', screen: 'exam', category: 'آموزشی', features: ['سؤالات چهارگزینه‌ای و تشریحی', 'تصحیح و نمره‌دهی خودکار', 'گزارش نتایج کلاس'] },
-  { id: 'content', name: 'سرویس تولید محتوا و طرح درس', desc: 'طرح درس، برگه تمرین و منابع آموزشی', price: 390000, icon: 'book', screen: 'materials', category: 'آموزشی', features: ['طرح درس متناسب با کتاب', 'برگه تمرین چاپی', 'منابع صوتی و تصویری'] },
-  { id: 'report', name: 'سرویس گزارش‌گیری پیشرفته', desc: 'خروجی PDF و اکسل از گزارش‌های مدرسه', price: 290000, icon: 'chart', screen: 'reports', category: 'گزارش', features: ['گزارش فردی و جمعی', 'خروجی چاپی و اکسل', 'نمودار عملکرد دانش‌آموزان'] },
-  { id: 'attendance', name: 'سرویس حضور و غیاب', desc: 'ثبت و پیگیری حضور دانش‌آموزان', price: 250000, icon: 'attendance', screen: 'attendance', category: 'مدیریتی', features: ['ثبت روزانه با یک لمس', 'گزارش غیبت والدین', 'آمار ماهانه کلاس'] },
-  { id: 'gradebook', name: 'سرویس دفتر نمره', desc: 'ثبت، محاسبه و اعلام نمرات', price: 320000, icon: 'pencil', screen: 'gradebook', category: 'مدیریتی', features: ['نمره‌دهی گروهی', 'میانگین وزنی خودکار', 'ارسال نمره به والدین'] },
-  { id: 'parents', name: 'سرویس ارتباط با والدین', desc: 'پیام‌رسانی و اطلاع‌رسانی به خانواده‌ها', price: 190000, icon: 'chat', screen: 'messenger', category: 'ارتباطات', features: ['گروه کلاسی والدین', 'اعلان فوری مدرسه', 'تاریخچه گفت‌وگو'] },
+  { id: 'insurance', name: 'سرویس بیمه', desc: 'بیمه مدرسه', icon: 'file', category: 'بیمه' },
+  { id: 'transport', name: 'سرویس رفت‌وآمد', desc: 'رفت‌وآمد دانش‌آموزان', icon: 'home', category: 'رفت‌وآمد' },
+  { id: 'klasa', name: 'سرویس کلاسا', desc: 'کلاسا', icon: 'classes', category: 'آموزشی' },
 ]
 /** سرویس‌های فعال‌شدهٔ مدرسه (ساختگی — فقط در state برنامه) */
-let adminOwnedServices: string[] = ['attendance']
-
-type ServicePromo = { serviceId: string; badge: string; title: string; text: string; discount: string; tone: 'green' | 'blue' | 'amber' }
-const servicePromos: ServicePromo[] = [
-  { serviceId: 'quiz', badge: 'پیشنهاد ویژه', title: 'آزمون‌ساز هوشمند', text: 'برای مدرسه شما ۳۰٪ تخفیف فعال‌سازی اولین ماه', discount: '۳۰٪', tone: 'green' },
-  { serviceId: 'report', badge: 'آفر مدیر', title: 'گزارش‌گیری پیشرفته', text: 'دو ماه اول با ۲۰٪ تخفیف + خروجی اکسل رایگان', discount: '۲۰٪', tone: 'blue' },
-  { serviceId: 'parents', badge: 'پکیج خانواده', title: 'ارتباط با والدین', text: 'خرید سالانه با ۴۰٪ تخفیف نسبت به ماهانه', discount: '۴۰٪', tone: 'amber' },
-  { serviceId: 'content', badge: 'پیشنهاد امروز', title: 'تولید محتوا و طرح درس', text: '۲۵٪ تخفیف ویژه مدارس تا پایان ماه', discount: '۲۵٪', tone: 'green' },
-]
+let adminOwnedServices: string[] = []
 
 const adminEventSubjects = ['مدرسه', ...adminClasses.map(c => `کلاس ${c}`)]
 const adminAudiences = ['همه', 'دبیران', 'دانش‌آموزان', 'کلاس خاص', 'رویداد خاص']
@@ -7406,17 +7362,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [newSubject, setNewSubject] = useState('علوم تجربی')
   const [svcBuy, setSvcBuy] = useState<SchoolService | null>(null)
   const [svcToast, setSvcToast] = useState<string | null>(null)
-  const [promoIdx, setPromoIdx] = useState(0)
   const [svcQuery, setSvcQuery] = useState('')
-  const [svcCategory, setSvcCategory] = useState('همه')
-  useEffect(() => {
-    if (tab !== 'سرویس‌ها') return
-    const timer = window.setInterval(() => {
-      setPromoIdx(i => (i + 1) % servicePromos.length)
-    }, 4200)
-    return () => window.clearInterval(timer)
-  }, [tab])
-
   const buyService = (s: SchoolService) => {
     if (!adminOwnedServices.includes(s.id)) adminOwnedServices = [...adminOwnedServices, s.id]
     setSvcBuy(null)
@@ -7471,6 +7417,10 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
 
   // ---- derived: calendar day events
   const monthObj = calendarMonths[monthIdx]
+  const changeMonth = (next: number) => {
+    setMonthIdx(next)
+    setSelDay(day => Math.min(day, calendarMonths[next].days))
+  }
   const dayEvents = monthObj.items.filter(it => it.day === selDay && it.kind === 'event')
   const dayHoliday = holidayOf(monthObj, selDay)
   const upcomingEvents = calendarMonths.flatMap(mm =>
@@ -7836,16 +7786,15 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
           <>
             <div className="month-card month-page calendar-top-card">
               <div className="month-card-head">
-                <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => setMonthIdx(i => Math.max(0, i - 1))}>قبلی</button>
+                <button type="button" className="month-nav" disabled={monthIdx === 0} onClick={() => changeMonth(monthIdx - 1)}>قبلی</button>
                 <strong>{monthObj.label}</strong>
-                <button type="button" className="month-nav" disabled={monthIdx === calendarMonths.length - 1} onClick={() => setMonthIdx(i => Math.min(calendarMonths.length - 1, i + 1))}>بعدی</button>
+                <button type="button" className="month-nav" disabled={monthIdx === calendarMonths.length - 1} onClick={() => changeMonth(monthIdx + 1)}>بعدی</button>
               </div>
-              <div className="month-grid">
-                {calDayNames.map(d => <span key={d} className="mg-dayname">{d}</span>)}
-                {Array.from({ length: calLeadingBlanks(monthObj.offset) }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
+              <div className="month-grid admin-full-week">
+                {[...calDayNames, 'پ', 'ج'].map(d => <span key={d} className="mg-dayname">{d}</span>)}
+                {Array.from({ length: monthObj.offset }, (_, i) => <span key={`e${i}`} className="mg-cell empty" />)}
                 {Array.from({ length: monthObj.days }, (_, i) => {
                   const day = i + 1
-                  if (!calShowsDay(monthObj.offset, day)) return null
                   const hol = holidayOf(monthObj, day)
                   const isOff = !!hol
                   const cellCls = ['mg-cell', 'is-clickable']
@@ -7853,7 +7802,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   if (day === selDay) cellCls.push('sel')
                   if (monthObj.items.some(it => it.day === day && it.kind === 'event')) cellCls.push('has-event')
                   return (
-                    <button type="button" key={day} className={cellCls.join(' ')} title={hol?.reason} onClick={() => setSelDay(day)}>{isOff ? <span className="off-label">تعطیل</span> : fa(day)}</button>
+                    <button type="button" key={day} className={cellCls.join(' ')} title={hol?.reason} onClick={() => setSelDay(day)}>{fa(day)}</button>
                   )
                 })}
               </div>
@@ -8081,49 +8030,6 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
         {/* ================= سرویس‌ها ================= */}
         {tab === 'سرویس‌ها' && (
           <>
-            {(() => {
-              const promo = servicePromos[promoIdx]
-              const svc = schoolServices.find(s => s.id === promo.serviceId)
-              if (!svc) return null
-              const priced = Math.round(svc.price * (1 - parseInt(promo.discount, 10) / 100))
-              return (
-                <div className={`admin-promo-slider tone-${promo.tone}`}>
-                  <button
-                    type="button"
-                    className="admin-promo-card"
-                    onClick={() => setSvcBuy(svc)}
-                  >
-                    <div className="admin-promo-top">
-                      <span className="admin-promo-badge">{promo.badge}</span>
-                      <span className="admin-promo-off">{promo.discount} تخفیف</span>
-                    </div>
-                    <div className="admin-promo-body">
-                      <span className="admin-promo-ic"><Icon name={svc.icon} size={22} /></span>
-                      <div>
-                        <strong>{promo.title}</strong>
-                        <small>{promo.text}</small>
-                        <em>
-                          {fa(priced.toLocaleString('en-US'))} تومان
-                          <i>{fa(svc.price.toLocaleString('en-US'))}</i>
-                        </em>
-                      </div>
-                    </div>
-                  </button>
-                  <div className="admin-promo-dots" role="tablist" aria-label="اسلایدر پیشنهادها">
-                    {servicePromos.map((p, i) => (
-                      <button
-                        key={p.serviceId + i}
-                        type="button"
-                        className={i === promoIdx ? 'active' : ''}
-                        aria-label={`پیشنهاد ${fa(i + 1)}`}
-                        onClick={() => setPromoIdx(i)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
-
             <div className="admin-svc-toolbar">
               <div className="admin-svc-search">
                 <Icon name="search" size={16} />
@@ -8134,23 +8040,10 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                   placeholder="جست‌وجوی سرویس..."
                 />
               </div>
-              <div className="admin-chip-row admin-svc-cats">
-                {['همه', 'آموزشی', 'مدیریتی', 'گزارش', 'ارتباطات'].map(cat => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`admin-chip${svcCategory === cat ? ' active' : ''}`}
-                    onClick={() => setSvcCategory(cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
             </div>
-
             <div className="admin-svc-grid">
               {schoolServices
-                .filter(s => svcCategory === 'همه' || s.category === svcCategory)
+
                 .filter(s => {
                   const q = svcQuery.trim()
                   if (!q) return true
@@ -8176,7 +8069,7 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
                 })}
             </div>
             {schoolServices
-              .filter(s => svcCategory === 'همه' || s.category === svcCategory)
+
               .filter(s => {
                 const q = svcQuery.trim()
                 if (!q) return true
@@ -8309,15 +8202,15 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
               </div>
               <div className="admin-svc-receipt-row"><span>سرویس</span><strong>{svcBuy.name}</strong></div>
               <div className="admin-svc-receipt-row"><span>دامنه</span><strong>{fa(adminClasses.length)} کلاس · {fa(Object.values(classStudents).reduce((s, a) => s + a.length, 0))} دانش‌آموز</strong></div>
-              <div className="admin-svc-receipt-row"><span>هزینه ماهانه</span><strong>{fa(svcBuy.price.toLocaleString('en-US'))} تومان</strong></div>
+              <div className="admin-svc-receipt-row"><span>هزینه ماهانه</span><strong>{svcBuy.price ? fa(svcBuy.price.toLocaleString('en-US')) + ' تومان' : 'اعلام نشده'}</strong></div>
               <div className="admin-svc-receipt-row total">
                 <span>وضعیت پرداخت</span>
-                <strong>{adminOwnedServices.includes(svcBuy.id) ? 'پرداخت‌شده · دوره جاری' : 'بدون اشتراک فعال'}</strong>
+                <strong>{adminOwnedServices.includes(svcBuy.id) ? 'فعال در نسخه نمایشی' : 'بدون اشتراک فعال'}</strong>
               </div>
             </div>
             {adminOwnedServices.includes(svcBuy.id) ? (
               <div className="admin-svc-actions" style={{ marginTop: 10 }}>
-                <button type="button" className="admin-svc-btn open" onClick={() => { setSvcBuy(null); navigate(svcBuy.screen) }}>ورود به بخش</button>
+                {svcBuy.screen && <button type="button" className="admin-svc-btn open" onClick={() => { if (svcBuy.screen) navigate(svcBuy.screen); setSvcBuy(null) }}>ورود به بخش</button>}
                 <button type="button" className="admin-svc-btn cancel" onClick={() => { cancelService(svcBuy); setSvcBuy(null) }}>لغو اشتراک</button>
               </div>
             ) : (
@@ -8745,7 +8638,7 @@ export default function App() {
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
     {screen === 'reports' && <Reports goBack={goBack} role={role}/>}
     {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
-    {screen === 'search' && <SchoolSearch navigate={navigate} goBack={goBack}/>}
+    {screen === 'search' && <SchoolSearch goBack={goBack}/>}
     {screen === 'messages' && <AdminMessages navigate={navigate} goBack={goBack}/>}
     {screen === 'notifs' && <ClassNotifs navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}

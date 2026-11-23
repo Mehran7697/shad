@@ -5453,3 +5453,8 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .class-report-name { font: inherit; font-weight: 700; background: transparent; border: 0; color: var(--green-dark); min-height: 38px; }
 .class-report .collective-table th:nth-child(2)[rowspan], .class-report .collective-table thead tr:only-child th:nth-child(2), .class-report .collective-table tbody td:nth-child(2) { position: sticky; inset-inline-start: 0; background: #f4faf7; z-index: 1; }
 .directory-read-state { display: inline-flex; align-items: center; color: var(--green-dark); font-size: 11px; }
+
+.month-grid.admin-full-week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.directory-secondary { flex-wrap: wrap; align-items: center; gap: 2px 12px; }
+.directory-secondary label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.directory-secondary select { font: inherit; border: 1px solid var(--line); background: white; border-radius: 8px; min-height: 36px; }
