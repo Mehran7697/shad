@@ -5470,3 +5470,49 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 .teacher-card-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: #455960; font-size: 12px; }
 .teacher-card-actions .teacher-card-report { background: var(--green-soft); color: var(--green-dark); font-weight: 700; }
 .teacher-card :is(button, select):focus-visible { outline: 2px solid var(--green-dark); outline-offset: 1px; }
+
+.student-directory-card {
+  --student-ink: #106856;
+  --student-tint: #dcf4ea;
+  --student-edge: #bedfd3;
+  margin-block: 0 12px;
+  overflow: hidden;
+  border: 1px solid var(--student-edge);
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 3px 10px rgb(27 54 54 / 5%);
+}
+.student-directory-card[data-tone="indigo"] { --student-ink: #514090; --student-tint: #eee8ff; --student-edge: #d9cfed; }
+.student-directory-card[data-tone="clay"] { --student-ink: #984927; --student-tint: #ffebdc; --student-edge: #efd5c2; }
+.student-directory-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 12px;
+  background: linear-gradient(108deg, #fff 4%, var(--student-tint) 100%);
+}
+.student-monogram {
+  display: grid; place-items: center; width: 42px; height: 44px;
+  border-radius: 15px 15px 6px 15px; background: var(--student-ink); color: white;
+  font-size: 17px; font-weight: 700;
+}
+.student-directory-identity h3 { margin: 0; font-size: 16px; line-height: 1.55; color: #193538; }
+.student-directory-identity small { display: flex; align-items: center; gap: 4px; color: var(--student-ink); font-size: 12px; }
+.student-report-link {
+  display: inline-flex; align-items: center; gap: 3px; min-height: 44px;
+  padding: 0 8px; background: white; border: 1px solid var(--student-edge); border-radius: 12px;
+  color: var(--student-ink); font-size: 12px; font-weight: 700;
+}
+.student-contact-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 8px 4px; }
+.student-contact-actions button {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; min-height: 48px; padding: 2px; border: 0; background: white; color: #344753; font-size: 12px;
+}
+.student-contact-actions button + button { border-inline-start: 1px solid #e9eeee; }
+.student-contact-actions button > svg { box-sizing: content-box; padding: 5px; border-radius: 9px; background: #e6f1ff; color: #265b96; }
+.student-contact-actions button:nth-child(2) > svg { background: #f1eafa; color: #725092; }
+.student-contact-actions button:nth-child(3) > svg { background: #e3f5e9; color: #276f49; }
+.student-contact-actions .directory-read-state { position: absolute; top: 1px; inset-inline-start: calc(50% + 7px); background: white; border-radius: 50%; padding: 0 2px; }
+.student-directory-card button:focus-visible { outline: 2px solid var(--student-ink); outline-offset: -2px; }
+.student-directory-card button:active { background: var(--student-tint); }

@@ -964,14 +964,33 @@ function SchoolSearch({ goBack }: { goBack: () => void }) {
             {chatButton(p, 'پیام')}
           </div>
         </article>
-        const parent = p.kind === 'دانش‌آموز' ? parents.find(x => x.child === p.name && x.cls === p.cls) : undefined
-        return <article className="directory-card" key={contactKey(p)}>
+        if (p.kind === 'والدین') return <article className="directory-card" key={contactKey(p)}>
           <div className="directory-report"><span className="directory-avatar">{p.name[0]}</span><span className="directory-person"><strong>{p.name}</strong><small>{query && p.kind + ' · '}{p.detail}</small></span></div>
-          <div className="directory-secondary">
-            {p.kind !== 'والدین' && <button onClick={() => { directoryScroll.current = window.scrollY; if (p.kind !== 'والدین') setReport({kind: p.kind, entry:p}) }}>مشاهده گزارش</button>}
-            {chatButton(p, parent ? 'پیام به دانش‌آموز' : 'ارسال پیام')}
-            {parent && <>{chatButton(parent, 'پیام به والد')}<button onClick={() => { setCalling(parent); setNumber(parentNumbers.get(contactKey(parent)) || '') }}><Icon name="phone" size={14} />تماس با والد</button></>}
-          </div></article>
+          <div className="directory-secondary">{chatButton(p, 'ارسال پیام')}</div>
+        </article>
+        const parent = parents.find(x => x.child === p.name && x.cls === p.cls)
+        const tone = ['jade', 'indigo', 'clay'][adminClasses.indexOf(p.cls || '') % 3]
+        return <article key={contactKey(p)} className="student-directory-card" data-tone={tone} aria-label={p.name}>
+          <header className="student-directory-head">
+            <span className="student-monogram" aria-hidden="true">{p.name.split(/\s+/).slice(0, 2).map(part => part[0]).join('‌')}</span>
+            <div className="student-directory-identity">
+              <h3>{p.name}</h3><small><Icon name="classes" size={13} />{p.detail}</small>
+            </div>
+            <button type="button" className="student-report-link" aria-label={'مشاهده گزارش ' + p.name} onClick={() => {
+              directoryScroll.current = window.scrollY
+              setReport({kind: 'دانش‌آموز', entry: p})
+            }}>مشاهده گزارش<Icon name="chevron" size={13} /></button>
+          </header>
+          <div className="student-contact-actions">
+            {chatButton(p, 'پیام به دانش‌آموز')}
+            {parent && <>
+              {chatButton(parent, 'پیام به والد')}
+              <button type="button" onClick={() => { setCalling(parent); setNumber(parentNumbers.get(contactKey(parent)) || '') }}>
+                <Icon name="phone" size={15} />تماس با والد
+              </button>
+            </>}
+          </div>
+        </article>
       })}
     </main>
     {calling && <div className="overlay group-grade-overlay"><div className="bottom-sheet" role="dialog" aria-label="تماس با والد">
