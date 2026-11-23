@@ -567,8 +567,21 @@ function ClassNotifs({ navigate, goBack }: { navigate: (screen: Screen) => void;
   )
 }
 
-function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack?: () => void; role?: UserRole }) {
+type TeachingClass = { cls: string; subject: string }
+type TeacherLesson = TeachingClass & { day: number; period: number }
+const currentTeacherName = 'سارا کریمی'
+
+function teacherLessons(periodCount: number): TeacherLesson[] {
+  return adminClasses.flatMap(cls => adminSchedules[cls].flatMap((slots, day) =>
+    slots.slice(0, periodCount).flatMap((slot, period) => slot?.teacher === currentTeacherName
+      ? [{ cls, subject: slot.subject, day, period }] : [])
+  )).sort((a, b) => a.day - b.day || a.period - b.period)
+}
+
+function MySchool({ navigate, role = 'teacher', lessons }: { navigate: (screen: Screen, teaching?: TeachingClass) => void; goBack?: () => void; role?: UserRole; lessons: TeacherLesson[] }) {
   const [active, setActive] = useState(role !== 'student' ? 'مدرسه من' : 'خانه')
+  const teacherClasses = [...new Set(lessons.map(l => l.cls))]
+  const classListRef = useRef<HTMLElement>(null)
   const subjects = [
     { name: 'علوم تجربی', image: `${import.meta.env.BASE_URL}book-cover.png` },
     { name: 'ریاضی', image: `${import.meta.env.BASE_URL}math-book-cover.png` },
@@ -617,7 +630,9 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
               {[
                 role === 'admin'
                   ? { t: 'کلاس‌ها', i: 'classes' as IconName, action: () => { adminStartTab = 'کلاس‌ها'; navigate('admin') } }
-                  : { t: 'دروس من', i: 'book' as IconName, action: () => navigate('classroom') },
+                  : role === 'teacher'
+                    ? { t: 'کلاس‌های من', i: 'classes' as IconName, action: () => { setActive('مدرسه من'); requestAnimationFrame(() => classListRef.current?.scrollIntoView({ block: 'start' })) } }
+                    : { t: 'دروس من', i: 'book' as IconName, action: () => navigate('classroom') },
                 { t: 'بانک سوال', i: 'exam' as IconName, action: () => navigate('exam') },
                 { t: 'فیلم آموزشی', i: 'video' as IconName, action: () => {} },
                 { t: 'بازی آموزشی', i: 'ball' as IconName, action: () => {} },
@@ -777,8 +792,8 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
               <div className="cal-split">
                 <button className="calendar-banner" onClick={() => navigate('schedule')}>
                   <div>
-                    <strong>برنامه کلاسی</strong>
-                    <small>۳ کلاس امروز · جلسه بعدی ۰۹:۰۰</small>
+                    <strong>{role === 'teacher' ? 'برنامه هفتگی' : 'برنامه کلاسی'}</strong>
+                    <small>{role === 'teacher' ? fa(lessons.length) + ' جلسه در هفته' : '۳ کلاس امروز · جلسه بعدی ۰۹:۰۰'}</small>
                   </div>
                   <span className="banner-cta">مشاهده</span>
                 </button>
@@ -790,7 +805,19 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                   <span className="banner-cta">مشاهده</span>
                 </button>
               </div>
-              <div className="subjects-section">
+              {role === 'teacher' ? <section className="subjects-section" ref={classListRef}>
+                <div className="subjects-heading"><Icon name="classes" size={18} /><strong>کلاس‌های من</strong></div>
+                {teacherClasses.map(cls => {
+                  const subjects = [...new Set(lessons.filter(l => l.cls === cls).map(l => l.subject))]
+                  return <div className="teacher-school-class" key={cls}>
+                    <strong>کلاس {cls}</strong>
+                    {subjects.map(subject => <button key={subject} onClick={() => navigate('classroom', { cls, subject })} aria-label={'ورود به کلاس ' + cls + ' · ' + subject}>
+                      <Icon name="book" size={16} /><span>{subject}</span><Icon name="chevron" size={16} />
+                    </button>)}
+                  </div>
+                })}
+                {!teacherClasses.length && <p className="report-empty-hint">هنوز کلاسی برای شما در برنامه ثبت نشده است.</p>}
+              </section> : <div className="subjects-section">
                 <div className="subjects-heading">
                   <Icon name="book" size={18} />
                   <strong>دروس من</strong>
@@ -803,7 +830,7 @@ function MySchool({ navigate, role = 'teacher' }: { navigate: (screen: Screen) =
                     </button>
                   ))}
                 </div>
-              </div>
+              </div>}
               <div className="section-heading" style={{ marginTop: 14 }}>
                 <strong>تکالیف این هفته</strong>
                 <button style={{ background: 'transparent', border: 0, color: 'var(--green-dark)', fontSize: 11, fontWeight: 700 }} onClick={() => { assignmentContext = null; navigate('assignments') }}>مشاهده همه</button>
@@ -1300,7 +1327,7 @@ type PublishedExam = { title: string; kind: 'آزمون' | 'آزمونک'; day: 
 let publishedExam: PublishedExam | null = null
 
 
-function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Screen) => void; goBack: () => void; role?: UserRole }) {
+function Chat({ navigate, goBack, role = 'teacher', teaching }: { teaching?: TeachingClass; navigate: (screen: Screen) => void; goBack: () => void; role?: UserRole }) {
   const isStudent = role === 'student'
   const [sheet, setSheet] = useState<'tools' | 'attach' | null>(null)
   const [started, setStarted] = useState(classStarted)
@@ -1393,8 +1420,8 @@ function Chat({ navigate, goBack, role = 'teacher' }: { navigate: (screen: Scree
       <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
       <Avatar item={conversations[0]} />
       <button className="chat-person" onClick={() => navigate('classroom')}>
-        <strong>کلاس تجربی<span className="verified"><Icon name="check" size={11} /></span></strong>
-        <span>۲۸ عضو، ۶ نفر آنلاین</span>
+        <strong>{teaching ? teaching.subject + ' · کلاس ' + teaching.cls : 'کلاس تجربی'}<span className="verified"><Icon name="check" size={11} /></span></strong>
+        <span>{teaching ? fa(classStudents[teaching.cls].length) + ' دانش‌آموز' : '۲۸ عضو، ۶ نفر آنلاین'}</span>
       </button>
       {!isStudent && <IconButton icon="bag" label="کیف / کوله پشتی" onClick={() => setBagOpen(true)} />}
       <IconButton icon="more" label="گزینه‌های بیشتر" />
@@ -5002,6 +5029,28 @@ const defaultPeriodTimes = Array.from({ length: adminPeriodMax }, (_, i) => {
 /** «HH:MM» → دقیقه از نیمه‌شب */
 const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
 
+function TeacherWeek({ lessons, times, openClass, goBack }: {
+  lessons: TeacherLesson[]; times: typeof defaultPeriodTimes; openClass: (lesson: TeachingClass) => void; goBack: () => void
+}) {
+  return <div className="screen inner-screen">
+    <SubHeader screen="schedule" title="برنامه هفتگی" subtitle={currentTeacherName} back={goBack} rightIcon={null} />
+    <main className="inner-content">
+      {faDayFull.slice(0, 6).map((day, i) => {
+        const dayLessons = lessons.filter(lesson => lesson.day === i)
+        return <section key={day} className="teacher-week-day">
+          <div className="section-heading"><strong>{day}</strong><span>{fa(dayLessons.length)} جلسه</span></div>
+          {dayLessons.map(lesson => <button key={lesson.cls + '-' + lesson.period} className="teacher-week-lesson" onClick={() => openClass(lesson)}>
+            <span><strong>زنگ {fa(lesson.period + 1)}</strong><small dir="ltr">{fa(times[lesson.period].start)} – {fa(times[lesson.period].end)}</small></span>
+            <span><strong>{lesson.subject}</strong><small>کلاس {lesson.cls}</small></span>
+            <Icon name="chevron" size={16} />
+          </button>)}
+          {!dayLessons.length && <p className="report-empty-hint">کلاسی برای این روز ثبت نشده است.</p>}
+        </section>
+      })}
+    </main>
+  </div>
+}
+
 function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Screen; navigate: (s: Screen) => void; goBack?: () => void; role: UserRole; setRole: (r: UserRole) => void }) {
   const todayLabel = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     weekday: 'long', day: 'numeric', month: 'long'
@@ -5098,7 +5147,7 @@ function MainSection({ screen, navigate, goBack, role, setRole }: { screen: Scre
       <div className="profile-card">
         <button className="profile-large">{isAdmin ? 'م' : isTeacher ? 'س' : 'ع'}</button>
         <div>
-          <strong>{isAdmin ? 'مدیر مدرسه' : isTeacher ? 'سارا کریمی' : 'علی احمدی'}</strong>
+          <strong>{isAdmin ? 'مدیر مدرسه' : isTeacher ? currentTeacherName : 'علی احمدی'}</strong>
           <span>{isAdmin ? 'مدیریت مدرسه نمونه' : isTeacher ? 'دبیر علوم تجربی' : 'دانش‌آموز پایه نهم'}</span>
           <small>{isAdmin ? 'admin-901@shad.ir' : isTeacher ? 'school-321@shad.ir' : 'student-901@shad.ir'}</small>
         </div>
@@ -5155,7 +5204,7 @@ const classSections: { title: string; sub: string; icon: IconName; screen: Scree
   { title: 'ثبت نمره', sub: '۲۸ دانش‌آموز', icon: 'chart', screen: 'gradebook' },
 ]
 
-function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
+function Classroom({ navigate, goBack, role = 'teacher', teaching }: { teaching?: TeachingClass; navigate: (s: Screen) => void; goBack: () => void; role?: UserRole }) {
   const isStudent = role === 'student'
   const visibleSections = isStudent
     ? [
@@ -5189,16 +5238,16 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
   return <div className="screen inner-screen">
     <header className="sub-header">
       <IconButton icon="chevron" label="بازگشت" onClick={goBack} />
-      <div><strong>علوم تجربی · پایه نهم</strong><span>کلاس ۹۰۱ · ۲۸ دانش‌آموز</span></div>
+      <div><strong>{teaching ? 'کلاس ' + teaching.cls : 'علوم تجربی · پایه نهم'}</strong><span>{teaching ? teaching.subject : 'کلاس ۹۰۱ · ۲۸ دانش‌آموز'}</span></div>
       <IconButton icon="more" label="بیشتر" />
     </header>
     <main className="inner-content classroom-content">
       <div className="start-class">
         <span className="start-play">
-          <img src={`${import.meta.env.BASE_URL}book-cover.png`} alt="علوم تجربی" />
+          {teaching ? <Icon name="classes" /> : <img src={`${import.meta.env.BASE_URL}book-cover.png`} alt="علوم تجربی" />}
         </span>
-        <strong>علوم تجربی · پایه نهم</strong>
-        <small>۲۸ عضو · ۶ نفر آنلاین</small>
+        <strong>{teaching ? teaching.subject + ' · کلاس ' + teaching.cls : 'علوم تجربی · پایه نهم'}</strong>
+        <small>{teaching ? fa(classStudents[teaching.cls].length) + ' دانش‌آموز' : '۲۸ عضو · ۶ نفر آنلاین'}</small>
         <div className="start-cta-group">
           <span className="start-cta is-decorative">
             ورود به کلاسا
@@ -5229,7 +5278,7 @@ function Classroom({ navigate, goBack, role = 'teacher' }: { navigate: (s: Scree
             <div className="classroom-grid" style={{padding:0}}>
               {visibleSections.map((x) => <button key={x.title} onClick={() => {
                 if (x.title === 'تکالیف' || x.title === 'تکالیف من') {
-                  assignmentContext = { subject: 'علوم تجربی', klass: 'کلاس ۹۰۱' }
+                  assignmentContext = { subject: teaching?.subject ?? 'علوم تجربی', klass: 'کلاس ' + (teaching?.cls ?? '۹۰۱') }
                 } else {
                   assignmentContext = null
                 }
@@ -7252,7 +7301,12 @@ const adminKindLabels: Record<CalKind, string> = { assignment: 'تکلیف', exa
 const adminMinutes = (m: number) => (m ? `${fa(Math.floor(m / 60))} ساعت${m % 60 ? ` و ${fa(m % 60)} دقیقه` : ''}` : '—')
 const adminMonthShort = (label: string) => label.replace(/\s*\d+$/, '').trim()
 
-function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBack: () => void }) {
+function AdminPanel({ navigate, goBack, periods, times }: {
+  periods: [number, React.Dispatch<React.SetStateAction<number>>]
+  times: [typeof defaultPeriodTimes, React.Dispatch<React.SetStateAction<typeof defaultPeriodTimes>>]
+  navigate: (s: Screen) => void
+  goBack: () => void
+}) {
   const dates = adminDateList()
   const [, setTick] = useState(0)
   const rerender = () => setTick(x => x + 1)
@@ -7296,8 +7350,8 @@ function AdminPanel({ navigate, goBack }: { navigate: (s: Screen) => void; goBac
   const [evSubject, setEvSubject] = useState('مدرسه')
   const [evTitle, setEvTitle] = useState('')
   const [schedEdit, setSchedEdit] = useState<{ day: number; time: number } | null>(null)
-  const [periodCount, setPeriodCount] = useState(adminPeriodMax)
-  const [periodTimes, setPeriodTimes] = useState(defaultPeriodTimes)
+  const [periodCount, setPeriodCount] = periods
+  const [periodTimes, setPeriodTimes] = times
   const [periodEdit, setPeriodEdit] = useState<number | null>(null)
   const [ptDraft, setPtDraft] = useState({ sh: '', sm: '', eh: '', em: '' })
   const [ptError, setPtError] = useState('')
@@ -8588,13 +8642,16 @@ function StorageManage({ goBack }: { goBack: () => void }) {
 
 
 export default function App() {
-  const [history, setHistory] = useState<Screen[]>(['messenger'])
+  const [history, setHistory] = useState<{ screen: Screen; teaching?: TeachingClass }[]>([{ screen: 'messenger' }])
+  const periods = useState(adminPeriodMax)
+  const times = useState(defaultPeriodTimes)
   const [role, setRole] = useState<UserRole>('teacher')
-  const screen = history[history.length - 1]
+  const { screen, teaching } = history[history.length - 1]
 
-  const navigate = (next: Screen) => {
+  const navigate = (next: Screen, selectedClass?: TeachingClass) => {
     if (next === screen) return
-    setHistory(h => [...h, next])
+    const context = selectedClass ?? ((next === 'chat' || next === 'classroom') && (screen === 'classroom' || screen === 'chat') ? teaching : undefined)
+    setHistory(h => [...h, { screen: next, teaching: context }])
     window.scrollTo(0, 0)
   }
 
@@ -8606,9 +8663,9 @@ export default function App() {
   return <div className="app-shell" dir="rtl" data-role={role}>
     {screen === 'home' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'messenger' && <Messenger navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'school' && <MySchool navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'school' && <MySchool lessons={role === 'teacher' ? teacherLessons(periods[0]) : []} navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'calendar' && <CalendarPage navigate={navigate} goBack={goBack}/>}
-    {screen === 'chat' && <Chat navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'chat' && <Chat teaching={teaching} navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'conversation' && <Conversation navigate={navigate} goBack={goBack}/>}
     {screen === 'materials' && <Materials navigate={navigate} goBack={goBack}/>}
     {screen === 'assignment' && <Assignment navigate={navigate} goBack={goBack} role={role}/>}
@@ -8617,17 +8674,17 @@ export default function App() {
     {screen === 'exam' && <Exam navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'exam-create' && <ExamCreate goBack={goBack}/>}
     {screen === 'attendance' && <Attendance navigate={navigate} goBack={goBack} role={role}/>}
-    {screen === 'classroom' && <Classroom navigate={navigate} goBack={goBack} role={role}/>}
+    {screen === 'classroom' && <Classroom teaching={teaching} navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'storage' && <StorageManage goBack={goBack}/>}
     {screen === 'gradebook' && <Gradebook navigate={navigate} goBack={goBack} role={role}/>}
     {screen === 'grade-register' && <GradeRegister navigate={navigate} goBack={goBack}/>}
     {screen === 'reports' && <Reports goBack={goBack} role={role}/>}
-    {screen === 'admin' && <AdminPanel navigate={navigate} goBack={goBack}/>}
+    {screen === 'admin' && <AdminPanel periods={periods} times={times} navigate={navigate} goBack={goBack}/>}
     {screen === 'search' && <SchoolSearch goBack={goBack}/>}
     {screen === 'messages' && <AdminMessages navigate={navigate} goBack={goBack}/>}
     {screen === 'notifs' && <ClassNotifs navigate={navigate} goBack={goBack}/>}
     {screen === 'auth' && <Auth navigate={navigate} goBack={goBack} setRole={setRole}/>}
-    {['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
+    {screen === 'schedule' && role === 'teacher' ? <TeacherWeek lessons={teacherLessons(periods[0])} times={times[0]} openClass={lesson => navigate('classroom', lesson)} goBack={goBack} /> : ['schedule','calls','more'].includes(screen) && <MainSection screen={screen} navigate={navigate} goBack={goBack} role={role} setRole={setRole}/>}
     {['calls','auth'].includes(screen) && <BottomMenu navigate={navigate} active={screen === 'calls' ? 'تماس‌ها' : 'احراز هویت'} />}
     {screen === 'call' && <CallScreen navigate={navigate} goBack={goBack}/>}
   </div>

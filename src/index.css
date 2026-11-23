@@ -5537,3 +5537,12 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
   background: transparent; color: #174b3b; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
 }
 .student-profile-subject:focus-within { outline: 2px solid var(--green-dark); outline-offset: 1px; }
+.teacher-school-class { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 8px 0; padding: 8px 12px; background: #f4faf7; border: 1px solid #d3e8de; border-radius: 12px; }
+.teacher-school-class > strong { font-size: 14px; }
+.teacher-school-class button { flex: 1 0 50%; min-height: 44px; display: flex; align-items: center; gap: 6px; color: var(--green-dark); font-size: 13px; }
+.teacher-school-class button svg:last-child { margin-inline-start: auto; }
+.teacher-week-day { margin-bottom: 20px; }
+.teacher-week-lesson { display: grid; grid-template-columns: 98px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; margin-bottom: 6px; padding-inline-end: 12px; text-align: start; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: white; }
+.teacher-week-lesson > span { display: grid; gap: 4px; font-size: 14px; }
+.teacher-week-lesson > span:first-child { padding: 10px; background: #eaf6ef; color: var(--green-dark); }
+.teacher-week-lesson small { justify-self: start; color: #50645d; font-size: 12px; }
