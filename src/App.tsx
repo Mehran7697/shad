@@ -5939,7 +5939,6 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
   )
   const [reportMode, setReportMode] = useState<'individual' | 'collective'>(role === 'admin' ? 'collective' : 'individual')
   const [classReportOpen, setClassReportOpen] = useState(false)
-  const [fullProfile, setFullProfile] = useState(false)
   const [classCategory, setClassCategory] = useState('آزمون')
   const [teacherTab, setTeacherTab] = useState('تکالیف ثبت‌شده')
   const [studentQuery, setStudentQuery] = useState('')
@@ -5977,7 +5976,7 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
   const terms = ['نوبت اول', 'نوبت دوم']
 
   const handleDownloadFullReport = () => {
-    const reportText = `گزارش کامل سوابق دانش‌آموز\nنام: ${selected ?? 'همه دانش‌آموزان'}\nبازه: ${periodValue ?? 'کل سال'}\nتاریخ خروجی: ${nowShamsi().date}\n-----------------------------------\n` +
+    const reportText = `گزارش کامل سوابق دانش‌آموز\nنام: ${selected ?? 'همه دانش‌آموزان'}\n${role === 'admin' ? `درس: ${repSubject}\n` : ''}بازه: ${periodValue ?? 'کل سال'}\nتاریخ خروجی: ${nowShamsi().date}\n-----------------------------------\n` +
       cardStats.map(s => `${s.label}: ${s.value}`).join('\n')
     
     const element = document.createElement('a')
@@ -6340,9 +6339,49 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
     }}><option value={ALL_CLASSES}>همهٔ کلاس‌ها</option>{adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)}</select></label>
     {subjectPicker}<button className="admin-primary-btn" onClick={() => { setReportMode('collective'); setClassReportOpen(true) }}>مشاهده گزارش جمعی</button></main>
   </div>
-  if (!selected || (role === 'admin' && !fullProfile)) {
-    const isAdmin = role === 'admin'
-    const category = isAdmin ? classCategory : detailTab
+  const isAdmin = role === 'admin'
+  const category = isAdmin && !selected ? classCategory : detailTab
+  const entries = (() => {
+    switch (category) {
+      case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
+      case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
+      case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
+      case 'آزمون': return ['آزمون ۱', 'آزمون ۲', 'آزمون ۳', 'آزمون ۴', 'آزمون ۵']
+      case 'بازخورد کلاسی': return ['بازخورد ۱', 'بازخورد ۲', 'بازخورد ۳', 'بازخورد ۴', 'بازخورد ۵']
+      default: return ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴', 'هفته ۵']
+    }
+  })()
+  const isPctTab = category === 'حضور و غیاب'
+  const tabIdx = collectiveCats.indexOf(category)
+  /** بذر تغییر امتیازها بر اساس درس انتخاب‌شدهٔ مدیر — هر درس گزارش متفاوتی دارد */
+  const studentIndex = (name: string) => isAdmin && repCls === ALL_CLASSES
+    ? (classStudents[adminClasses.find(c => classStudents[c]?.includes(name)) || ''] || []).indexOf(name)
+    : repStudents.indexOf(name)
+  const subjIdx = Math.max(0, adminSubjectList().indexOf(repSubject))
+  const subjSeed = role === 'admin' ? subjIdx * 4 : 0
+  const scoresFor = (name: string) => {
+    const si = studentIndex(name)
+    return entries.map((_, ei) => {
+      if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5 + subjSeed) % 15))}٪`
+      if (category === 'فعالیت کلاسی') {
+        return (si + ei * 2 + subjSeed) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+      }
+      if (category === 'بازخورد کلاسی') {
+        const opts = ['۳+', '۰', '۲−', '۵+', '۱−', '۰', '۴+']
+        return opts[(si + ei * 2 + subjSeed) % opts.length]
+      }
+      if ((si * 5 + ei * 3 + tabIdx + subjSeed) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
+      return `${fa(14 + ((si * 3 + ei * 5 + tabIdx * 2 + subjSeed) % 7))}/۲۰`
+    })
+  }
+  const toNum = (v: string): number | null => {
+    if (v.includes('خیلی خوب')) return 20
+    if (v.includes('نیاز به تلاش')) return 10
+    const ascii = v.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    const num = parseFloat(ascii)
+    return Number.isNaN(num) ? null : num
+  }
+  if (!selected) {
     const openStudent = (name: string) => {
       setSelected(name)
       setDetailTab(isAdmin ? classCategory : 'بازخورد کلاسی')
@@ -6351,46 +6390,6 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
     }
     const visibleStudents = repStudents.filter(n => !studentQuery.trim() || n.includes(studentQuery.trim()))
     if (isAdmin) visibleStudents.sort(compareStudentNames)
-    const entries = (() => {
-      switch (category) {
-        case 'آزمونک': return ['آزمونک ۱', 'آزمونک ۲', 'آزمونک ۳', 'آزمونک ۴', 'آزمونک ۵']
-        case 'تکالیف': return ['تکلیف ۱', 'تکلیف ۲', 'تکلیف ۳', 'تکلیف ۴', 'تکلیف ۵']
-        case 'فعالیت کلاسی': return ['فعالیت ۱', 'فعالیت ۲', 'فعالیت ۳', 'فعالیت ۴', 'فعالیت ۵']
-        case 'آزمون': return ['آزمون ۱', 'آزمون ۲', 'آزمون ۳', 'آزمون ۴', 'آزمون ۵']
-        case 'بازخورد کلاسی': return ['بازخورد ۱', 'بازخورد ۲', 'بازخورد ۳', 'بازخورد ۴', 'بازخورد ۵']
-        default: return ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴', 'هفته ۵']
-      }
-    })()
-    const isPctTab = category === 'حضور و غیاب'
-    const tabIdx = collectiveCats.indexOf(category)
-    /** بذر تغییر امتیازها بر اساس درس انتخاب‌شدهٔ مدیر — هر درس گزارش متفاوتی دارد */
-    const studentIndex = (name: string) => isAdmin && repCls === ALL_CLASSES
-      ? (classStudents[adminClasses.find(c => classStudents[c]?.includes(name)) || ''] || []).indexOf(name)
-      : repStudents.indexOf(name)
-    const subjIdx = Math.max(0, adminSubjectList().indexOf(repSubject))
-    const subjSeed = role === 'admin' ? subjIdx * 4 : 0
-    const scoresFor = (name: string) => {
-      const si = studentIndex(name)
-      return entries.map((_, ei) => {
-        if (isPctTab) return `${fa(86 + ((si * 7 + ei * 3 + 5 + subjSeed) % 15))}٪`
-        if (category === 'فعالیت کلاسی') {
-          return (si + ei * 2 + subjSeed) % 4 === 3 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
-        }
-        if (category === 'بازخورد کلاسی') {
-          const opts = ['۳+', '۰', '۲−', '۵+', '۱−', '۰', '۴+']
-          return opts[(si + ei * 2 + subjSeed) % opts.length]
-        }
-        if ((si * 5 + ei * 3 + tabIdx + subjSeed) % 7 === 6) return (si + ei) % 2 ? 'نیاز به تلاش بیشتر' : 'خیلی خوب'
-        return `${fa(14 + ((si * 3 + ei * 5 + tabIdx * 2 + subjSeed) % 7))}/۲۰`
-      })
-    }
-    const toNum = (v: string): number | null => {
-      if (v.includes('خیلی خوب')) return 20
-      if (v.includes('نیاز به تلاش')) return 10
-      const ascii = v.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-      const num = parseFloat(ascii)
-      return Number.isNaN(num) ? null : num
-    }
     const avgOf = (nums: number[]) => (nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null)
     const fmtAvg = (n: number | null) => {
       if (n === null) return '—'
@@ -6418,18 +6417,6 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
       delay: pairs.reduce((s, p) => s + p.delay, 0),
       absent: pairs.reduce((s, p) => s + p.absent, 0),
     })
-    if (selected) {
-      const values = scoresFor(selected)
-      return <div className="screen inner-screen"><SubHeader screen="gradebook" title={selected} subtitle={'گزارش درس · کلاس ' + (adminClasses.find(c => classStudents[c]?.includes(selected)) ?? repCls)}
-        back={directoryReport ? goBack : () => setSelected(null)} rightIcon={null} />
-        <main className="inner-content">{subjectPicker}
-          <label className="field"><span>موضوع گزارش</span><select value={classCategory} onChange={e => setClassCategory(e.target.value)}>{collectiveCats.map(c => <option key={c}>{c}</option>)}</select></label>
-          <div className="section-heading"><strong>{category} · {repSubject}</strong></div>
-          {isPctTab ? attFor(selected).map((a, i) => <div className="admin-student-row" key={months[i]}><strong>{months[i]}</strong><span>{fa(a.absent)} غیبت · {fa(a.delay)} تأخیر</span></div>)
-            : entries.map((label, i) => <div className="admin-student-row" key={label}><strong>{label}</strong><span>{values[i]}</span></div>)}
-          <button className="admin-primary-btn" onClick={() => setFullProfile(true)}>مشاهده پرونده کامل دانش‌آموز</button>
-        </main></div>
-    }
     const studentResult = (name: string) => {
       if (category === 'حضور و غیاب') {
         const { delay, absent } = sumPair(attFor(name))
@@ -6664,15 +6651,33 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
   // period selection removed: go straight to detail view
 
   return <div className="screen inner-screen">
-    <SubHeader
+    {role === 'admin' ? (
+      <header className="student-profile-header">
+        <IconButton icon="chevron" label="بازگشت" onClick={directoryReport ? goBack : () => setSelected(null)} />
+        <div className="student-profile-heading">
+          <strong>{selected}</strong>
+          <small>پروندهٔ دانش‌آموز · کلاس {adminClasses.find(c => classStudents[c]?.includes(selected)) ?? repCls}</small>
+        </div>
+        <IconButton icon="download" label="دانلود گزارش" onClick={handleDownloadFullReport} />
+        <label className="student-profile-subject">
+          <Icon name="book" size={17} />
+          <span>درس گزارش</span>
+          <select value={repSubject} onChange={e => setRepSubject(e.target.value)} aria-label="درس گزارش">
+            {adminSubjectList().map(subject => <option key={subject}>{subject}</option>)}
+          </select>
+        </label>
+      </header>
+    ) : (
+      <SubHeader
       screen="gradebook"
-      back={fullProfile ? () => setFullProfile(false) : directoryReport ? goBack : handleBack}
+      back={handleBack}
       title={selected ?? periodValue}
       subtitle={selected ? (periodValue ?? undefined) : (periodMode === 'summer' ? 'ترم تابستانی' : periodMode === 'terms' ? 'نوبت‌ها' : 'ماه‌های تحصیلی')}
       rightIcon="file"
       rightLabel="دانلود گزارش"
       onRightClick={handleDownloadFullReport}
     />
+    )}
     <main className="inner-content">
         <div className="student-card-wrap">
           <div className="student-fifa-card">
@@ -6700,7 +6705,7 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
             </div>
             <div className="fifa-bottom">
               <strong className="fifa-name">{selected}</strong>
-              <small className="fifa-sub">{'علوم تجربی'}{periodValue && ' · ' + periodValue}</small>
+              <small className="fifa-sub">{role === 'admin' ? repSubject : 'علوم تجربی'}{periodValue && ' · ' + periodValue}</small>
               <div className="fifa-stats" onClick={() => setEditModalOpen(true)} style={{ cursor: 'pointer' }}>
                 <div className="fifa-col">
                   {cardStats.slice(0, 3).map(item => (
@@ -6865,7 +6870,13 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
                 { date: d(4), name: 'بازخورد ۱', type: 'بازخورد کلاسی', score: 5, max: 1, desc: 'ارائهٔ روشن و منسجم' },
               ],
             }
-            const events = (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
+            const events: Ev[] = isAdmin && repSubject !== 'علوم تجربی'
+              ? scoresFor(selected).map((mark, i) => {
+                const feedback = detailTab === 'بازخورد کلاسی'
+                const score = feedback ? Number(toEn(mark).replace(/[+−]/g, '')) * (mark.endsWith('−') ? -1 : 1) : toNum(mark)
+                return { name: entries[i], type: detailTab, date: '—', score, max: feedback ? 1 : 20, desc: mark }
+              })
+              : (byTab[detailTab] ?? byTab['آزمونک']).map((e, idx) => {
               if (idx === 2 && si % 2 === 1) return { ...e, score: Math.max(1, e.max - 1), desc: 'شرکت کرده' }
               return e
             })
