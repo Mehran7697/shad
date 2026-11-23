@@ -5922,7 +5922,7 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
   const [classReportOpen, setClassReportOpen] = useState(false)
   const [fullProfile, setFullProfile] = useState(false)
   const [classCategory, setClassCategory] = useState('آزمون')
-  const [teacherTab, setTeacherTab] = useState('ساعت کاری')
+  const [teacherTab, setTeacherTab] = useState('تکالیف ثبت‌شده')
   const [studentQuery, setStudentQuery] = useState('')
   const [detailTab, setDetailTab] = useState('بازخورد کلاسی')
   const [weekIndex, setWeekIndex] = useState(0)
@@ -6247,26 +6247,6 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
     const subjects = (teacher as { subjects?: string[] }).subjects?.length
       ? (teacher as { subjects?: string[] }).subjects!
       : [teacher.subject]
-    const teacherTabs = ['تکالیف ثبت‌شده', 'آزمون‌ها', 'منابع کلاسی', 'بازخورد کلاسی', 'ساعت کاری']
-    const workSeed = selectedTeacher.split('').reduce((s, ch) => s + ch.charCodeAt(0), 0)
-    const hourRows = [
-      { date: '۱۴۰۵/۰۷/۰۴', section: 'چت کلاس · علوم تجربی', minutes: 48 + (workSeed % 20) },
-      { date: '۱۴۰۵/۰۷/۰۴', section: 'ثبت نمره', minutes: 22 + (workSeed % 10) },
-      { date: '۱۴۰۵/۰۷/۰۵', section: 'حضور و غیاب', minutes: 12 + (workSeed % 8) },
-      { date: '۱۴۰۵/۰۷/۰۵', section: 'تکالیف · بازخورد', minutes: 35 + (workSeed % 15) },
-      { date: '۱۴۰۵/۰۷/۰۸', section: 'منابع کلاسی', minutes: 18 + (workSeed % 12) },
-      { date: '۱۴۰۵/۰۷/۰۸', section: 'چت کلاس · ریاضی', minutes: 40 + (workSeed % 18) },
-      { date: '۱۴۰۵/۰۷/۱۲', section: 'آزمون · طراحی', minutes: 55 + (workSeed % 14) },
-      { date: '۱۴۰۵/۰۷/۱۲', section: 'گزارش کلاسی', minutes: 27 + (workSeed % 9) },
-    ]
-    const totalMin = hourRows.reduce((s, r) => s + r.minutes, 0)
-    const fmtMin = (m: number) => {
-      const h = Math.floor(m / 60)
-      const mm = m % 60
-      if (h && mm) return `${fa(h)} ساعت و ${fa(mm)} دقیقه`
-      if (h) return `${fa(h)} ساعت`
-      return `${fa(mm)} دقیقه`
-    }
     const workLists: Record<string, { title: string; sub: string }[]> = {
       'تکالیف ثبت‌شده': [
         { title: 'تمرین فصل سوم', sub: 'علوم تجربی · کلاس ۹۰۱ · ۱۲ تحویل' },
@@ -6297,23 +6277,8 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
           rightIcon={null}
         />
         <main className="inner-content">
-          <div className="week-summary-banner">
-            <div className="week-summary-item">
-              <strong>{fa(subjects.length)}</strong>
-              <span>درس فعال</span>
-            </div>
-            <div className="week-summary-item">
-              <strong>{fmtMin(totalMin)}</strong>
-              <span>حضور در اپ</span>
-            </div>
-            <div className="week-summary-item">
-              <strong>{fa(hourRows.length)}</strong>
-              <span>نشست کاری</span>
-            </div>
-          </div>
-
           <div className="chips compact scrollable student-detail-tabs" style={{ marginTop: 4, marginBottom: 10 }}>
-            {teacherTabs.map(tab => (
+            {Object.keys(workLists).map(tab => (
               <button
                 key={tab}
                 type="button"
@@ -6325,60 +6290,23 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
             ))}
           </div>
 
-          {teacherTab === 'ساعت کاری' ? (
-            <>
-              <div className="section-heading">
-                <strong>ساعت کاری در اپ</strong>
-                <span>زمان حضور در بخش‌های مرتبط با کلاس</span>
-              </div>
-              <div className="assignment-table-wrap">
-                <table className="report-detail-table" dir="rtl">
-                  <thead>
-                    <tr>
-                      <th>تاریخ</th>
-                      <th>بخش</th>
-                      <th>مدت</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {hourRows.map((r, i) => (
-                      <tr key={i}>
-                        <td>{r.date}</td>
-                        <td>{r.section}</td>
-                        <td>{fmtMin(r.minutes)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="collective-foot">
-                    <tr>
-                      <td colSpan={2}><strong>جمع مدت</strong></td>
-                      <td><strong>{fmtMin(totalMin)}</strong></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="section-heading">
-                <strong>{teacherTab}</strong>
-                <span>{fa((workLists[teacherTab] || []).length)} مورد</span>
-              </div>
-              <div className="storage-list">
-                {(workLists[teacherTab] || []).map((item, i) => (
-                  <div className="storage-group" key={i}>
-                    <div className="storage-row" style={{ cursor: 'default' }}>
-                      <span className="storage-row-icon"><Icon name={teacherTab === 'آزمون‌ها' ? 'exam' : teacherTab === 'منابع کلاسی' ? 'file' : 'book'} /></span>
-                      <div>
-                        <strong>{item.title}</strong>
-                        <small>{item.sub}</small>
-                      </div>
-                    </div>
+          <div className="section-heading">
+            <strong>{teacherTab}</strong>
+            <span>{fa((workLists[teacherTab] || []).length)} مورد</span>
+          </div>
+          <div className="storage-list">
+            {(workLists[teacherTab] || []).map((item, i) => (
+              <div className="storage-group" key={i}>
+                <div className="storage-row" style={{ cursor: 'default' }}>
+                  <span className="storage-row-icon"><Icon name={teacherTab === 'آزمون‌ها' ? 'exam' : teacherTab === 'منابع کلاسی' ? 'file' : 'book'} /></span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{item.sub}</small>
                   </div>
-                ))}
+                </div>
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </main>
       </div>
     )
