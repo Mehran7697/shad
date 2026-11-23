@@ -5456,5 +5456,17 @@ button.is-decorative:hover { border-color: var(--line); background: white; }
 
 .month-grid.admin-full-week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .directory-secondary { flex-wrap: wrap; align-items: center; gap: 2px 12px; }
-.directory-secondary label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
-.directory-secondary select { font: inherit; border: 1px solid var(--line); background: white; border-radius: 8px; min-height: 36px; }
+.teacher-card { padding: 12px 14px 6px; }
+.teacher-card-head { display: flex; align-items: center; gap: 10px; }
+.teacher-card-head .directory-avatar { border-radius: 50%; }
+.teacher-card-identity { flex: 1; min-width: 0; }
+.teacher-card-identity h3 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 700; }
+.teacher-card-identity p { margin: 2px 0 0; color: #53636a; font-size: 12px; }
+.teacher-card-role { padding: 4px 6px; min-height: 40px; max-width: 30%; border: 0; border-radius: 8px; background: var(--surface); color: #47575f; font: inherit; font-size: 12px; cursor: pointer; }
+.teacher-card-classes { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; font-size: 12px; }
+.teacher-card-classes span { color: #53636a; }
+.teacher-card-classes strong { color: var(--ink); font-weight: 500; }
+.teacher-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-top: 1px solid var(--line); padding-top: 5px; }
+.teacher-card-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: #455960; font-size: 12px; }
+.teacher-card-actions .teacher-card-report { background: var(--green-soft); color: var(--green-dark); font-weight: 700; }
+.teacher-card :is(button, select):focus-visible { outline: 2px solid var(--green-dark); outline-offset: 1px; }

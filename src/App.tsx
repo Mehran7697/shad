@@ -859,7 +859,10 @@ function parentNameOf(student: string) {
   return `${searchParentFirsts[h % searchParentFirsts.length]} ${family}`
 }
 
-type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string; inbox?: (typeof adminInbox)[number]; kind: InboxRole }
+type DirectoryEntry = { name: string; detail: string; cls?: string; child?: string; inbox?: (typeof adminInbox)[number] } & (
+  | { kind: 'معلم'; subjects: string[]; classes: string[] }
+  | { kind: 'دانش‌آموز' | 'والدین' }
+)
 type DirectoryReport = { kind: 'معلم' | 'دانش‌آموز'; entry: DirectoryEntry }
 const outgoingMessages = new Map<string, string[]>()
 const teacherRoles = new Map<string, string>()
@@ -891,10 +894,12 @@ function SchoolSearch({ goBack }: { goBack: () => void }) {
     return { kind: 'والدین', name: inbox?.name ?? parentNameOf(s.name), cls: s.cls, child: s.name, detail: 'والد ' + s.name + ' · ' + s.detail, inbox }
   })
   const teacherClasses = (name: string) => adminClasses.filter(c => adminSchedules[c]?.some(day => day.some(slot => slot?.teacher === name)))
-  const teachers: DirectoryEntry[] = adminTeachers.map(t => ({
-    kind: 'معلم', name: t.name, detail: (teacherRoles.get(t.name) || 'معلم') + ' · ' + teacherSubjectsOf(t).join('، ') + ' · ' + (teacherClasses(t.name).map(c => 'کلاس ' + c).join('، ') || 'بدون کلاس'),
-    inbox: adminInbox.find(m => m.role === 'معلم' && m.name === t.name),
-  }))
+  const teachers: DirectoryEntry[] = adminTeachers.map(t => {
+    const subjects = teacherSubjectsOf(t)
+    const classes = teacherClasses(t.name)
+    const detail = [teacherRoles.get(t.name) || 'معلم', subjects.join('، '), classes.length ? 'کلاس ' + classes.join('، ') : 'بدون کلاس'].join(' · ')
+    return { kind: 'معلم', name: t.name, detail, classes, subjects, inbox: adminInbox.find(m => m.role === 'معلم' && m.name === t.name) }
+  })
   const everyone = [...teachers, ...students, ...parents]
   const openChat = (p: DirectoryEntry) => {
     directoryScroll.current = window.scrollY
@@ -906,7 +911,7 @@ function SchoolSearch({ goBack }: { goBack: () => void }) {
   </button>
   const classOptions = adminClasses.map(c => <option key={c} value={c}>کلاس {c}</option>)
   if (group) {
-    const recipients = everyone.filter(p => p.kind === group && (!groupClass || (p.kind === 'معلم' ? teacherClasses(p.name).includes(groupClass) : p.cls === groupClass)))
+    const recipients = everyone.filter(p => p.kind === group && (!groupClass || (p.kind === 'معلم' ? p.classes.includes(groupClass) : p.cls === groupClass)))
     return <div className="screen inner-screen"><SubHeader screen="search" title="پیام جمعی" subtitle="انتخاب گیرندگان" back={() => setGroup(null)} rightIcon={null} />
       <main className="inner-content"><label className="field"><span>گروه گیرندگان</span><select value={group} onChange={e => setGroup(e.target.value as InboxRole)}>
         <option value="معلم">معلمان</option><option value="والدین">والدین</option><option value="دانش‌آموز">دانش‌آموزان</option></select></label>
@@ -921,7 +926,7 @@ function SchoolSearch({ goBack }: { goBack: () => void }) {
   const normalize = (v: string) => toEn(v).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\s‌]+/g, '')
   const query = normalize(q)
   const visible = everyone.filter(p => query ? normalize([p.name, p.detail, p.kind].join(' ')).includes(query)
-    : p.kind === tab && (tab === 'معلم' ? !grade || teacherClasses(p.name).some(c => gradeOf(c) === grade) : !cls || p.cls === cls))
+    : p.kind === tab && (p.kind === 'معلم' ? !grade || p.classes.some(c => gradeOf(c) === grade) : !cls || p.cls === cls))
     .sort((a, b) => compareStudentNames(a.name, b.name))
   return <div className="screen inner-screen directory-screen"><SubHeader screen="search" back={goBack} rightText="پیام جمعی" onRightClick={() => { setNotice(''); setGroupClass(''); setGroup(tab) }} />
     <main className="inner-content">
@@ -935,6 +940,30 @@ function SchoolSearch({ goBack }: { goBack: () => void }) {
       <div className="section-heading"><strong>{query ? 'نتایج جست‌وجو' : tab === 'معلم' ? 'معلمان' : 'دانش‌آموزان'}</strong><span>{fa(visible.length)} نفر</span></div>
       {!visible.length && <p className="report-empty-hint">فردی پیدا نشد.</p>}
       {visible.map(p => {
+        if (p.kind === 'معلم') return <article key={contactKey(p)} className="directory-card teacher-card" aria-label={p.name}>
+          <div className="teacher-card-head">
+            <span className="directory-avatar" aria-hidden="true">{p.name[0]}</span>
+            <div className="teacher-card-identity"><h3>{p.name}</h3><p>{p.subjects.join('، ')}</p></div>
+            <select className="teacher-card-role" aria-label={'تغییر نقش ' + p.name} title="تغییر نقش"
+              value={teacherRoles.get(p.name) || 'معلم'} onChange={e => {
+                teacherRoles.set(p.name, e.target.value)
+                setNotice('نقش ' + p.name + ' به ' + e.target.value + ' تغییر کرد.')
+              }}>
+              {['معلم', 'معاون', 'مربی'].map(role => <option key={role}>{role}</option>)}
+            </select>
+          </div>
+          <div className="teacher-card-classes">
+            <span>کلاس‌ها</span>
+            <strong>{p.classes.length ? p.classes.join('، ') : 'بدون کلاس'}</strong>
+          </div>
+          <div className="teacher-card-actions">
+            <button type="button" className="teacher-card-report" onClick={() => {
+              directoryScroll.current = window.scrollY
+              setReport({kind: 'معلم', entry: p})
+            }}><Icon name="chart" size={16} />مشاهده گزارش</button>
+            {chatButton(p, 'پیام')}
+          </div>
+        </article>
         const parent = p.kind === 'دانش‌آموز' ? parents.find(x => x.child === p.name && x.cls === p.cls) : undefined
         return <article className="directory-card" key={contactKey(p)}>
           <div className="directory-report"><span className="directory-avatar">{p.name[0]}</span><span className="directory-person"><strong>{p.name}</strong><small>{query && p.kind + ' · '}{p.detail}</small></span></div>
@@ -942,8 +971,6 @@ function SchoolSearch({ goBack }: { goBack: () => void }) {
             {p.kind !== 'والدین' && <button onClick={() => { directoryScroll.current = window.scrollY; if (p.kind !== 'والدین') setReport({kind: p.kind, entry:p}) }}>مشاهده گزارش</button>}
             {chatButton(p, parent ? 'پیام به دانش‌آموز' : 'ارسال پیام')}
             {parent && <>{chatButton(parent, 'پیام به والد')}<button onClick={() => { setCalling(parent); setNumber(parentNumbers.get(contactKey(parent)) || '') }}><Icon name="phone" size={14} />تماس با والد</button></>}
-            {p.kind === 'معلم' && <label>تغییر نقش <select aria-label={'نقش ' + p.name} defaultValue={teacherRoles.get(p.name) || 'معلم'} onChange={e => { teacherRoles.set(p.name, e.target.value); setNotice('نقش ' + p.name + ' به ' + e.target.value + ' تغییر کرد.') }}>
-              {['معلم','معاون','مربی'].map(r => <option key={r}>{r}</option>)}</select></label>}
           </div></article>
       })}
     </main>
