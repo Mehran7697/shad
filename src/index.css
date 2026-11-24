@@ -772,6 +772,14 @@
 .school-screen .msg-tabs button.active { color: var(--green); }
 .school-screen .msg-tabs button.active > span { background: var(--green-soft); color: var(--green); }
 .school-home { padding: 0; }
+.school-status-bar {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px;
+  padding: 6px 12px; border: 1px solid #cce5db; border-radius: 10px;
+  background: #edf8f3; color: var(--green-dark); text-align: start;
+}
+.school-status-bar strong { font-size: 13px; }
+.school-status-bar small { margin-inline-start: auto; font-size: 11px; color: #436257; }
+.school-status-bar:focus-visible { outline: 2px solid var(--green-dark); outline-offset: 2px; }
 .school-row { background: white; border-bottom: 1px solid var(--line); color: var(--ink); }
 .school-row:hover { background: #f7fbfa; }
 .msg-green { background: linear-gradient(145deg, #2fbf9a, #0a8f6f); }

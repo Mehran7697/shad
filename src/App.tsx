@@ -753,6 +753,12 @@ function MySchool({ navigate, role = 'teacher', lessons }: { navigate: (screen: 
         <div className="school-home" style={{ padding: '0 15px' }}>
           {role === 'admin' ? (
             <>
+              <button type="button" className="school-status-bar" onClick={() => navigate('notifs')}>
+                <Icon name="attendance" size={18} />
+                <strong>وضعیت مدرسه</strong>
+                <small>{notifUnread ? fa(notifUnread) + ' اعلان خوانده‌نشده' : 'همهٔ اعلان‌ها خوانده شده‌اند'}</small>
+                <Icon name="chevron" size={15} />
+              </button>
               <div className="classroom-grid admin-shortcuts" style={{ marginTop: 14 }}>
                 <button onClick={() => { adminStartTab = 'تقویم رویدادها'; adminStartMonth = admMonthIdx; adminStartDay = admIsNowMonth(calendarMonths[admMonthIdx]) ? admNowParts[2] : 1; navigate('admin') }}>
                   <span><Icon name="calendar" /></span><div><strong>تقویم مدرسه</strong><small>مشاهده و ثبت رویداد</small></div><Icon name="chevron" />
@@ -784,7 +790,6 @@ function MySchool({ navigate, role = 'teacher', lessons }: { navigate: (screen: 
                     <strong>گزارش</strong>
                   </div><Icon name="chevron" />
                 </button>
-                <button onClick={() => navigate('notifs')}><span><Icon name="attendance" /></span><div><strong>اعلان‌های حضور و غیاب</strong><small>{fa(notifUnread)} اعلان خوانده‌نشده</small></div><Icon name="chevron" /></button>
               </div>
             </>
           ) : (
@@ -6710,8 +6715,8 @@ function Reports({ goBack, role = 'teacher', directoryReport }: { goBack: () => 
         <IconButton icon="download" label="دانلود گزارش" onClick={handleDownloadFullReport} />
         <label className="student-profile-subject">
           <Icon name="book" size={17} />
-          <span>درس گزارش</span>
-          <select value={repSubject} onChange={e => setRepSubject(e.target.value)} aria-label="درس گزارش">
+          <span>انتخاب درس</span>
+          <select value={repSubject} onChange={e => setRepSubject(e.target.value)} aria-label="انتخاب درس">
             {adminSubjectList().map(subject => <option key={subject}>{subject}</option>)}
           </select>
         </label>
